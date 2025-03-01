@@ -23,7 +23,7 @@ export class Manufacturer {
   description: string;
 
   @ManyToOne(() => Country, (country) => country.manufacturer)
-  country: Country;
+  country_id: Country;
 
   @OneToMany(() => Product, (product) => product.manufacturer_id)
   products: Product[];

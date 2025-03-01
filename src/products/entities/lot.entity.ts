@@ -3,7 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -14,8 +14,8 @@ export class Lot {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => Product, (product) => product.lot)
-  products: Product[];
+  @ManyToOne(() => Product, (product) => product.lot)
+  product_id: Product[];
 
   @Column({ type: 'date' })
   expiration_date: Date;

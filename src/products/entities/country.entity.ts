@@ -9,6 +9,6 @@ export class Country {
   @Column({ type: 'varchar' })
   name: string;
 
-  @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.country)
+  @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.country_id)
   manufacturer: Manufacturer[];
 }

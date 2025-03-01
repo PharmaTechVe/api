@@ -15,7 +15,7 @@ export class ProductImage {
   id: string;
 
   @ManyToOne(() => Product, (product) => product.images)
-  product: Product;
+  product_id: Product;
 
   @Column({ type: 'varchar' })
   url: string;

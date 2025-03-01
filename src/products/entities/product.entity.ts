@@ -36,10 +36,10 @@ export class Product {
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
   manufacturer_id: Manufacturer;
 
-  @OneToMany(() => ProductImage, (productImage) => productImage.product)
+  @OneToMany(() => ProductImage, (productImage) => productImage.product_id)
   images: ProductImage[];
 
-  @ManyToOne(() => Lot, (lot) => lot.products)
+  @OneToMany(() => Lot, (lot) => lot.product_id)
   lot: Lot;
 
   @ManyToMany(() => Category)
