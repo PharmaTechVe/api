@@ -17,7 +17,7 @@ export class Lot {
   @OneToMany(() => Product, (product) => product.lot)
   products: Product[];
 
-  @Column({ type: 'datetime' })
+  @Column({ type: 'date' })
   expiration_date: Date;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
