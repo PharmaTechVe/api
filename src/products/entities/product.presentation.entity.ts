@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
+  Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -9,6 +10,7 @@ import {
 import { Product } from './product.entity';
 import { Presentation } from './presentation.entity';
 
+@Entity('product_presentation')
 export class ProductPresentation {
   @PrimaryGeneratedColumn('uuid')
   id: string;

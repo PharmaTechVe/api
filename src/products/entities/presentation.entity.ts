@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { ProductPresentation } from './product.presentation.entity';
 
-@Entity()
+@Entity('presentation')
 export class Presentation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -23,6 +25,12 @@ export class Presentation {
 
   @Column({ type: 'varchar' })
   measurement_unit: string;
+
+  @OneToMany(
+    () => ProductPresentation,
+    (productPresentation) => productPresentation.product,
+  )
+  presentations: ProductPresentation[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
