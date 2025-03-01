@@ -34,7 +34,7 @@ export class Product {
   priority: number;
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
-  manufacturer: Manufacturer;
+  manufacturer_id: Manufacturer;
 
   @OneToMany(() => ProductImage, (productImage) => productImage.product)
   images: ProductImage[];

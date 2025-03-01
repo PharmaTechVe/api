@@ -3,11 +3,13 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
+import { Country } from './country.entity';
 
 @Entity('manufacturer')
 export class Manufacturer {
@@ -20,10 +22,10 @@ export class Manufacturer {
   @Column({ type: 'text' })
   description: string;
 
-  @Column({ type: 'uuid' })
-  country_id: string;
+  @ManyToOne(() => Country, (country) => country.manufacturer)
+  country: Country;
 
-  @OneToMany(() => Product, (product) => product.manufacturer)
+  @OneToMany(() => Product, (product) => product.manufacturer_id)
   products: Product[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
