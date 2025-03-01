@@ -1,4 +1,4 @@
-import { BaseModel } from '../../utils/entity';
+import { BaseModel } from 'src/utils/entity';
 import { Entity, Column } from 'typeorm';
 
 export enum UserRole {
