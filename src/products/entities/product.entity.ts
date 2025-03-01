@@ -7,10 +7,13 @@ import {
   DeleteDateColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
 import { Lot } from './lot.entity';
 import { ProductImage } from './product.image.entity';
+import { Category } from './category.entity';
 
 @Entity('product')
 export class Product {
@@ -37,6 +40,10 @@ export class Product {
 
   @ManyToOne(() => Lot, (lot) => lot.products)
   lot: Lot;
+
+  @ManyToMany(() => Category)
+  @JoinTable({ name: 'product_category' })
+  categories: Category[];
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
