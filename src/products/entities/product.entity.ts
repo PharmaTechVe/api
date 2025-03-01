@@ -5,17 +5,19 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  ManyToOne,
 } from 'typeorm';
+import { Manufacturer } from './manufacturer.entity';
 
 @Entity('product')
 export class Product {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar' })
   name: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar' })
   generic_name: string;
 
   @Column({ type: 'text', nullable: true })
@@ -24,8 +26,8 @@ export class Product {
   @Column({ type: 'int', default: 0 })
   priority: number;
 
-  @Column({ type: 'uuid' })
-  manufacturer_id: string;
+  @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
+  manufacturer: Manufacturer;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
