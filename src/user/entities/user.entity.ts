@@ -28,7 +28,11 @@ export class User extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ name: 'last_order_date', type: 'time with time zone' })
+  @Column({
+    name: 'last_order_date',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
   lastOrderDate: Date;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.CUSTOMER })
