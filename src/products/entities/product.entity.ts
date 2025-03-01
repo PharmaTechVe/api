@@ -43,12 +43,22 @@ export class Product {
   lot: Lot;
 
   @ManyToMany(() => Category)
-  @JoinTable({ name: 'product_category' })
+  @JoinTable({
+    name: 'product_category',
+    joinColumn: {
+      name: 'product_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'category_id',
+      referencedColumnName: 'id',
+    },
+  })
   categories: Category[];
 
   @OneToMany(
     () => ProductPresentation,
-    (productPresentation) => productPresentation.product,
+    (productPresentation) => productPresentation.product_id,
   )
   presentations: ProductPresentation[];
 

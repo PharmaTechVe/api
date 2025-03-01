@@ -16,10 +16,10 @@ export class ProductPresentation {
   id: string;
 
   @ManyToOne(() => Product, (product) => product.presentations)
-  product: Product;
+  product_id: Product;
 
   @ManyToOne(() => Presentation)
-  presentation: Presentation;
+  presentation_id: Presentation;
 
   @Column({ type: 'int' })
   price: number;

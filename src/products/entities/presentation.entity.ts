@@ -28,7 +28,7 @@ export class Presentation {
 
   @OneToMany(
     () => ProductPresentation,
-    (productPresentation) => productPresentation.product,
+    (productPresentation) => productPresentation.product_id,
   )
   presentations: ProductPresentation[];
 
