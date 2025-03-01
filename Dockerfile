@@ -19,4 +19,4 @@ RUN chmod +x /usr/app/start-dev.sh
 EXPOSE 3000
 
 # Command to run the application
-CMD ["./start-dev.sh"]
+CMD ["sh", "/usr/app/start-dev.sh"]
