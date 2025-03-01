@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -15,7 +16,8 @@ export class Lot {
   id: string;
 
   @ManyToOne(() => Product, (product) => product.lot)
-  product_id: Product[];
+  @JoinColumn({ name: 'product_id' })
+  product_id: Product;
 
   @Column({ type: 'date' })
   expiration_date: Date;

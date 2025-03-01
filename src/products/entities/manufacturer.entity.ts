@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -23,7 +24,8 @@ export class Manufacturer {
   description: string;
 
   @ManyToOne(() => Country, (country) => country.manufacturer)
-  country_id: Country;
+  @JoinColumn({ name: 'country_id' })
+  country: Country;
 
   @OneToMany(() => Product, (product) => product.manufacturer_id)
   products: Product[];

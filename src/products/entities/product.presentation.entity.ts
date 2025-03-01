@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -16,9 +17,11 @@ export class ProductPresentation {
   id: string;
 
   @ManyToOne(() => Product, (product) => product.presentations)
+  @JoinColumn({ name: 'product_id' })
   product_id: Product;
 
-  @ManyToOne(() => Presentation)
+  @ManyToOne(() => Presentation, (presentation) => presentation.presentations)
+  @JoinColumn({ name: 'presentation_id' })
   presentation_id: Presentation;
 
   @Column({ type: 'int' })

@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -15,6 +16,7 @@ export class ProductImage {
   id: string;
 
   @ManyToOne(() => Product, (product) => product.images)
+  @JoinColumn({ name: 'product_id' })
   product_id: Product;
 
   @Column({ type: 'varchar' })

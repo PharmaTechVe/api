@@ -9,6 +9,7 @@ import {
   OneToMany,
   ManyToMany,
   JoinTable,
+  JoinColumn,
 } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
 import { Lot } from './lot.entity';
@@ -34,13 +35,14 @@ export class Product {
   priority: number;
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
+  @JoinColumn({ name: 'manufacturer_id' })
   manufacturer_id: Manufacturer;
 
   @OneToMany(() => ProductImage, (productImage) => productImage.product_id)
   images: ProductImage[];
 
   @OneToMany(() => Lot, (lot) => lot.product_id)
-  lot: Lot;
+  lot: Lot[];
 
   @ManyToMany(() => Category)
   @JoinTable({
