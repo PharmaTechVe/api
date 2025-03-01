@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
 import { Lot } from './lot.entity';
+import { ProductImage } from './product.image.entity';
 
 @Entity('product')
 export class Product {
@@ -29,6 +31,9 @@ export class Product {
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
   manufacturer: Manufacturer;
+
+  @OneToMany(() => ProductImage, (productImage) => productImage.product)
+  images: ProductImage[];
 
   @ManyToOne(() => Lot, (lot) => lot.products)
   lot: Lot;

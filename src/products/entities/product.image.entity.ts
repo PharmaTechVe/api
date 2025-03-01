@@ -3,22 +3,22 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Product } from './product.entity';
 
-@Entity('lot')
-export class Lot {
+@Entity('product_image')
+export class ProductImage {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @OneToMany(() => Product, (product) => product.lot)
-  products: Product[];
+  @ManyToOne(() => Product, (product) => product.images)
+  product: Product;
 
-  @Column({ type: 'datetime' })
-  expiration_date: Date;
+  @Column({ type: 'varchar' })
+  url: string;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
