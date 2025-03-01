@@ -10,22 +10,22 @@ export enum UserRole {
 
 @Entity()
 export class User extends BaseModel {
-  @Column({ name: 'first_name' })
+  @Column({ type: 'character varying', name: 'first_name' })
   firstName: string;
 
-  @Column({ name: 'last_name' })
+  @Column({ type: 'character varying', name: 'last_name' })
   lastName: string;
 
-  @Column()
+  @Column({ type: 'character varying' })
   password: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'character varying', unique: true })
   email: string;
 
-  @Column({ name: 'document_id', unique: true })
+  @Column({ type: 'character varying', name: 'document_id', unique: true })
   documentId: string;
 
-  @Column({ name: 'phone_number' })
+  @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
   @Column({ name: 'last_order_date', type: 'time with time zone' })
