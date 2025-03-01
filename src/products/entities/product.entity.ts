@@ -8,6 +8,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
+import { Lot } from './lot.entity';
 
 @Entity('product')
 export class Product {
@@ -23,11 +24,14 @@ export class Product {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int' })
   priority: number;
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
   manufacturer: Manufacturer;
+
+  @ManyToOne(() => Lot, (lot) => lot.products)
+  lot: Lot;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

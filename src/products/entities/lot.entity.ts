@@ -9,22 +9,16 @@ import {
 } from 'typeorm';
 import { Product } from './product.entity';
 
-@Entity('manufacturer')
-export class Manufacturer {
+@Entity()
+export class Lot {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'varchar' })
-  name: string;
-
-  @Column({ type: 'text' })
-  description: string;
-
-  @Column({ type: 'uuid' })
-  country_id: string;
-
-  @OneToMany(() => Product, (product) => product.manufacturer)
+  @OneToMany(() => Product, (product) => product.lot)
   products: Product[];
+
+  @Column({ type: 'datetime' })
+  expiration_date: Date;
 
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
