@@ -18,7 +18,9 @@
     "test": "vitest run",
     "test:watch": "vitest run --watch",
     "test:coverage": "vitest run --coverage.enabled --coverage.all",
-    "typeorm": "typeorm-ts-node-commonjs",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- migration:generate -d ./src/database/typeorm.config.ts",
+    "migration:run": "npm run typeorm -- migration:run -d ./src/database/typeorm.config.ts",
     "prepare": "husky"
   },
   "dependencies": {

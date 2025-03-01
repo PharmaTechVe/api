@@ -13,7 +13,7 @@ import { ConfigService } from '@nestjs/config';
         password: configService.get('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_NAME'),
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-        synchronize: configService.get<boolean>('DEBUG', true),
+        synchronize: false,
         ssl: configService.get<boolean>('POSTGRES_SSL', false),
       }),
       inject: [ConfigService],
