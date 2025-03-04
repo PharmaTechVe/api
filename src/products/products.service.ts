@@ -9,8 +9,23 @@ export class ProductsService {
     @InjectRepository(Product) private productRepository: Repository<Product>,
   ) {}
 
-  async getProducts(page: number, limit: number): Promise<Product[]> {
-    return await this.productRepository
+  async getProducts(
+    page: number,
+    limit: number,
+  ): Promise<{
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    products: Product[];
+  }> {
+    const totalItems = await this.productRepository
+      .createQueryBuilder('product')
+      .where('product.deletedAt IS NULL')
+      .getCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const products = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('product.lot', 'lot')
@@ -27,5 +42,12 @@ export class ProductsService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    return {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      products,
+    };
   }
 }
