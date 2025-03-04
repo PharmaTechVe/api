@@ -1,4 +1,10 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  DefaultValuePipe,
+  Get,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProductListDTO } from './dto/find-products.dto';
@@ -19,8 +25,8 @@ export class ProductsController {
     type: [ProductListDTO],
   })
   getProducts(
-    @Query('page', ParseIntPipe) page: number = 1,
-    @Query('limit', ParseIntPipe) limit: number = 10,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.productsServices.getProducts(page, limit);
   }
