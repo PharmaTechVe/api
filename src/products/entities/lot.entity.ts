@@ -1,33 +1,13 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { Product } from './product.entity';
+import { BaseModel } from 'src/utils/entity';
 
 @Entity('lot')
-export class Lot {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Lot extends BaseModel {
   @ManyToOne(() => Product, (product) => product.lot)
   @JoinColumn({ name: 'product_id' })
-  product_id: Product;
+  product: Product;
 
-  @Column({ type: 'date' })
-  expiration_date: Date;
-
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp', nullable: true })
-  updated_at: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  deleted_at: Date;
+  @Column({ type: 'date', name: 'expiration_date' })
+  expirationDate: Date;
 }

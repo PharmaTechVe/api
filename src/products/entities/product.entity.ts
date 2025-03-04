@@ -1,10 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
-  DeleteDateColumn,
   ManyToOne,
   OneToMany,
   ManyToMany,
@@ -16,32 +12,30 @@ import { Lot } from './lot.entity';
 import { ProductImage } from './product.image.entity';
 import { Category } from './category.entity';
 import { ProductPresentation } from './product.presentation.entity';
+import { BaseModel } from 'src/utils/entity';
 
 @Entity('product')
-export class Product {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'varchar' })
+export class Product extends BaseModel {
+  @Column({ type: 'varchar', name: 'name' })
   name: string;
 
-  @Column({ type: 'varchar' })
-  generic_name: string;
+  @Column({ type: 'varchar', name: 'generic_name' })
+  genericName: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text', name: 'description', nullable: true })
   description: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', name: 'priority' })
   priority: number;
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
   @JoinColumn({ name: 'manufacturer_id' })
-  manufacturer_id: Manufacturer;
+  manufacturer: Manufacturer;
 
-  @OneToMany(() => ProductImage, (productImage) => productImage.product_id)
+  @OneToMany(() => ProductImage, (productImage) => productImage.product)
   images: ProductImage[];
 
-  @OneToMany(() => Lot, (lot) => lot.product_id)
+  @OneToMany(() => Lot, (lot) => lot.product)
   lot: Lot[];
 
   @ManyToMany(() => Category)
@@ -60,16 +54,7 @@ export class Product {
 
   @OneToMany(
     () => ProductPresentation,
-    (productPresentation) => productPresentation.product_id,
+    (productPresentation) => productPresentation.product,
   )
   presentations: ProductPresentation[];
-
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp', nullable: true })
-  updated_at: Date;
-
-  @DeleteDateColumn({ type: 'timestamp', nullable: true })
-  deleted_at: Date;
 }

@@ -1,12 +1,10 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
+import { UUIDModel } from 'src/utils/entity';
 
 @Entity('country')
-export class Country {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'varchar' })
+export class Country extends UUIDModel {
+  @Column({ type: 'varchar', name: 'name' })
   name: string;
 
   @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.country)

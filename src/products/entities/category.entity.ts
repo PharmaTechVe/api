@@ -1,13 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { UUIDModel } from 'src/utils/entity';
+import { Column, Entity } from 'typeorm';
 
 @Entity('category')
-export class Category {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'varchar' })
+export class Category extends UUIDModel {
+  @Column({ type: 'varchar', name: 'name' })
   name: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', name: 'description' })
   description: string;
 }
