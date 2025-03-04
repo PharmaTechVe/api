@@ -9,17 +9,17 @@ import {
 } from 'typeorm';
 import { Manufacturer } from './manufacturer.entity';
 import { Lot } from './lot.entity';
-import { ProductImage } from './product.image.entity';
+import { ProductImage } from './product-image.entity';
 import { Category } from './category.entity';
-import { ProductPresentation } from './product.presentation.entity';
+import { ProductPresentation } from './product-presentation.entity';
 import { BaseModel } from 'src/utils/entity';
 
 @Entity('product')
 export class Product extends BaseModel {
-  @Column({ type: 'varchar', name: 'name' })
+  @Column({ type: 'character varying', name: 'name' })
   name: string;
 
-  @Column({ type: 'varchar', name: 'generic_name' })
+  @Column({ type: 'character varying', name: 'generic_name' })
   genericName: string;
 
   @Column({ type: 'text', name: 'description', nullable: true })

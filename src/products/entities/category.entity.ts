@@ -3,7 +3,7 @@ import { Column, Entity } from 'typeorm';
 
 @Entity('category')
 export class Category extends UUIDModel {
-  @Column({ type: 'varchar', name: 'name' })
+  @Column({ type: 'character varying', name: 'name' })
   name: string;
 
   @Column({ type: 'text', name: 'description' })

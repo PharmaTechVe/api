@@ -5,7 +5,7 @@ import { BaseModel } from 'src/utils/entity';
 
 @Entity('manufacturer')
 export class Manufacturer extends BaseModel {
-  @Column({ type: 'varchar', name: 'name' })
+  @Column({ type: 'character varying', name: 'name' })
   name: string;
 
   @Column({ type: 'text', name: 'description' })

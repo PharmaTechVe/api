@@ -8,6 +8,6 @@ export class ProductImage extends BaseModel {
   @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  @Column({ type: 'varchar', name: 'url' })
+  @Column({ type: 'character varying', name: 'url' })
   url: string;
 }

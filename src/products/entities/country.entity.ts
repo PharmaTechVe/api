@@ -4,7 +4,7 @@ import { UUIDModel } from 'src/utils/entity';
 
 @Entity('country')
 export class Country extends UUIDModel {
-  @Column({ type: 'varchar', name: 'name' })
+  @Column({ type: 'character varying', name: 'name' })
   name: string;
 
   @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.country)
