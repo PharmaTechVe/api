@@ -4,6 +4,7 @@ import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { Pagination } from 'src/utils/dto';
+import { getPaginationUrls } from 'src/utils/paginationUrls';
 
 @Injectable()
 export class ProductsService {
@@ -21,21 +22,7 @@ export class ProductsService {
       .where('product.deletedAt IS NULL')
       .getCount();
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-
-    const protocol = req.protocol;
-    const host = req.get('host');
-
-    const baseUrl = `${protocol}://${host}${req.path}`;
-
-    const next =
-      endIndex < count ? `${baseUrl}?page=${page + 1}&pageSize=${limit}` : null;
-
-    const previous =
-      startIndex > 0 ? `${baseUrl}?page=${page - 1}&pageSize=${limit}` : null;
-
-    // const totalPages = Math.ceil(totalItems / limit);
+    const { next, previous } = getPaginationUrls(req, page, limit, count);
 
     const products = await this.productRepository
       .createQueryBuilder('product')
