@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
+import { Request } from 'express';
+import { Pagination } from 'src/utils/dto';
+import { getPaginationUrls } from 'src/utils/paginationUrls';
 
 @Injectable()
 export class ProductsService {
@@ -12,18 +15,14 @@ export class ProductsService {
   async getProducts(
     page: number,
     limit: number,
-  ): Promise<{
-    totalItems: number;
-    totalPages: number;
-    currentPage: number;
-    products: Product[];
-  }> {
-    const totalItems = await this.productRepository
+    req: Request,
+  ): Promise<Pagination> {
+    const count = await this.productRepository
       .createQueryBuilder('product')
       .where('product.deletedAt IS NULL')
       .getCount();
 
-    const totalPages = Math.ceil(totalItems / limit);
+    const { next, previous } = getPaginationUrls(req, page, limit, count);
 
     const products = await this.productRepository
       .createQueryBuilder('product')
@@ -44,10 +43,10 @@ export class ProductsService {
       .getMany();
 
     return {
-      totalItems,
-      totalPages,
-      currentPage: page,
-      products,
+      results: products,
+      count,
+      next,
+      previous,
     };
   }
 }
