@@ -1,4 +1,4 @@
-export class Pagination {
+export class PaginationDTO {
   results: object[];
   count: number;
   next: string | null;

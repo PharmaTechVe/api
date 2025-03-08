@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { ProductListDTO } from './dto/find-products.dto';
+import { ProductDTO } from './dto/find-products.dto';
 import { Request } from 'express';
 
 @Controller('product')
@@ -24,7 +24,7 @@ export class ProductsController {
   @ApiResponse({
     status: 200,
     description: 'Products obtained correctly.',
-    type: [ProductListDTO],
+    type: [ProductDTO],
   })
   getProducts(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
