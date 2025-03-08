@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
-import { Pagination } from 'src/utils/dto';
-import { getPaginationUrls } from 'src/utils/paginationUrls';
+import { Pagination } from 'src/utils/pagination.dto';
+import { getPaginationUrls } from 'src/utils/pagination-urls';
 
 @Injectable()
 export class ProductsService {

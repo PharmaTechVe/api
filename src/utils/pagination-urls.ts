@@ -1,9 +1,12 @@
+import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
-interface PaginationUrls {
+type PaginationUrls = {
   next: string | null;
   previous: string | null;
-}
+};
+
+const configService = new ConfigService();
 
 export function getPaginationUrls(
   req: Request,
@@ -14,10 +17,9 @@ export function getPaginationUrls(
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
 
-  const protocol = req.protocol;
-  const host = req.get('host');
+  const api = configService.get<string>('API_URL');
 
-  const baseUrl = `${protocol}://${host}${req.path}`;
+  const baseUrl = `${api}${req.path}`;
 
   const next =
     endIndex < count ? `${baseUrl}?page=${page + 1}&limit=${limit}` : null;
