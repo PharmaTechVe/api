@@ -2,31 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { Repository } from 'typeorm';
-import { Request } from 'express';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
-    private configService: ConfigService,
   ) {}
 
-  async getProducts(
-    page: number,
-    limit: number,
-    req: Request,
-  ): Promise<PaginationDTO> {
-    const count = await this.productRepository
+  async countProducts(): Promise<number> {
+    return await this.productRepository
       .createQueryBuilder('product')
       .where('product.deletedAt IS NULL')
       .getCount();
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
+  }
 
+  async getProducts(page: number, limit: number): Promise<Product[]> {
     const products = await this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.images', 'images')
@@ -43,11 +34,6 @@ export class ProductsService {
       .take(limit)
       .getMany();
 
-    return {
-      results: products,
-      count,
-      next,
-      previous,
-    };
+    return products;
   }
 }
