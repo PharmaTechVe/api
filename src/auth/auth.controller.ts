@@ -1,7 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
-import { SignUpDTO } from './dto/signUp.dto';
+//import { SignUpDTO } from './dto/sign-up.dto';
+import { UserDTO } from 'src/user/dto/user.dto';
 import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('auth')
@@ -16,9 +17,9 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('signUp')
+  @Post('signup')
   @ApiResponse({ status: HttpStatus.CREATED })
-  async register(@Body() signUpDTO: SignUpDTO) {
+  async register(@Body() signUpDTO: UserDTO) {
     return await this.authService.signUp(signUpDTO);
   }
 }
