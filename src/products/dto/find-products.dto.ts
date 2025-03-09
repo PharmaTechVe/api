@@ -1,20 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-
-class UUIDBaseDTO {
-  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174006' })
-  id: string;
-}
-
-export class BaseDTO extends UUIDBaseDTO {
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
-
-  @ApiProperty({ example: null })
-  deletedAt: Date;
-}
+import { BaseDTO, UUIDBaseDTO } from 'src/utils/dto/base.dto';
 
 export class ManufacturerDTO extends BaseDTO {
   @ApiProperty()
@@ -24,7 +9,7 @@ export class ManufacturerDTO extends BaseDTO {
   description: string;
 }
 
-export class ImagesDTO extends BaseDTO {
+export class ImageDTO extends BaseDTO {
   @ApiProperty()
   url: string;
 }
@@ -34,7 +19,7 @@ export class LotDTO extends BaseDTO {
   expirationDate: Date;
 }
 
-export class CategorieDTO extends UUIDBaseDTO {
+export class CategoryDTO extends UUIDBaseDTO {
   @ApiProperty()
   name: string;
 
@@ -56,7 +41,7 @@ export class PresentationDTO extends BaseDTO {
   meansurementUnit: string;
 }
 
-export class PresentationsDTO extends BaseDTO {
+export class ProductPresentationDTO extends BaseDTO {
   @ApiProperty()
   price: number;
 
@@ -64,7 +49,7 @@ export class PresentationsDTO extends BaseDTO {
   presentation: PresentationDTO;
 }
 
-export class ProductListDTO extends BaseDTO {
+export class ProductDTO extends BaseDTO {
   @ApiProperty()
   name: string;
 
@@ -80,15 +65,12 @@ export class ProductListDTO extends BaseDTO {
   @ApiProperty({ type: ManufacturerDTO })
   manufacturer: ManufacturerDTO;
 
-  @ApiProperty({ type: ImagesDTO })
-  images: ImagesDTO[];
+  @ApiProperty({ type: ImageDTO })
+  images: ImageDTO[];
 
-  @ApiProperty({ type: [LotDTO] })
-  lot: LotDTO[];
+  @ApiProperty({ type: [CategoryDTO] })
+  categories: CategoryDTO[];
 
-  @ApiProperty({ type: [CategorieDTO] })
-  categories: CategorieDTO[];
-
-  @ApiProperty({ type: [PresentationsDTO] })
-  presentations: PresentationsDTO[];
+  @ApiProperty({ type: [ProductPresentationDTO] })
+  presentations: ProductPresentationDTO[];
 }
