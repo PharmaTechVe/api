@@ -6,6 +6,8 @@ import { DatabaseModule } from './database/database.module';
 import { ProductsModule } from './products/products.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { OtpModule } from './otp-user/otp.module';
+import { EmailTemplateModule } from './email-template/email-template.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { AuthModule } from './auth/auth.module';
     ProductsModule,
     UserModule,
     AuthModule,
+    OtpModule,
+    EmailTemplateModule,
   ],
   controllers: [AppController],
   providers: [AppService],
