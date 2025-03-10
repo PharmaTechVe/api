@@ -9,18 +9,18 @@ export type EmailOptions = {
 };
 
 export type EmailOptionsContent = {
-  text?: string;
-  html?: string;
+  text: string;
+  html: string;
 };
 
 export interface EmailHelper {
   apiKey: string;
 
-  sendEmail(options: EmailOptions & EmailOptionsContent): boolean;
+  sendEmail(options: EmailOptions & EmailOptionsContent): Promise<boolean>;
 
   sendEmailTemplate(
     options: EmailOptions,
     template: string,
-    args: object,
-  ): boolean;
+    ...args: string[]
+  ): Promise<boolean>;
 }
