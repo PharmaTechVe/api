@@ -10,7 +10,7 @@ import { User } from 'src/user/entities/user.entity';
 @Entity()
 export class UserOTP {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: string;
 
   @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn()
