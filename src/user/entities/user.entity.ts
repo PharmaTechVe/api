@@ -28,7 +28,7 @@ export class User extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ default: false })
+  @Column({ type: 'boolean', default: false })
   isValidated: boolean;
 
   @Column({
