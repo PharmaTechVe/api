@@ -56,4 +56,8 @@ export class AuthService {
     };
     return userCreated;
   }
+
+  updatePassword(newPasswod: string) {
+    console.log(newPasswod);
+  }
 }
