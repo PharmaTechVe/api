@@ -2,12 +2,12 @@ import * as bcrypt from 'bcryptjs';
 import {
   Injectable,
   UnauthorizedException,
-  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
-import { UserSignUpResponseDTO } from './dto/sign-up.dto';
-import { UserDTO } from 'src/user/dto/user.dto';
+import { SignUpDTO } from './dto/signUp.dto';
+import { UserDTO } from 'src/user/dto/users.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -26,16 +26,17 @@ export class AuthService {
     if (!isPassMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, role: user.role };
+
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };
   }
 
-  async signUp(signUpDTO: UserDTO) {
+  async signUp(signUpDTO: SignUpDTO) {
     const existingUser = await this.userService.findByEmail(signUpDTO.email);
     if (existingUser) {
-      throw new BadRequestException('The email is already in use');
+      throw new ConflictException('The email is already in use');
     }
 
     const hashedPassword = await bcrypt.hash(signUpDTO.password, 10);
@@ -47,11 +48,12 @@ export class AuthService {
 
     const newUser = await this.userService.create(newUserData);
 
-    const userCreated: UserSignUpResponseDTO = {
+    const userCreated: UserDTO = {
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
       documentId: newUser.documentId,
+      password: '',
       phoneNumber: newUser.phoneNumber,
     };
     return userCreated;
