@@ -36,7 +36,7 @@ export class AuthGuard implements CanActivate {
       })) as unknown;
 
       if (typeof rawPayload !== 'object' || rawPayload === null) {
-        throw new UnauthorizedException('Payload inválido');
+        throw new UnauthorizedException('Invalid payload');
       }
       const payload: JwtPayload = rawPayload as JwtPayload;
       request.user = payload;
