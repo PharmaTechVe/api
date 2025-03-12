@@ -19,6 +19,8 @@ export class UserOTP {
   @Column({ length: 6 })
   code: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({
+    type: 'timestamp with time zone',
+  })
   expiresAt: Date;
 }
