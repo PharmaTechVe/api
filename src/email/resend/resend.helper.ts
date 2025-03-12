@@ -31,6 +31,7 @@ export class ResendHelper implements EmailHelper {
       text: options.text,
     });
     if (error) {
+      console.error(error);
       return false;
     }
     // TODO: Change console.log for logging
