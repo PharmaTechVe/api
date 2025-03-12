@@ -21,25 +21,31 @@ export class UserService {
   }
 
   async findActiveUsers(
-    page = 1,
-    limit = 10,
+    page: number,
+    limit: number,
   ): Promise<{
-    data: User[];
-    total: number;
-    page: number;
-    lastPage: number;
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    users: User[];
   }> {
-    const [data, total] = await this.userRepository.findAndCount({
-      where: { isValidated: true },
-      skip: (page - 1) * limit,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+    const totalItems = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.isValidated = :isValidated', { isValidated: true })
+      .getCount();
+    const totalPages = Math.ceil(totalItems / limit);
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.isValidated = :isValidated', { isValidated: true })
+      .orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
     return {
-      data,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
+      totalItems,
+      totalPages,
+      currentPage: page,
+      users,
     };
   }
 }
