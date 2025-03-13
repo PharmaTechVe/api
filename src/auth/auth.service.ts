@@ -7,7 +7,7 @@ import {
 import { UserService } from 'src/user/user.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserSignUpResponseDTO } from './dto/sign-up.dto';
-import { UserDTO } from 'src/user/dto/user.dto';
+import { UserCreateDTO } from 'src/user/dto/user-create.dto';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
@@ -26,13 +26,13 @@ export class AuthService {
     if (!isPassMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { email: user.email, sub: user.id };
+    const payload = { email: user.email, sub: user.id, role: user.role };
     return {
       accessToken: await this.jwtService.signAsync(payload),
     };
   }
 
-  async signUp(signUpDTO: UserDTO) {
+  async signUp(signUpDTO: UserCreateDTO) {
     const existingUser = await this.userService.findByEmail(signUpDTO.email);
     if (existingUser) {
       throw new BadRequestException('The email is already in use');

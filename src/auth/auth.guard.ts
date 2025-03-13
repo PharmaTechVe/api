@@ -8,6 +8,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
+interface JwtPayload {
+  email: string;
+  sub: string;
+  role: string;
+}
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
@@ -16,15 +22,24 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request: Request = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JwtPayload }>();
+
     const token: string | undefined = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
     }
     try {
-      await this.jwtService.verifyAsync(token, {
+      const rawPayload = (await this.jwtService.verifyAsync(token, {
         secret: this.configService.get('JWT_SECRET'),
-      });
+      })) as unknown;
+
+      if (typeof rawPayload !== 'object' || rawPayload === null) {
+        throw new UnauthorizedException('Invalid payload');
+      }
+      const payload: JwtPayload = rawPayload as JwtPayload;
+      request.user = payload;
     } catch {
       throw new UnauthorizedException();
     }

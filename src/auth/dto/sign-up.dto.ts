@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
-import { UserDTO } from 'src/user/dto/user.dto';
+import { UserCreateDTO } from 'src/user/dto/user-create.dto';
 
-export class UserSignUpResponseDTO extends OmitType(UserDTO, [
+export class UserSignUpResponseDTO extends OmitType(UserCreateDTO, [
   'password',
 ] as const) {}
