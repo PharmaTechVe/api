@@ -3,10 +3,8 @@ import {
   DefaultValuePipe,
   Get,
   ParseIntPipe,
-  Post,
   Query,
   Req,
-  //UnauthorizedException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
@@ -20,16 +18,12 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-//import { UserService } from 'src/user/user.service';
-//import { UserRole } from 'src/user/entities/user.entity';
-//import { CreateProductDTO } from './dto/create-product.dto';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductDTO)
 export class ProductsController {
   constructor(
     private productsServices: ProductsService,
-    //private userService: UserService,
     private configService: ConfigService,
   ) {}
 
@@ -65,22 +59,5 @@ export class ProductsController {
     const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
     const products = await this.productsServices.getProducts(page, limit);
     return { products, count, next, previous };
-  }
-
-  @Post()
-  createProduct(/*userId: string, product: CreateProductDTO*/): string {
-    // const userRole = await this.userService.getUserRole(userId);
-
-    // if (userRole !== UserRole.ADMIN && userRole !== UserRole.BRANCH_ADMIN) {
-    //   throw new UnauthorizedException(
-    //     'You are not authorized to create a product',
-    //   );
-    // }
-
-    // const productCreated = await this.productsServices.createProduct(product);
-
-    // return productCreated;
-
-    return 'equis';
   }
 }
