@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Product } from './product.entity';
 import { Presentation } from './presentation.entity';
 import { BaseModel } from 'src/utils/entity';
+import { Lot } from './lot.entity';
 
 @Entity('product_presentation')
 export class ProductPresentation extends BaseModel {
@@ -15,4 +16,7 @@ export class ProductPresentation extends BaseModel {
 
   @Column({ type: 'int', name: 'price' })
   price: number;
+
+  @OneToMany(() => Lot, (lot) => lot.productPresentation)
+  lot: Lot[];
 }

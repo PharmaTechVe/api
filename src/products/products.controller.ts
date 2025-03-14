@@ -6,7 +6,7 @@ import {
   Post,
   Query,
   Req,
-  UnauthorizedException,
+  //UnauthorizedException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
@@ -20,16 +20,16 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { UserService } from 'src/user/user.service';
-import { UserRole } from 'src/user/entities/user.entity';
-import { CreateProductDTO } from './dto/create-product.dto';
+//import { UserService } from 'src/user/user.service';
+//import { UserRole } from 'src/user/entities/user.entity';
+//import { CreateProductDTO } from './dto/create-product.dto';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductDTO)
 export class ProductsController {
   constructor(
     private productsServices: ProductsService,
-    private userService: UserService,
+    //private userService: UserService,
     private configService: ConfigService,
   ) {}
 
@@ -68,17 +68,19 @@ export class ProductsController {
   }
 
   @Post()
-  async createProduct(userId: string, product: CreateProductDTO) {
-    const userRole = await this.userService.getUserRole(userId);
+  createProduct(/*userId: string, product: CreateProductDTO*/): string {
+    // const userRole = await this.userService.getUserRole(userId);
 
-    if (userRole !== UserRole.ADMIN && userRole !== UserRole.BRANCH_ADMIN) {
-      throw new UnauthorizedException(
-        'You are not authorized to create a product',
-      );
-    }
+    // if (userRole !== UserRole.ADMIN && userRole !== UserRole.BRANCH_ADMIN) {
+    //   throw new UnauthorizedException(
+    //     'You are not authorized to create a product',
+    //   );
+    // }
 
-    const productCreated = await this.productsServices.createProduct(product);
+    // const productCreated = await this.productsServices.createProduct(product);
 
-    return productCreated;
+    // return productCreated;
+
+    return 'equis';
   }
 }

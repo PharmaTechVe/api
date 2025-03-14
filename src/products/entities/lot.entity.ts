@@ -1,12 +1,15 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { Product } from './product.entity';
 import { BaseModel } from 'src/utils/entity';
+import { ProductPresentation } from './product-presentation.entity';
 
 @Entity('lot')
 export class Lot extends BaseModel {
-  @ManyToOne(() => Product, (product) => product.lot)
-  @JoinColumn({ name: 'product_id' })
-  product: Product;
+  @ManyToOne(
+    () => ProductPresentation,
+    (productPresentation) => productPresentation.lot,
+  )
+  @JoinColumn({ name: 'product_presentation_id' })
+  productPresentation: ProductPresentation;
 
   @Column({ type: 'date', name: 'expiration_date' })
   expirationDate: Date;
