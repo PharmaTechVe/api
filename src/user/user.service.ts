@@ -22,6 +22,32 @@ export class UserService {
     return user;
   }
 
+  async findByOTP(otp: string): Promise<User> {
+    const userOTP = await this.userOTPRepository.findOne({
+      where: {
+        code: otp,
+      },
+      relations: {
+        user: true,
+      },
+    });
+    if (!userOTP) {
+      throw new NotFoundException('User not found');
+    }
+    return userOTP.user;
+  }
+
+  async deleteOTP(otp: string, user: User): Promise<void> {
+    const userOTP = await this.userOTPRepository.findOneBy({
+      code: otp,
+      user: user,
+    });
+    if (!userOTP) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userOTPRepository.remove(userOTP);
+  }
+
   async create(userData: UserDTO): Promise<User> {
     const newUser = this.userRepository.create(userData);
     return await this.userRepository.save(newUser);
