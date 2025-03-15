@@ -1,5 +1,6 @@
 import { BaseModel } from 'src/utils/entity';
 import { Entity, Column } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -16,6 +17,7 @@ export class User extends BaseModel {
   @Column({ type: 'character varying', name: 'last_name' })
   lastName: string;
 
+  @Exclude()
   @Column({ type: 'character varying' })
   password: string;
 
