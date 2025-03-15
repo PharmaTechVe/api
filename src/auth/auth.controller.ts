@@ -18,6 +18,7 @@ import { ForgotPasswordDTO } from './dto/forgot-password.dto';
 import { UserService } from 'src/user/user.service';
 import { generateOTP } from 'src/utils/string';
 import { EmailService } from 'src/email/email.service';
+import { OtpDTO } from 'src/user/dto/otp.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +56,16 @@ export class AuthController {
       text: `Your OTP is ${otp}`,
     });
     return HttpStatus.NO_CONTENT;
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset user password' })
+  @ApiResponse({ status: HttpStatus.OK, type: LoginResponseDTO })
+  async resetPassword(@Body() otp: OtpDTO): Promise<LoginResponseDTO> {
+    const user = await this.userService.findByOTP(otp.otp);
+    const result = await this.authService.generateToken(user);
+    await this.userService.deleteOTP(otp.otp, user);
+    return result;
   }
 
   @UseGuards(AuthGuard)
