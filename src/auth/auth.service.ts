@@ -9,6 +9,7 @@ import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserSignUpResponseDTO } from './dto/sign-up.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,10 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
   ) {}
+
+  async encryptPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
 
   async login(loginDTO: LoginDTO): Promise<LoginResponseDTO> {
     const user = await this.userService.findByEmail(loginDTO.email);
@@ -38,7 +43,7 @@ export class AuthService {
       throw new BadRequestException('The email is already in use');
     }
 
-    const hashedPassword = await bcrypt.hash(signUpDTO.password, 10);
+    const hashedPassword = await this.encryptPassword(signUpDTO.password);
 
     const newUserData = {
       ...signUpDTO,
@@ -57,7 +62,9 @@ export class AuthService {
     return userCreated;
   }
 
-  updatePassword(newPasswod: string) {
-    console.log(newPasswod);
+  async updatePassword(user: User, newPasswod: string): Promise<boolean> {
+    const password = await this.encryptPassword(newPasswod);
+    await this.userService.update(user, { password });
+    return true;
   }
 }
