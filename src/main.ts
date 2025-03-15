@@ -19,6 +19,7 @@ async function bootstrap() {
     .setTitle('PharmaTech Core API')
     .setDescription('REST API for PharmaTech Ecommerce')
     .setVersion('0.0.1')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
