@@ -4,6 +4,8 @@ import { AuthController } from './auth.controller';
 import { UserModule } from 'src/user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { UserService } from 'src/user/user.service';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -18,8 +20,9 @@ import { ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    EmailModule,
   ],
-  providers: [AuthService],
+  providers: [AuthService, UserService],
   controllers: [AuthController],
 })
 export class AuthModule {}
