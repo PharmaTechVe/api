@@ -4,9 +4,9 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
+import { plainToInstance } from 'class-transformer';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
-import { UserSignUpResponseDTO } from './dto/sign-up.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
@@ -52,14 +52,7 @@ export class AuthService {
 
     const newUser = await this.userService.create(newUserData);
 
-    const userCreated: UserSignUpResponseDTO = {
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-      documentId: newUser.documentId,
-      phoneNumber: newUser.phoneNumber,
-    };
-    return userCreated;
+    return plainToInstance(User, newUser);
   }
 
   async updatePassword(user: User, newPasswod: string): Promise<boolean> {
