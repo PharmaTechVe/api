@@ -22,6 +22,13 @@ export class AuthService {
     return await bcrypt.hash(password, 10);
   }
 
+  async generateToken(user: User): Promise<LoginResponseDTO> {
+    const payload = { email: user.email, sub: user.id };
+    return {
+      accessToken: await this.jwtService.signAsync(payload),
+    };
+  }
+
   async login(loginDTO: LoginDTO): Promise<LoginResponseDTO> {
     const user = await this.userService.findByEmail(loginDTO.email);
     if (user == null) {
@@ -31,10 +38,7 @@ export class AuthService {
     if (!isPassMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const payload = { email: user.email, sub: user.id };
-    return {
-      accessToken: await this.jwtService.signAsync(payload),
-    };
+    return this.generateToken(user);
   }
 
   async signUp(signUpDTO: UserDTO) {
