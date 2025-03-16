@@ -18,6 +18,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async encryptPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
+
   async login(loginDTO: LoginDTO): Promise<LoginResponseDTO> {
     const user = await this.userService.findByEmail(loginDTO.email);
     if (user == null) {
@@ -39,7 +43,7 @@ export class AuthService {
       throw new BadRequestException('The email is already in use');
     }
 
-    const hashedPassword = await bcrypt.hash(signUpDTO.password, 10);
+    const hashedPassword = await this.encryptPassword(signUpDTO.password);
 
     const newUserData = {
       ...signUpDTO,
@@ -49,5 +53,11 @@ export class AuthService {
     const newUser = await this.userService.create(newUserData);
 
     return plainToInstance(User, newUser);
+  }
+
+  async updatePassword(user: User, newPasswod: string): Promise<boolean> {
+    const password = await this.encryptPassword(newPasswod);
+    await this.userService.update(user, { password });
+    return true;
   }
 }
