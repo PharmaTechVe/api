@@ -3,16 +3,49 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
+import { UserOTP } from './entities/user-otp.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(UserOTP)
+    private userOTPRepository: Repository<UserOTP>,
   ) {}
 
-  async findByEmail(email: string): Promise<User | null> {
-    return await this.userRepository.findOneBy({ email });
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOneBy({ email });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async findByOTP(otp: string): Promise<User> {
+    const userOTP = await this.userOTPRepository.findOne({
+      where: {
+        code: otp,
+      },
+      relations: {
+        user: true,
+      },
+    });
+    if (!userOTP) {
+      throw new NotFoundException('User not found');
+    }
+    return userOTP.user;
+  }
+
+  async deleteOTP(otp: string, user: User): Promise<void> {
+    const userOTP = await this.userOTPRepository.findOneBy({
+      code: otp,
+      user: user,
+    });
+    if (!userOTP) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userOTPRepository.remove(userOTP);
   }
 
   async create(userData: UserDTO): Promise<User> {
@@ -30,5 +63,13 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     return userUpdated;
+  }
+
+  async saveOTP(user: User, otp: string): Promise<UserOTP> {
+    const newOTP = new UserOTP();
+    newOTP.user = user;
+    newOTP.code = otp;
+    newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    return await this.userOTPRepository.save(newOTP);
   }
 }
