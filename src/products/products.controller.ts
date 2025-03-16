@@ -13,14 +13,14 @@ import {
   ApiOperation,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductDTO } from './dto/find-products.dto';
+import { ProductPresentationDTO } from './dto/find-products.dto';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 
 @Controller('product')
-@ApiExtraModels(PaginationDTO, ProductDTO)
+@ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
   constructor(
     private productsServices: ProductsService,
@@ -42,7 +42,7 @@ export class ProductsController {
           properties: {
             results: {
               type: 'array',
-              items: { $ref: getSchemaPath(ProductDTO) },
+              items: { $ref: getSchemaPath(ProductPresentationDTO) },
             },
           },
         },
@@ -53,11 +53,11 @@ export class ProductsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Req() req: Request,
-  ) {
+  ): Promise<PaginationDTO<ProductPresentationDTO>> {
     const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
     const count = await this.productsServices.countProducts();
     const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
     const products = await this.productsServices.getProducts(page, limit);
-    return { products, count, next, previous };
+    return { results: products, count, next, previous };
   }
 }

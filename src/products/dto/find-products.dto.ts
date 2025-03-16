@@ -38,15 +38,7 @@ export class PresentationDTO extends BaseDTO {
   quantity: number;
 
   @ApiProperty()
-  meansurementUnit: string;
-}
-
-export class ProductPresentationDTO extends BaseDTO {
-  @ApiProperty()
-  price: number;
-
-  @ApiProperty()
-  presentation: PresentationDTO;
+  measurementUnit: string;
 }
 
 export class ProductDTO extends BaseDTO {
@@ -70,7 +62,15 @@ export class ProductDTO extends BaseDTO {
 
   @ApiProperty({ type: [CategoryDTO] })
   categories: CategoryDTO[];
+}
 
-  @ApiProperty({ type: [ProductPresentationDTO] })
-  presentations: ProductPresentationDTO[];
+export class ProductPresentationDTO extends BaseDTO {
+  @ApiProperty()
+  price: number;
+
+  @ApiProperty({ type: PresentationDTO })
+  presentation: PresentationDTO;
+
+  @ApiProperty({ type: ProductDTO })
+  product: ProductDTO;
 }
