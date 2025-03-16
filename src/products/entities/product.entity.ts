@@ -18,6 +18,9 @@ export class Product extends BaseModel {
   @Column({ type: 'character varying', name: 'name' })
   name: string;
 
+  @Column({ type: 'character varying', name: 'generic_name' })
+  genericName: string;
+
   @Column({ type: 'text', name: 'description', nullable: true })
   description: string;
 
