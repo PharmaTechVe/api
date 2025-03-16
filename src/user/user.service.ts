@@ -4,15 +4,23 @@ import { Repository } from 'typeorm';
 import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
+import { Profile } from './entities/profile.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Profile)
+    private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
   ) {}
+
+  async userExists(options: Partial<User>): Promise<boolean> {
+    const user = await this.userRepository.findOneBy(options);
+    return !!user;
+  }
 
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
@@ -50,7 +58,13 @@ export class UserService {
 
   async create(userData: UserDTO): Promise<User> {
     const newUser = this.userRepository.create(userData);
-    return await this.userRepository.save(newUser);
+    const user = await this.userRepository.save(newUser);
+    const profile = new Profile();
+    profile.user = user;
+    profile.gender = userData.gender;
+    profile.birthDate = new Date(userData.birthDate);
+    await this.profileRepository.save(profile);
+    return user;
   }
 
   async update(user: User, userData: Partial<UserDTO>): Promise<User> {

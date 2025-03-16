@@ -42,20 +42,24 @@ export class AuthService {
   }
 
   async signUp(signUpDTO: UserDTO) {
-    const existingUser = await this.userService.findByEmail(signUpDTO.email);
-    if (existingUser) {
+    const emailUsed = await this.userService.userExists({
+      email: signUpDTO.email,
+    });
+    if (emailUsed) {
       throw new BadRequestException('The email is already in use');
     }
-
+    const documentUsed = await this.userService.userExists({
+      documentId: signUpDTO.documentId,
+    });
+    if (documentUsed) {
+      throw new BadRequestException('The document is already in use');
+    }
     const hashedPassword = await this.encryptPassword(signUpDTO.password);
-
     const newUserData = {
       ...signUpDTO,
       password: hashedPassword,
     };
-
     const newUser = await this.userService.create(newUserData);
-
     return plainToInstance(User, newUser);
   }
 

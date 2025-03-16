@@ -1,6 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  MinLength,
+} from 'class-validator';
+import { UserGender } from '../entities/profile.entity';
 
 export class UserDTO {
   @ApiProperty({ description: 'The name of the user' })
@@ -30,4 +37,21 @@ export class UserDTO {
   @ApiProperty({ description: 'the phone number of the user' })
   @IsNotEmpty()
   phoneNumber: string;
+
+  @ApiProperty({ description: 'the birth date of the user' })
+  @Transform(
+    ({ value }: { value: string }) =>
+      new Date(value).toISOString().split('T')[0],
+  )
+  @IsNotEmpty()
+  @IsDateString(
+    { strict: true },
+    { message: 'birthDate must be a valid date in YYYY-MM-DD format' },
+  )
+  birthDate: string;
+
+  @ApiProperty({ description: 'the gender of the user' })
+  @IsNotEmpty()
+  @IsEnum(UserGender)
+  gender: UserGender;
 }
