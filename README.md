@@ -27,7 +27,7 @@ $ npm run start:prod
 $ docker compose up --build
 ```
 
-## Run migrations
+## Generate migrations
 To generate migrations we need to create folder called migrations if does not exists in the module folder.
 After the entity definition or update it is necessary to generate the migration with the following command:
 ```bash
@@ -37,6 +37,17 @@ $ npm run migration:generate <path-to-migrations-folder>/<name>-migration
 To generate the migration inside the docker container:
 ```bash
 $ docker compose exec api npm run migration:generate <path-to-migrations-folder>/<name>-migration
+```
+
+## Apply migration
+To apply the pending migrations in the database is necessary to run the followin command:
+```bash
+$ npm run migration:run
+```
+
+To generate the migration inside the docker container:
+```bash
+$ docker compose exec api npm run migration:run
 ```
 
 ## Run tests
