@@ -42,7 +42,10 @@ export class AuthService {
   }
 
   async signUp(signUpDTO: UserDTO) {
-    const existingUser = await this.userService.findByEmail(signUpDTO.email);
+    const existingUser = await this.userService.checkIfEmailExists(
+      signUpDTO.email,
+    );
+
     if (existingUser) {
       throw new BadRequestException('The email is already in use');
     }

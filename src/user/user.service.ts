@@ -14,6 +14,11 @@ export class UserService {
     private userOTPRepository: Repository<UserOTP>,
   ) {}
 
+  async checkIfEmailExists(email: string): Promise<boolean> {
+    const user = await this.userRepository.findOneBy({ email });
+    return !!user;
+  }
+
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
