@@ -43,4 +43,7 @@ export class User extends BaseModel {
 
   @OneToOne('UserOTP', (userOTP: UserOTP) => userOTP.user, { eager: true })
   otp: UserOTP;
+
+  @Column({ default: false })
+  isValidated: boolean;
 }
