@@ -5,6 +5,7 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { ProfileDTO } from './dto/profile.dto';
 
 @Injectable()
 export class UserService {
@@ -85,5 +86,21 @@ export class UserService {
     newOTP.code = otp;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     return await this.userOTPRepository.save(newOTP);
+  }
+
+  async getUserProfile(userId: string): Promise<ProfileDTO> {
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    return {
+      name: `${profile.user.firstName} ${profile.user.lastName}`,
+      email: profile.user.email,
+      profilePicture: profile.profilePicture,
+    };
   }
 }
