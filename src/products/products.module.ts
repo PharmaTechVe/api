@@ -5,10 +5,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { ProductPresentation } from './entities/product-presentation.entity';
 import { Manufacturer } from './entities/manufacturer.entity';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Product, ProductPresentation, Manufacturer]),
+    AuthModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService],

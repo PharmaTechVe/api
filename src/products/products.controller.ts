@@ -7,6 +7,8 @@ import {
   Post,
   Query,
   Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
@@ -22,6 +24,8 @@ import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { CreateProductDTO } from './dto/create-product.dto';
 import { Product } from './entities/product.entity';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
@@ -66,9 +70,15 @@ export class ProductsController {
   }
 
   @Post()
-  async createProduct(
+  @UseGuards(AuthGuard)
+  createProduct(
     @Body() createProductDto: CreateProductDTO,
+    @Req() request: CustomRequest,
   ): Promise<Product> {
+    if (![UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(request.user.role)) {
+      throw new UnauthorizedException();
+    }
+
     return this.productsServices.createProduct(createProductDto);
   }
 }
