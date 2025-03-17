@@ -100,8 +100,13 @@ export class UserService {
     }
 
     return {
-      name: `${profile.user.firstName} ${profile.user.lastName}`,
+      firstName: profile.user.firstName,
+      lastName: profile.user.lastName,
       email: profile.user.email,
+      documentId: profile.user.documentId,
+      phoneNumber: profile.user.phoneNumber,
+      birthDate: profile.birthDate,
+      gender: profile.gender,
       profilePicture: profile.profilePicture,
     };
   }
