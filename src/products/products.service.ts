@@ -49,15 +49,22 @@ export class ProductsService {
     return products;
   }
 
-  async createProduct(createProductDto: CreateProductDTO): Promise<Product> {
+  async findManufacturer(id: string): Promise<Manufacturer> {
     const manufacturer = await this.manufacturerRepository.findOne({
-      where: { id: createProductDto.manufacturer },
+      where: { id },
     });
 
     if (!manufacturer) {
       throw new NotFoundException('Manufacturer not found');
     }
 
+    return manufacturer;
+  }
+
+  async createProduct(
+    createProductDto: CreateProductDTO,
+    manufacturer: Manufacturer,
+  ): Promise<Product> {
     const newProduct = this.productRepository.create({
       ...createProductDto,
       manufacturer,

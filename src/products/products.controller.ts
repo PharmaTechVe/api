@@ -71,7 +71,7 @@ export class ProductsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  createProduct(
+  async createProduct(
     @Body() createProductDto: CreateProductDTO,
     @Req() request: CustomRequest,
   ): Promise<Product> {
@@ -79,6 +79,10 @@ export class ProductsController {
       throw new UnauthorizedException();
     }
 
-    return this.productsServices.createProduct(createProductDto);
+    const manufacturer = await this.productsServices.findManufacturer(
+      createProductDto.manufacturer,
+    );
+
+    return this.productsServices.createProduct(createProductDto, manufacturer);
   }
 }
