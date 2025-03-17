@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   DefaultValuePipe,
   Get,
   ParseIntPipe,
+  Post,
   Query,
   Req,
 } from '@nestjs/common';
@@ -18,6 +20,8 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { CreateProductDTO } from './dto/create-product.dto';
+import { Product } from './entities/product.entity';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
@@ -59,5 +63,12 @@ export class ProductsController {
     const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
     const products = await this.productsServices.getProducts(page, limit);
     return { results: products, count, next, previous };
+  }
+
+  @Post()
+  async createProduct(
+    @Body() createProductDto: CreateProductDTO,
+  ): Promise<Product> {
+    return this.productsServices.createProduct(createProductDto);
   }
 }
