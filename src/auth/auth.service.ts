@@ -10,12 +10,17 @@ import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
+import { EmailService } from 'src/email/email.service';
+import { EmailTemplateService } from 'src/email-template/email-template.service';
+import { generateOTP, formatString } from 'src/utils/string';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private emailService: EmailService,
+    private emailTemplateService: EmailTemplateService,
   ) {}
 
   async encryptPassword(password: string): Promise<string> {
@@ -60,6 +65,24 @@ export class AuthService {
       password: hashedPassword,
     };
     const newUser = await this.userService.create(newUserData);
+
+    const otp = generateOTP(6);
+    await this.userService.saveOTP(newUser, otp);
+
+    let emailContent: string;
+    try {
+      const emailTemplate =
+        await this.emailTemplateService.findByName('otp_verification');
+      emailContent = formatString(emailTemplate.html, otp);
+    } catch {
+      emailContent = `<p>Your OTP is <b>${otp}</b></p>`;
+    }
+    await this.emailService.sendEmail({
+      recipients: [{ email: newUser.email, name: newUser.firstName }],
+      subject: 'Email Verification',
+      html: emailContent,
+      text: `Your OTP is ${otp}`,
+    });
     return plainToInstance(User, newUser);
   }
 

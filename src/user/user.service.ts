@@ -1,10 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { OtpDTO } from './dto/otp.dto';
 
 @Injectable()
 export class UserService {
@@ -87,5 +92,22 @@ export class UserService {
     newOTP.code = otp;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     return await this.userOTPRepository.save(newOTP);
+  }
+  async validateEmail(userId: string, otpDto: OtpDTO): Promise<void> {
+    const { otp } = otpDto;
+
+    const userOtp = await this.userOTPRepository.findOne({
+      where: { user: { id: userId }, code: otp },
+      relations: ['user'],
+    });
+
+    if (!userOtp) {
+      throw new NotFoundException('Invalid or not found OTP code');
+    }
+    if (userOtp.expiresAt < new Date()) {
+      throw new BadRequestException('OTP code has expired');
+    }
+    await this.userRepository.update(userId, { isValidated: true });
+    await this.userOTPRepository.remove(userOtp);
   }
 }
