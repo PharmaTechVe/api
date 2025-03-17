@@ -47,8 +47,13 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   async forgotPassword(@Body() forgotPasswordDTO: ForgotPasswordDTO) {
     const user = await this.userService.findByEmail(forgotPasswordDTO.email);
-    const otp = generateOTP(6);
-    await this.userService.saveOTP(user, otp);
+    let otp: string;
+    try {
+      otp = user.otp.code;
+    } catch {
+      otp = generateOTP(6);
+      await this.userService.saveOTP(user, otp);
+    }
     this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
       subject: 'Reset your password',

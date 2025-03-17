@@ -49,7 +49,9 @@ export class UserService {
   async deleteOTP(otp: string, user: User): Promise<void> {
     const userOTP = await this.userOTPRepository.findOneBy({
       code: otp,
-      user: user,
+      user: {
+        id: user.id,
+      },
     });
     if (!userOTP) {
       throw new NotFoundException('User not found');
