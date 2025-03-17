@@ -1,6 +1,7 @@
 import { BaseModel } from 'src/utils/entity';
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToOne } from 'typeorm';
 import { Exclude } from 'class-transformer';
+import type { UserOTP } from './user-otp.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -39,4 +40,7 @@ export class User extends BaseModel {
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.CUSTOMER })
   role: UserRole;
+
+  @OneToOne('UserOTP', (userOTP: UserOTP) => userOTP.user, { eager: true })
+  otp: UserOTP;
 }
