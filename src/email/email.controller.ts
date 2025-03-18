@@ -22,7 +22,7 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { Role } from 'src/auth/rol.enum'; // Importa el enum Role
 
-@ApiTags('Email Templates')
+@ApiTags('Email Template')
 @Controller('email')
 export class EmailController {
   constructor(private readonly emailService: EmailService) {}
