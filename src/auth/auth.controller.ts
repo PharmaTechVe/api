@@ -16,7 +16,7 @@ import { AuthGuard, CustomRequest } from './auth.guard';
 import { PasswordDTO } from './dto/password.dto';
 import { ForgotPasswordDTO } from './dto/forgot-password.dto';
 import { UserService } from 'src/user/user.service';
-import { generateOTP,formatString } from 'src/utils/string';
+import { generateOTP, formatString } from 'src/utils/string';
 import { EmailService } from 'src/email/email.service';
 import { OtpDTO } from 'src/user/dto/otp.dto';
 
@@ -54,7 +54,7 @@ export class AuthController {
       otp = generateOTP(6);
       await this.userService.saveOTP(user, otp);
     }
-    this.emailService.sendEmail({
+    await this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
       subject: 'Reset your password',
       html: `<p>Your OTP is <b>${otp}</b></p>`,
