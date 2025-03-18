@@ -70,6 +70,10 @@ export class ProductsService {
   }
 
   async findCategories(ids: string[]): Promise<Category[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
     const categories = await this.categoryRepository.findBy({
       id: In(ids),
     });
@@ -97,11 +101,9 @@ export class ProductsService {
   }
 
   async createProductImage(product: Product, images: string[]): Promise<void> {
-    if (images.length) {
-      const productImages = images.map((url) =>
-        this.productImageRepository.create({ url, product }),
-      );
-      await this.productImageRepository.save(productImages);
-    }
+    const productImages = images.map((url) =>
+      this.productImageRepository.create({ url, product }),
+    );
+    await this.productImageRepository.save(productImages);
   }
 }

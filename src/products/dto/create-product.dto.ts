@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
 
+export class CreateProductPresentationDTO {
+  @ApiProperty()
+  presentationId: string;
+
+  @ApiProperty()
+  price: number;
+}
+
 export class CreateProductDTO {
   @ApiProperty()
   @IsString()
@@ -23,13 +31,27 @@ export class CreateProductDTO {
   @IsUUID()
   manufacturer: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsArray()
+  @IsOptional()
   @IsString({ each: true })
   categoryIds: string[];
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsArray()
+  @IsOptional()
   @IsString({ each: true })
   imageUrls: string[];
+
+  @ApiProperty({
+    type: [CreateProductPresentationDTO],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  presentations: CreateProductPresentationDTO[];
 }

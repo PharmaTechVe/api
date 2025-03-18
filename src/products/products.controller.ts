@@ -108,10 +108,12 @@ export class ProductsController {
       categories,
     );
 
-    await this.productsServices.createProductImage(
-      newProduct,
-      createProductDto.imageUrls,
-    );
+    if (createProductDto.imageUrls) {
+      await this.productsServices.createProductImage(
+        newProduct,
+        createProductDto.imageUrls,
+      );
+    }
 
     return newProduct;
   }
