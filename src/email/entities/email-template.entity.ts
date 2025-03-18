@@ -4,7 +4,7 @@ import { UUIDModel } from 'src/utils/entity';
 
 @Entity()
 export class EmailTemplate extends UUIDModel {
-  @Column({ type: 'varchar', length: 255, unique: true }) 
+  @Column({ type: 'varchar', length: 255, unique: true })
   @ApiProperty({
     description: 'Unique template name',
     example: 'welcome-email',

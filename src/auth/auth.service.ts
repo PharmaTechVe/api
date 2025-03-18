@@ -12,7 +12,6 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { EmailService } from 'src/email/email.service';
 
-
 @Injectable()
 export class AuthService {
   constructor(
