@@ -10,12 +10,14 @@ import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async encryptPassword(password: string): Promise<string> {
@@ -60,6 +62,7 @@ export class AuthService {
       password: hashedPassword,
     };
     const newUser = await this.userService.create(newUserData);
+
     return plainToInstance(User, newUser);
   }
 
