@@ -31,6 +31,9 @@ export class User extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
+  @Column({ type: 'boolean', default: false })
+  isValidated: boolean;
+
   @Column({
     name: 'last_order_date',
     type: 'timestamp with time zone',
