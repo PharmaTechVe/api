@@ -9,7 +9,6 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
-import { OtpDTO } from './dto/otp.dto';
 
 @Injectable()
 export class UserService {

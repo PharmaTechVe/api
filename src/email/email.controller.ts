@@ -1,9 +1,26 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiNotFoundResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Post,
+  Get,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpCode,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiNotFoundResponse,
+} from '@nestjs/swagger';
 import { EmailService } from './email.service';
 import { EmailTemplate } from './entities/email-template.entity';
-import { AuthGuard } from 'src/auth/auth.guard';  
-import { RolesGuard } from 'src/auth/roles.guard';  
+import { AuthGuard } from 'src/auth/auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorador';
+import { Role } from 'src/auth/rol.enum'; // Importa el enum Role
 
 @ApiTags('Email Templates')
 @Controller('email')
@@ -11,7 +28,8 @@ export class EmailController {
   constructor(private readonly emailService: EmailService) {}
 
   @Post()
-  @UseGuards(AuthGuard, RolesGuard)  
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Create an email template' })
   @ApiResponse({
     status: 201,
@@ -25,7 +43,8 @@ export class EmailController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard) 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get all email templates' })
   @ApiResponse({
     status: 200,
@@ -37,7 +56,8 @@ export class EmailController {
   }
 
   @Get(':name')
-  @UseGuards(AuthGuard, RolesGuard)  
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Get a template by name' })
   @ApiResponse({
     status: 200,
@@ -50,7 +70,8 @@ export class EmailController {
   }
 
   @Put(':id')
-  @UseGuards(AuthGuard, RolesGuard)  
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Update an email template' })
   @ApiResponse({
     status: 200,
@@ -65,7 +86,8 @@ export class EmailController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)  
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete an email template' })
   @ApiResponse({ status: 204, description: 'Template removed' })
