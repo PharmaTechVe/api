@@ -93,21 +93,21 @@ export class UserService {
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     return await this.userOTPRepository.save(newOTP);
   }
-  async validateEmail(userId: string, otpDto: OtpDTO): Promise<void> {
-    const { otp } = otpDto;
-
-    const userOtp = await this.userOTPRepository.findOne({
+  async findUserOtpByUserAndCode(
+    userId: string,
+    otp: string,
+  ): Promise<UserOTP | null> {
+    return await this.userOTPRepository.findOne({
       where: { user: { id: userId }, code: otp },
       relations: ['user'],
     });
+  }
 
-    if (!userOtp) {
-      throw new NotFoundException('Invalid or not found OTP code');
-    }
+  async validateEmail(userOtp: UserOTP): Promise<void> {
     if (userOtp.expiresAt < new Date()) {
       throw new BadRequestException('OTP code has expired');
     }
-    await this.userRepository.update(userId, { isValidated: true });
+    await this.userRepository.update(userOtp.user.id, { isValidated: true });
     await this.userOTPRepository.remove(userOtp);
   }
 }

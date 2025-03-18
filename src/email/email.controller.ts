@@ -1,28 +1,17 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Put,
-  Delete,
-  Body,
-  Param,
-  HttpCode,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiNotFoundResponse,
-} from '@nestjs/swagger';
-import { EmailTemplateService } from './email-template.service';
+import { Controller, Post, Get, Put, Delete, Body, Param, HttpCode, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiNotFoundResponse } from '@nestjs/swagger';
+import { EmailService } from './email.service';
 import { EmailTemplate } from './entities/email-template.entity';
+import { AuthGuard } from 'src/auth/auth.guard';  
+import { RolesGuard } from 'src/auth/roles.guard';  
 
 @ApiTags('Email Templates')
-@Controller('email-templates')
-export class EmailTemplateController {
-  constructor(private readonly emailTemplateService: EmailTemplateService) {}
+@Controller('email')
+export class EmailController {
+  constructor(private readonly emailService: EmailService) {}
 
   @Post()
+  @UseGuards(AuthGuard, RolesGuard)  
   @ApiOperation({ summary: 'Create an email template' })
   @ApiResponse({
     status: 201,
@@ -32,10 +21,11 @@ export class EmailTemplateController {
   async create(
     @Body() createTemplateDto: { name: string; html: string },
   ): Promise<EmailTemplate> {
-    return await this.emailTemplateService.create(createTemplateDto);
+    return await this.emailService.createTemplate(createTemplateDto);
   }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard) 
   @ApiOperation({ summary: 'Get all email templates' })
   @ApiResponse({
     status: 200,
@@ -43,10 +33,11 @@ export class EmailTemplateController {
     type: [EmailTemplate],
   })
   async findAll(): Promise<EmailTemplate[]> {
-    return await this.emailTemplateService.findAll();
+    return await this.emailService.findAllTemplates();
   }
 
   @Get(':name')
+  @UseGuards(AuthGuard, RolesGuard)  
   @ApiOperation({ summary: 'Get a template by name' })
   @ApiResponse({
     status: 200,
@@ -55,10 +46,11 @@ export class EmailTemplateController {
   })
   @ApiNotFoundResponse({ description: 'Template not found' })
   async findByName(@Param('name') name: string): Promise<EmailTemplate> {
-    return await this.emailTemplateService.findByName(name);
+    return await this.emailService.findTemplateByName(name);
   }
 
   @Put(':id')
+  @UseGuards(AuthGuard, RolesGuard)  
   @ApiOperation({ summary: 'Update an email template' })
   @ApiResponse({
     status: 200,
@@ -69,14 +61,15 @@ export class EmailTemplateController {
     @Param('id') id: string,
     @Body() updateData: Partial<EmailTemplate>,
   ): Promise<EmailTemplate> {
-    return await this.emailTemplateService.update(id, updateData);
+    return await this.emailService.updateTemplate(id, updateData);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)  
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete an email template' })
   @ApiResponse({ status: 204, description: 'Template removed' })
   async remove(@Param('id') id: string): Promise<void> {
-    return await this.emailTemplateService.remove(id);
+    return await this.emailService.removeTemplate(id);
   }
 }
