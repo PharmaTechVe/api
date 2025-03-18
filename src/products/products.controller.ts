@@ -1,10 +1,14 @@
 import {
+  Body,
   Controller,
   DefaultValuePipe,
   Get,
   ParseIntPipe,
+  Post,
   Query,
   Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
@@ -18,6 +22,10 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { CreateProductDTO } from './dto/create-product.dto';
+import { Product } from './entities/product.entity';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
@@ -59,5 +67,22 @@ export class ProductsController {
     const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
     const products = await this.productsServices.getProducts(page, limit);
     return { results: products, count, next, previous };
+  }
+
+  @Post()
+  @UseGuards(AuthGuard)
+  async createProduct(
+    @Body() createProductDto: CreateProductDTO,
+    @Req() request: CustomRequest,
+  ): Promise<Product> {
+    if (![UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(request.user.role)) {
+      throw new UnauthorizedException();
+    }
+
+    const manufacturer = await this.productsServices.findManufacturer(
+      createProductDto.manufacturer,
+    );
+
+    return this.productsServices.createProduct(createProductDto, manufacturer);
   }
 }
