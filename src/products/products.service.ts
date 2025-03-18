@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
 import { CreateProductDTO } from './dto/create-product.dto';
 import { Manufacturer } from './entities/manufacturer.entity';
+import { Category } from './entities/category.entity';
+import { ProductImage } from './entities/product-image.entity';
 
 @Injectable()
 export class ProductsService {
@@ -17,6 +19,12 @@ export class ProductsService {
 
     @InjectRepository(Manufacturer)
     private manufacturerRepository: Repository<Manufacturer>,
+
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+
+    @InjectRepository(ProductImage)
+    private productImageRepository: Repository<ProductImage>,
   ) {}
 
   async countProducts(): Promise<number> {
@@ -61,16 +69,39 @@ export class ProductsService {
     return manufacturer;
   }
 
+  async findCategories(ids: string[]): Promise<Category[]> {
+    const categories = await this.categoryRepository.findBy({
+      id: In(ids),
+    });
+
+    if (categories.length !== ids.length) {
+      throw new NotFoundException('One or more categories not found');
+    }
+
+    return categories;
+  }
+
   async createProduct(
     createProductDto: CreateProductDTO,
     manufacturer: Manufacturer,
+    categories: Category[],
   ): Promise<Product> {
     const newProduct = this.productRepository.create({
       ...createProductDto,
       manufacturer,
+      categories,
     });
 
     const savedProduct = await this.productRepository.save(newProduct);
     return savedProduct;
+  }
+
+  async createProductImage(product: Product, images: string[]): Promise<void> {
+    if (images.length) {
+      const productImages = images.map((url) =>
+        this.productImageRepository.create({ url, product }),
+      );
+      await this.productImageRepository.save(productImages);
+    }
   }
 }

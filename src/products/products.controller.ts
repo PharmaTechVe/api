@@ -12,9 +12,13 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
   ApiExtraModels,
   ApiOkResponse,
   ApiOperation,
+  ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
 import { ProductPresentationDTO } from './dto/find-products.dto';
@@ -71,6 +75,17 @@ export class ProductsController {
 
   @Post()
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Create a new product',
+    description: 'Only ADMIN and BRANCH_ADMIN can create a product.',
+  })
+  @ApiBody({ type: CreateProductDTO })
+  @ApiCreatedResponse({
+    description: 'Product successfully created.',
+    type: Product,
+  })
+  @ApiUnauthorizedResponse({ description: 'User is not authorized.' })
   async createProduct(
     @Body() createProductDto: CreateProductDTO,
     @Req() request: CustomRequest,
@@ -83,6 +98,21 @@ export class ProductsController {
       createProductDto.manufacturer,
     );
 
-    return this.productsServices.createProduct(createProductDto, manufacturer);
+    const categories = await this.productsServices.findCategories(
+      createProductDto.categoryIds,
+    );
+
+    const newProduct = await this.productsServices.createProduct(
+      createProductDto,
+      manufacturer,
+      categories,
+    );
+
+    await this.productsServices.createProductImage(
+      newProduct,
+      createProductDto.imageUrls,
+    );
+
+    return newProduct;
   }
 }
