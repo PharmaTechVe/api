@@ -129,6 +129,7 @@ export class UserService {
       birthDate: profile.birthDate,
       gender: profile.gender,
       profilePicture: profile.profilePicture,
+      role: profile.user.role,
     };
   }
 }

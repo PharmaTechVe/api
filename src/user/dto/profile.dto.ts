@@ -12,4 +12,7 @@ export class ProfileDTO extends OmitType(UserDTO, [
 
   @ApiProperty({ description: 'URL of the profile picture', nullable: true })
   profilePicture?: string;
+
+  @ApiProperty({ description: 'rol of the user' })
+  role: string;
 }
