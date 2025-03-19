@@ -17,4 +17,11 @@ export class EmailTemplate extends UUIDModel {
     example: '<h1>Welcome</h1>',
   })
   html: string;
+
+  @Column({ type: 'text' })
+  @ApiProperty({
+    description: 'Text content of the template',
+    example: 'Welcome',
+  })
+  text: string;
 }
