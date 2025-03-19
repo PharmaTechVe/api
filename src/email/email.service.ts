@@ -7,6 +7,7 @@ import { ResendHelper } from './resend/resend.helper';
 import { EmailOptions, EmailOptionsContent } from './email.helper';
 import { EmailTemplate } from 'src/email/entities/email-template.entity';
 import { EntityManager } from 'typeorm';
+import { formatString, formatHtmlString } from 'src/utils/string';
 
 @Injectable()
 export class EmailService {
@@ -19,6 +20,23 @@ export class EmailService {
     options: EmailOptions & EmailOptionsContent,
   ): Promise<boolean> {
     return this.resend.sendEmail(options);
+  }
+
+  async sendEmailByTemaplte(
+    template: string,
+    options: EmailOptions,
+    ...args: string[]
+  ) {
+    const emailTemplate = await this.findTemplateByName(template);
+    const html = formatHtmlString(emailTemplate.html, ...args);
+    const text = formatString(emailTemplate.text, ...args);
+
+    await this.sendEmail({
+      recipients: options.recipients,
+      subject: options.subject,
+      html,
+      text,
+    });
   }
 
   async createTemplate(createTemplateDto: {

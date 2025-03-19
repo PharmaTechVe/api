@@ -16,7 +16,7 @@ import { AuthGuard, CustomRequest } from './auth.guard';
 import { PasswordDTO } from './dto/password.dto';
 import { ForgotPasswordDTO } from './dto/forgot-password.dto';
 import { UserService } from 'src/user/user.service';
-import { generateOTP, formatString } from 'src/utils/string';
+import { generateOTP } from 'src/utils/string';
 import { EmailService } from 'src/email/email.service';
 import { OtpDTO } from 'src/user/dto/otp.dto';
 
@@ -39,7 +39,19 @@ export class AuthController {
   @Post('signup')
   @ApiResponse({ status: HttpStatus.CREATED })
   async register(@Body() signUpDTO: UserDTO) {
-    return await this.authService.signUp(signUpDTO);
+    const user = await this.authService.signUp(signUpDTO);
+    const otp = generateOTP(6);
+    await this.userService.saveOTP(user, otp);
+
+    await this.emailService.sendEmailByTemaplte(
+      'otp_verification',
+      {
+        recipients: [{ email: user.email, name: user.firstName }],
+        subject: 'Email Verification',
+      },
+      otp,
+    );
+    return user;
   }
 
   @Post('forgot-password')
@@ -96,7 +108,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @Post('otp/send')
+  @Post('otp')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Send OTP for email verification to authenticated user',
@@ -107,26 +119,22 @@ export class AuthController {
   })
   async sendOtp(@Req() req: CustomRequest): Promise<number> {
     const user = req.user;
-
-    const otp = generateOTP(6);
-
-    await this.userService.saveOTP(user, otp);
-
-    let emailContent: string;
+    let otp: string;
     try {
-      const emailTemplate =
-        await this.emailService.findTemplateByName('otp_verification');
-      emailContent = formatString(emailTemplate.html, otp);
+      otp = user.otp.code;
     } catch {
-      emailContent = `<p>Your OTP is <b>${otp}</b></p>`;
+      otp = generateOTP(6);
+      await this.userService.saveOTP(user, otp);
     }
 
-    await this.emailService.sendEmail({
-      recipients: [{ email: user.email, name: user.firstName }],
-      subject: 'Email Verification',
-      html: emailContent,
-      text: `Your OTP is ${otp}`,
-    });
+    await this.emailService.sendEmailByTemaplte(
+      'otp_verification',
+      {
+        recipients: [{ email: user.email, name: user.firstName }],
+        subject: 'Email Verification',
+      },
+      otp,
+    );
 
     return HttpStatus.NO_CONTENT;
   }
