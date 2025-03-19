@@ -9,6 +9,8 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { plainToInstance } from 'class-transformer';
+import { UserListDTO } from './dto/user-list.dto';
 
 @Injectable()
 export class UserService {
@@ -108,5 +110,42 @@ export class UserService {
     }
     await this.userRepository.update(userOtp.user.id, { isValidated: true });
     await this.userOTPRepository.remove(userOtp);
+  }
+  async findActiveUsers(
+    page: number,
+    limit: number,
+  ): Promise<{
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    users: UserListDTO[];
+  }> {
+    const totalItems = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.isValidated = :isValidated', { isValidated: true })
+      .getCount();
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.isValidated = :isValidated', { isValidated: true })
+      .orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    const userListDTOs = plainToInstance(UserListDTO, users, {
+      excludeExtraneousValues: true,
+    });
+
+    return {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      users: userListDTOs,
+    };
   }
 }
