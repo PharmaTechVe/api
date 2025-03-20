@@ -29,7 +29,6 @@ export class UserDTO {
 
   @ApiProperty({ description: 'the password of the user' })
   @Transform(({ value }: { value: string }) => value.trim())
-  @Expose()
   @IsNotEmpty()
   @MinLength(8)
   password: string;
