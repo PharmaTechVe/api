@@ -6,7 +6,7 @@ import {
 } from '../email.helper';
 import { Injectable } from '@nestjs/common';
 import { Resend } from 'resend';
-import { formatString } from 'src/utils/string';
+import { formatHtmlString } from 'src/utils/string';
 
 @Injectable()
 export class ResendHelper implements EmailHelper {
@@ -44,7 +44,7 @@ export class ResendHelper implements EmailHelper {
     template: string,
     ...args: string[]
   ): Promise<boolean> {
-    const html = formatString(template, ...args);
+    const html = formatHtmlString(template, ...args);
     const { data, error } = await this.resend.emails.send({
       from: this.sender,
       to: options.recipients.map((recipient) => recipient.email),
