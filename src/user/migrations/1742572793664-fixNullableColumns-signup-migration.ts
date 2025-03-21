@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class FixNullableColumnsMigrationSignup1742571732901
+export class FixNullableColumnsSignupMigration1742572793664
   implements MigrationInterface
 {
-  name = 'FixNullableColumnsMigrationSignup1742571732901';
+  name = 'FixNullableColumnsSignupMigration1742572793664';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
