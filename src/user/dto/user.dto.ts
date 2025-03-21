@@ -9,6 +9,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
+import { IsOlderThan } from 'src/utils/is-older-than-validator';
 
 export class UserDTO {
   @ApiProperty({ description: 'The name of the user' })
@@ -49,6 +50,7 @@ export class UserDTO {
     { strict: true },
     { message: 'birthDate must be a valid date in YYYY-MM-DD format' },
   )
+  @IsOlderThan(14)
   birthDate: string;
 
   @ApiProperty({
