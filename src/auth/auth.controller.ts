@@ -41,7 +41,7 @@ export class AuthController {
   async register(@Body() signUpDTO: UserDTO) {
     const user = await this.authService.signUp(signUpDTO);
     const otp = generateOTP(6);
-    await this.userService.saveOTP(user, otp);
+    await this.userService.saveOTP(user, otp, 'email-validation');
 
     await this.emailService.sendEmailByTemaplte(
       'otp_verification',
@@ -59,12 +59,13 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   async forgotPassword(@Body() forgotPasswordDTO: ForgotPasswordDTO) {
     const user = await this.userService.findByEmail(forgotPasswordDTO.email);
+
     let otp: string;
     try {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, 'password-recovery');
     }
     await this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
@@ -117,14 +118,17 @@ export class AuthController {
     status: HttpStatus.NO_CONTENT,
     description: 'OTP sent successfully',
   })
-  async sendOtp(@Req() req: CustomRequest): Promise<number> {
+  async sendOtp(
+    @Req() req: CustomRequest,
+    type: 'password-recovery' | 'email-validation',
+  ): Promise<number> {
     const user = req.user;
     let otp: string;
     try {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, type);
     }
 
     await this.emailService.sendEmailByTemaplte(

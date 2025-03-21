@@ -29,7 +29,7 @@ export class UserService {
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new BadRequestException('Invalid request');
     }
     return user;
   }
@@ -85,10 +85,15 @@ export class UserService {
     return userUpdated;
   }
 
-  async saveOTP(user: User, otp: string): Promise<UserOTP> {
+  async saveOTP(
+    user: User,
+    otp: string,
+    type: 'password-recovery' | 'email-validation',
+  ): Promise<UserOTP> {
     const newOTP = new UserOTP();
     newOTP.user = user;
     newOTP.code = otp;
+    newOTP.type = type;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
     return await this.userOTPRepository.save(newOTP);
   }
