@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
@@ -31,8 +32,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @ApiResponse({ status: HttpStatus.OK, type: LoginResponseDTO })
-  login(@Body() loginDTO: LoginDTO): Promise<LoginResponseDTO> {
-    return this.authService.login(loginDTO);
+  login(
+    @Req() request: Request,
+    @Body() loginDTO: LoginDTO,
+  ): Promise<LoginResponseDTO> {
+    return this.authService.login(loginDTO, request.headers.origin);
   }
 
   @HttpCode(HttpStatus.CREATED)
