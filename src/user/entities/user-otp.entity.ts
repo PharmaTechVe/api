@@ -12,7 +12,7 @@ export class UserOTP extends UUIDModel {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @Column({ length: 6 })
+  @Column({ type: 'varchar', length: 6 })
   code: string;
 
   @Column({ type: 'timestamp', name: 'expires_at' })
