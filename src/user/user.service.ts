@@ -67,7 +67,9 @@ export class UserService {
     const user = await this.userRepository.save(newUser);
     const profile = new Profile();
     profile.user = user;
-    profile.gender = userData.gender;
+    if (userData.gender) {
+      profile.gender = userData.gender;
+    }
     profile.birthDate = new Date(userData.birthDate);
     await this.profileRepository.save(profile);
     return user;

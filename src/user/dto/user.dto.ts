@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   MinLength,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
@@ -34,9 +35,9 @@ export class UserDTO {
   @IsNotEmpty()
   documentId: string;
 
-  @ApiProperty({ description: 'the phone number of the user' })
-  @IsNotEmpty()
-  phoneNumber: string;
+  @ApiProperty({ description: 'the phone number of the user', required: false })
+  @IsOptional()
+  phoneNumber?: string;
 
   @ApiProperty({ description: 'the birth date of the user' })
   @Transform(
@@ -50,8 +51,12 @@ export class UserDTO {
   )
   birthDate: string;
 
-  @ApiProperty({ description: 'the gender of the user' })
-  @IsNotEmpty()
+  @ApiProperty({
+    description: 'the gender of the user',
+    required: false,
+    enum: UserGender,
+  })
+  @IsOptional()
   @IsEnum(UserGender)
-  gender: UserGender;
+  gender?: UserGender;
 }
