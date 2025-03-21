@@ -20,7 +20,7 @@ import { EmailTemplate } from './entities/email-template.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum'; // Importa el enum Role
+import { UserRole } from 'src/user/entities/user.entity';
 
 @ApiTags('Email Template')
 @Controller('email')
@@ -29,7 +29,7 @@ export class EmailController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create an email template' })
   @ApiResponse({
     status: 201,
@@ -44,7 +44,7 @@ export class EmailController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get all email templates' })
   @ApiResponse({
     status: 200,
@@ -57,7 +57,7 @@ export class EmailController {
 
   @Get(':name')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Get a template by name' })
   @ApiResponse({
     status: 200,
@@ -71,7 +71,7 @@ export class EmailController {
 
   @Put(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update an email template' })
   @ApiResponse({
     status: 200,
@@ -87,7 +87,7 @@ export class EmailController {
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @HttpCode(204)
   @ApiOperation({ summary: 'Delete an email template' })
   @ApiResponse({ status: 204, description: 'Template removed' })
