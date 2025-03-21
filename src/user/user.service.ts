@@ -9,6 +9,7 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { OTPType } from 'src/user/entities/user-otp.entity';
 
 @Injectable()
 export class UserService {
@@ -85,16 +86,12 @@ export class UserService {
     return userUpdated;
   }
 
-  async saveOTP(
-    user: User,
-    otp: string,
-    type: 'password-recovery' | 'email-validation',
-  ): Promise<UserOTP> {
+  async saveOTP(user: User, otp: string, otpType: OTPType): Promise<UserOTP> {
     const newOTP = new UserOTP();
     newOTP.user = user;
     newOTP.code = otp;
-    newOTP.type = type;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    newOTP.type = otpType;
     return await this.userOTPRepository.save(newOTP);
   }
   async findUserOtpByUserAndCode(

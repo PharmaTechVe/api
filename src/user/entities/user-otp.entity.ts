@@ -1,9 +1,12 @@
-import { Entity, Column, OneToOne, JoinColumn, Index } from 'typeorm';
+import { Entity, Column, OneToOne, JoinColumn, Unique } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { UUIDModel } from 'src/utils/entity';
-
+export enum OTPType {
+  PASSWORD = 'password-recovery',
+  EMAIL = 'email-validation',
+}
 @Entity()
-@Index('unique_otp_code_per_type', ['code', 'type'], { unique: true })
+@Unique('unique_otp_code_per_type', ['code', 'type'])
 export class UserOTP extends UUIDModel {
   @OneToOne(() => User)
   @JoinColumn({ name: 'user_id' })
@@ -14,6 +17,7 @@ export class UserOTP extends UUIDModel {
 
   @Column({ type: 'timestamp', name: 'expires_at' })
   expiresAt: Date;
-  @Column({ type: 'enum', enum: ['password-recovery', 'email-validation'] })
-  type: 'password-recovery' | 'email-validation';
+
+  @Column({ type: 'enum', enum: OTPType })
+  type: OTPType;
 }
