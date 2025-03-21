@@ -43,7 +43,6 @@ export class AuthController {
     const otp = generateOTP(6);
     await this.userService.saveOTP(user, otp);
 
-    /*
     await this.emailService.sendEmailByTemaplte(
       'otp_verification',
       {
@@ -52,7 +51,7 @@ export class AuthController {
       },
       otp,
     );
-    */
+
     return user;
   }
 
