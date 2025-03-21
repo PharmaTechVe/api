@@ -95,20 +95,26 @@ export class ProductsController {
       createProductDto.manufacturer,
     );
 
-    const categories = await this.productsServices.findCategories(
-      createProductDto.categoryIds,
-    );
-
     const newProduct = await this.productsServices.createProduct(
       createProductDto,
       manufacturer,
-      categories,
     );
 
-    if (createProductDto.imageUrls) {
+    if (createProductDto.imageUrls && createProductDto.imageUrls.length) {
       await this.productsServices.createProductImage(
         newProduct,
         createProductDto.imageUrls,
+      );
+    }
+
+    if (createProductDto.categoryIds && createProductDto.categoryIds.length) {
+      const categories = await this.productsServices.findCategories(
+        createProductDto.categoryIds,
+      );
+
+      await this.productsServices.addCategoriesToProduct(
+        newProduct,
+        categories,
       );
     }
 

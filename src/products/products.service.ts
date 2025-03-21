@@ -88,12 +88,10 @@ export class ProductsService {
   async createProduct(
     createProductDto: CreateProductDTO,
     manufacturer: Manufacturer,
-    categories: Category[],
   ): Promise<Product> {
     const newProduct = this.productRepository.create({
       ...createProductDto,
       manufacturer,
-      categories,
     });
 
     const savedProduct = await this.productRepository.save(newProduct);
@@ -105,5 +103,22 @@ export class ProductsService {
       this.productImageRepository.create({ url, product }),
     );
     await this.productImageRepository.save(productImages);
+  }
+
+  async addCategoriesToProduct(
+    product: Product,
+    categoriesToAdd: Category[],
+  ): Promise<void> {
+    if (categoriesToAdd.length === 0) {
+      return;
+    }
+
+    if (!product.categories) {
+      product.categories = [];
+    }
+
+    product.categories = [...product.categories, ...categoriesToAdd];
+
+    await this.productRepository.save(product);
   }
 }
