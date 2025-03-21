@@ -3,21 +3,22 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/user/entities/user.entity';
-import { EmailService } from 'src/email/email.service';
+import { User, UserRole } from 'src/user/entities/user.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   async encryptPassword(password: string): Promise<string> {
@@ -31,14 +32,35 @@ export class AuthService {
     };
   }
 
-  async login(loginDTO: LoginDTO): Promise<LoginResponseDTO> {
+  async login(
+    loginDTO: LoginDTO,
+    origin: string | undefined,
+  ): Promise<LoginResponseDTO> {
+    if (origin === undefined) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     const user = await this.userService.findByEmail(loginDTO.email);
     if (user == null) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
     const isPassMatch = await bcrypt.compare(loginDTO.password, user.password);
     if (!isPassMatch) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+    const allowedAdminHosts = this.configService.get<string>(
+      'ALLOWED_ADMIN_ORIGIN',
+      '',
+    );
+    const allowedOrigins = allowedAdminHosts
+      .split(',')
+      .map((host) => host.trim());
+    if (
+      [UserRole.CUSTOMER, UserRole.DELIVERY].includes(user.role) &&
+      allowedOrigins.includes(origin)
+    ) {
+      throw new ForbiddenException('Access denied');
     }
     return this.generateToken(user);
   }
