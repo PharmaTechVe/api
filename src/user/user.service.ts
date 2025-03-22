@@ -9,6 +9,7 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
 
 @Injectable()
@@ -30,7 +31,7 @@ export class UserService {
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new BadRequestException('Invalid request');
     }
     return user;
   }
@@ -88,11 +89,12 @@ export class UserService {
     return userUpdated;
   }
 
-  async saveOTP(user: User, otp: string): Promise<UserOTP> {
+  async saveOTP(user: User, otp: string, otpType: OTPType): Promise<UserOTP> {
     const newOTP = new UserOTP();
     newOTP.user = user;
     newOTP.code = otp;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    newOTP.type = otpType;
     return await this.userOTPRepository.save(newOTP);
   }
   async findUserOtpByUserAndCode(

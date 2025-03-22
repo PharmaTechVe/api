@@ -19,6 +19,7 @@ import { UserService } from 'src/user/user.service';
 import { generateOTP } from 'src/utils/string';
 import { EmailService } from 'src/email/email.service';
 import { OtpDTO } from 'src/user/dto/otp.dto';
+import { OTPType } from 'src/user/entities/user-otp.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -41,7 +42,7 @@ export class AuthController {
   async register(@Body() signUpDTO: UserDTO) {
     const user = await this.authService.signUp(signUpDTO);
     const otp = generateOTP(6);
-    await this.userService.saveOTP(user, otp);
+    await this.userService.saveOTP(user, otp, OTPType.EMAIL);
 
     await this.emailService.sendEmailByTemaplte(
       'otp_verification',
@@ -60,12 +61,13 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   async forgotPassword(@Body() forgotPasswordDTO: ForgotPasswordDTO) {
     const user = await this.userService.findByEmail(forgotPasswordDTO.email);
+
     let otp: string;
     try {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, OTPType.PASSWORD);
     }
     await this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
@@ -125,7 +127,7 @@ export class AuthController {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, OTPType.EMAIL);
     }
 
     await this.emailService.sendEmailByTemaplte(
