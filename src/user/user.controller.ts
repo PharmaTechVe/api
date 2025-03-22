@@ -82,12 +82,12 @@ export class UserController {
   @Roles(Role.ADMIN)
   @Get()
   @ApiOperation({
-    summary: 'Lista de usuarios activos',
+    summary: 'List of active users',
     description:
-      'Devuelve todos los usuarios activos y validados, incluyendo su perfil asociado.',
+      'Returns all active and validated users, including their associated profile.',
   })
   @ApiOkResponse({
-    description: 'Usuarios obtenidos correctamente.',
+    description: 'Successfully obtained users.',
     schema: {
       allOf: [
         { $ref: getSchemaPath(PaginationDTO) },
