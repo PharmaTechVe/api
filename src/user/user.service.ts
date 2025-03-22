@@ -10,6 +10,8 @@ import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { ProfileDTO } from './dto/profile.dto';
+import { plainToInstance } from 'class-transformer';
+import { UserListDTO } from './dto/user-list.dto';
 
 @Injectable()
 export class UserService {
@@ -133,5 +135,27 @@ export class UserService {
       profilePicture: profile.profilePicture,
       role: profile.user.role,
     };
+  }
+
+  async countActiveUsers(): Promise<number> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.deletedAt IS NULL')
+      .getCount();
+  }
+
+  async getActiveUsers(page: number, limit: number): Promise<UserListDTO[]> {
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.deletedAt IS NULL')
+      .orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getMany();
+
+    return plainToInstance(UserListDTO, users, {
+      excludeExtraneousValues: true,
+    });
   }
 }

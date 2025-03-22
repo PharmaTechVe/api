@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Expose } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
@@ -14,16 +14,19 @@ import { IsOlderThan } from 'src/utils/is-older-than-validator';
 export class UserDTO {
   @ApiProperty({ description: 'The name of the user' })
   @IsNotEmpty()
+  @Expose()
   firstName: string;
 
   @ApiProperty({ description: 'The last name of the user' })
   @IsNotEmpty()
+  @Expose()
   lastName: string;
 
   @ApiProperty({ description: 'The email of the user', uniqueItems: true })
-  @Transform(({ value }: { value: string }) => value.trim())
+  @Transform(({ value }: { value: string }) => value?.trim())
   @IsNotEmpty()
   @IsEmail()
+  @Expose()
   email: string;
 
   @ApiProperty({ description: 'the password of the user' })
@@ -34,10 +37,12 @@ export class UserDTO {
 
   @ApiProperty({ description: 'the id of the user', uniqueItems: true })
   @IsNotEmpty()
+  @Expose()
   documentId: string;
 
   @ApiProperty({ description: 'the phone number of the user', required: false })
   @IsOptional()
+  @Expose()
   phoneNumber?: string;
 
   @ApiProperty({ description: 'the birth date of the user' })
@@ -58,6 +63,7 @@ export class UserDTO {
     required: false,
     enum: UserGender,
   })
+  @Expose()
   @IsOptional()
   @IsEnum(UserGender)
   gender?: UserGender;
