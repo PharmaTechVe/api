@@ -17,7 +17,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { Role } from 'src/auth/rol.enum';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('city')
 export class CityController {
@@ -26,6 +26,7 @@ export class CityController {
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a city' })
   @ApiResponse({
     description: 'Successful city creation',
@@ -66,6 +67,7 @@ export class CityController {
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update city by ID' })
   @ApiResponse({
     description: 'Successful update of city',
@@ -82,6 +84,7 @@ export class CityController {
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete city by ID' })
   @ApiResponse({
     description: 'Successful deletion of city',
