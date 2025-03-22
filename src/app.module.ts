@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { LoggerModule } from 'nestjs-pino';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { LoggerModule } from 'nestjs-pino';
     UserModule,
     AuthModule,
     EmailModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
