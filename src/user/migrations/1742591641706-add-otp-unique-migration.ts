@@ -8,7 +8,7 @@ export class AddOtpUniqueMigration1742591641706 implements MigrationInterface {
       `CREATE TYPE "public"."user_otp_type_enum" AS ENUM('password-recovery', 'email-validation')`,
     );
     await queryRunner.query(
-      `ALTER TABLE "user_otp" ADD "type" "public"."user_otp_type_enum" NOT NULL`,
+      `ALTER TABLE "user_otp" ADD "type" "public"."user_otp_type_enum"`,
     );
     await queryRunner.query(
       `ALTER TABLE "user_otp" ADD CONSTRAINT "unique_otp_code_per_type" UNIQUE ("code", "type")`,
