@@ -16,8 +16,8 @@ import { CreateStateDTO, UpdateStateDTO, StateDTO } from './dto/state.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('state')
 export class StateController {
@@ -25,7 +25,7 @@ export class StateController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a state' })
   @ApiResponse({
@@ -66,7 +66,7 @@ export class StateController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update state by ID' })
   @ApiResponse({
@@ -83,7 +83,7 @@ export class StateController {
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete state by ID' })
   @ApiResponse({

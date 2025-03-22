@@ -18,10 +18,10 @@ import {
   UpdateCategoryDTO,
 } from './dto/category.dto';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('category')
 export class CategoryController {
@@ -29,7 +29,7 @@ export class CategoryController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a category' })
   @ApiResponse({
@@ -67,7 +67,7 @@ export class CategoryController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update Category by Id' })
   @ApiResponse({
@@ -85,7 +85,7 @@ export class CategoryController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete Category by Id' })
   @ApiResponse({

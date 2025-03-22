@@ -16,8 +16,8 @@ import { CreateCityDTO, UpdateCityDTO, CityDTO } from './dto/city.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('city')
 export class CityController {
@@ -25,7 +25,7 @@ export class CityController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a city' })
   @ApiResponse({
@@ -66,7 +66,7 @@ export class CityController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update city by ID' })
   @ApiResponse({
@@ -83,7 +83,7 @@ export class CityController {
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete city by ID' })
   @ApiResponse({

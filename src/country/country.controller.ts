@@ -19,8 +19,8 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('country')
 export class CountryController {
@@ -28,7 +28,7 @@ export class CountryController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a country' })
   @ApiResponse({
@@ -68,7 +68,7 @@ export class CountryController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update country by ID' })
   @ApiResponse({
@@ -85,7 +85,7 @@ export class CountryController {
 
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete country by ID' })
   @ApiResponse({

@@ -14,7 +14,6 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreateManufacturerDTO,
@@ -22,13 +21,14 @@ import {
   ResponseManufacturerDTO,
 } from '../dto/manufacturer.dto';
 import { ManufacturerService } from '../services/manufacturer.service';
+import { UserRole } from 'src/user/entities/user.entity';
 @Controller('manufacturer')
 export class ManufacturerController {
   constructor(private readonly manufacturerService: ManufacturerService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a manufacturer' })
   @ApiResponse({
@@ -44,7 +44,7 @@ export class ManufacturerController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all manufacturers' })
   @ApiResponse({
@@ -58,7 +58,7 @@ export class ManufacturerController {
 
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get manufacturer by ID' })
   @ApiResponse({
@@ -74,7 +74,7 @@ export class ManufacturerController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update manufacturer by ID' })
   @ApiResponse({
@@ -92,7 +92,7 @@ export class ManufacturerController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete manufacturer by ID' })
   @ApiResponse({

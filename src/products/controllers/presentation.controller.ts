@@ -14,7 +14,6 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreatePresentationDTO,
@@ -22,6 +21,7 @@ import {
   ResponsePresentationDTO,
 } from '../dto/presentation.dto';
 import { PresentationService } from '../services/presentation.service';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('presentation')
 export class PresentationController {
@@ -29,7 +29,7 @@ export class PresentationController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a presentation' })
   @ApiResponse({
@@ -45,7 +45,7 @@ export class PresentationController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all presentations' })
   @ApiResponse({
@@ -59,7 +59,7 @@ export class PresentationController {
 
   @Get(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get presentation by ID' })
   @ApiResponse({
@@ -75,7 +75,7 @@ export class PresentationController {
 
   @Patch(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update presentation by ID' })
   @ApiResponse({
@@ -93,7 +93,7 @@ export class PresentationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete presentation by ID' })
   @ApiResponse({

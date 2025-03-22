@@ -2,6 +2,7 @@ import { BaseModel } from 'src/utils/entity';
 import { Entity, Column, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import type { UserOTP } from './user-otp.entity';
+import { Profile } from './profile.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 
 export enum UserRole {
@@ -51,4 +52,7 @@ export class User extends BaseModel {
   @ManyToOne(() => Branch, (branch) => branch.users)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
+
+  @OneToOne(() => Profile, (profile: Profile) => profile.user, { eager: true })
+  profile: Profile;
 }

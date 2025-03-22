@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
@@ -19,6 +20,7 @@ import { UserService } from 'src/user/user.service';
 import { generateOTP } from 'src/utils/string';
 import { EmailService } from 'src/email/email.service';
 import { OtpDTO } from 'src/user/dto/otp.dto';
+import { OTPType } from 'src/user/entities/user-otp.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -31,8 +33,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post('login')
   @ApiResponse({ status: HttpStatus.OK, type: LoginResponseDTO })
-  login(@Body() loginDTO: LoginDTO): Promise<LoginResponseDTO> {
-    return this.authService.login(loginDTO);
+  login(
+    @Req() request: Request,
+    @Body() loginDTO: LoginDTO,
+  ): Promise<LoginResponseDTO> {
+    return this.authService.login(loginDTO, request.headers.origin);
   }
 
   @HttpCode(HttpStatus.CREATED)
@@ -41,7 +46,7 @@ export class AuthController {
   async register(@Body() signUpDTO: UserDTO) {
     const user = await this.authService.signUp(signUpDTO);
     const otp = generateOTP(6);
-    await this.userService.saveOTP(user, otp);
+    await this.userService.saveOTP(user, otp, OTPType.EMAIL);
 
     await this.emailService.sendEmailByTemaplte(
       'otp_verification',
@@ -60,12 +65,13 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.NO_CONTENT })
   async forgotPassword(@Body() forgotPasswordDTO: ForgotPasswordDTO) {
     const user = await this.userService.findByEmail(forgotPasswordDTO.email);
+
     let otp: string;
     try {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, OTPType.PASSWORD);
     }
     await this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
@@ -125,7 +131,7 @@ export class AuthController {
       otp = user.otp.code;
     } catch {
       otp = generateOTP(6);
-      await this.userService.saveOTP(user, otp);
+      await this.userService.saveOTP(user, otp, OTPType.EMAIL);
     }
 
     await this.emailService.sendEmailByTemaplte(

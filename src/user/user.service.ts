@@ -9,7 +9,9 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
+import { IsNull } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -30,7 +32,7 @@ export class UserService {
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new BadRequestException('Invalid request');
     }
     return user;
   }
@@ -88,11 +90,12 @@ export class UserService {
     return userUpdated;
   }
 
-  async saveOTP(user: User, otp: string): Promise<UserOTP> {
+  async saveOTP(user: User, otp: string, otpType: OTPType): Promise<UserOTP> {
     const newOTP = new UserOTP();
     newOTP.user = user;
     newOTP.code = otp;
     newOTP.expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    newOTP.type = otpType;
     return await this.userOTPRepository.save(newOTP);
   }
   async findUserOtpByUserAndCode(
@@ -133,5 +136,30 @@ export class UserService {
       profilePicture: profile.profilePicture,
       role: profile.user.role,
     };
+  }
+
+  async countActiveUsers(): Promise<number> {
+    return this.userRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+  }
+
+  async getActiveUsers(page: number, limit: number): Promise<User[]> {
+    return this.userRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: ['profile'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    const userToDelete = await this.userRepository.findOneBy({ id: userId });
+    if (!userToDelete) {
+      throw new NotFoundException('User not found');
+    }
+    userToDelete.deletedAt = new Date();
+    await this.userRepository.save(userToDelete);
   }
 }
