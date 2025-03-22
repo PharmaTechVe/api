@@ -11,6 +11,7 @@ import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
+import { IsNull } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -135,6 +136,22 @@ export class UserService {
       profilePicture: profile.profilePicture,
       role: profile.user.role,
     };
+  }
+
+  async countActiveUsers(): Promise<number> {
+    return this.userRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+  }
+
+  async getActiveUsers(page: number, limit: number): Promise<User[]> {
+    return this.userRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: ['profile'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
   }
 
   async deleteUser(userId: string): Promise<void> {
