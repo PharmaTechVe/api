@@ -9,6 +9,7 @@ import { UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
+import { ProfileDTO } from './dto/profile.dto';
 
 @Injectable()
 export class UserService {
@@ -110,5 +111,27 @@ export class UserService {
     }
     await this.userRepository.update(userOtp.user.id, { isValidated: true });
     await this.userOTPRepository.remove(userOtp);
+  }
+
+  async getUserProfile(userId: string): Promise<ProfileDTO> {
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id: userId } },
+      relations: ['user'],
+    });
+    if (!profile) {
+      throw new NotFoundException('Profile not found');
+    }
+
+    return {
+      firstName: profile.user.firstName,
+      lastName: profile.user.lastName,
+      email: profile.user.email,
+      documentId: profile.user.documentId,
+      phoneNumber: profile.user.phoneNumber,
+      birthDate: profile.birthDate,
+      gender: profile.gender,
+      profilePicture: profile.profilePicture,
+      role: profile.user.role,
+    };
   }
 }
