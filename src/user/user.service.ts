@@ -134,4 +134,13 @@ export class UserService {
       role: profile.user.role,
     };
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    const userToDelete = await this.userRepository.findOneBy({ id: userId });
+    if (!userToDelete) {
+      throw new NotFoundException('User not found');
+    }
+    userToDelete.deletedAt = new Date();
+    await this.userRepository.save(userToDelete);
+  }
 }
