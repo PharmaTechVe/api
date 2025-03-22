@@ -18,6 +18,6 @@ export class UserOTP extends UUIDModel {
   @Column({ type: 'timestamp', name: 'expires_at' })
   expiresAt: Date;
 
-  @Column({ type: 'enum', enum: OTPType })
+  @Column({ type: 'enum', enum: OTPType, nullable: true })
   type: OTPType;
 }
