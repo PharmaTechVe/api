@@ -27,11 +27,10 @@ import { OtpDTO } from './dto/otp.dto';
 import { ProfileDTO } from './dto/profile.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Request } from 'express';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { Role } from 'src/auth/rol.enum';
 import { UserListDTO } from './dto/user-list.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
@@ -81,7 +80,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(UserRole.ADMIN)
   @Get()
   @ApiOperation({
     summary: 'List of active users',
