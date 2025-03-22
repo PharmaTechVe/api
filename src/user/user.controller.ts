@@ -35,6 +35,7 @@ import { UserListDTO } from './dto/user-list.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { plainToInstance } from 'class-transformer';
 
 @ApiTags('User')
 @Controller('user')
@@ -82,12 +83,12 @@ export class UserController {
   @Roles(Role.ADMIN)
   @Get()
   @ApiOperation({
-    summary: 'List of active users',
+    summary: 'Lista de usuarios activos',
     description:
-      'Returns all active and validated users, including their associated profile.',
+      'Retorna todos los usuarios activos y validados, incluyendo su perfil asociado.',
   })
   @ApiOkResponse({
-    description: 'Successfully obtained users.',
+    description: 'Usuarios obtenidos exitosamente.',
     schema: {
       allOf: [
         { $ref: getSchemaPath(PaginationDTO) },
@@ -107,7 +108,7 @@ export class UserController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Req() req: Request,
   ): Promise<PaginationDTO<UserListDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
+    const baseUrl = this.configService.get<string>('API_URL') + req.path;
     const totalItems = await this.userService.countActiveUsers();
     const { next, previous } = getPaginationUrl(
       baseUrl,
@@ -116,8 +117,12 @@ export class UserController {
       totalItems,
     );
     const users = await this.userService.getActiveUsers(page, limit);
+    const usersDTO = plainToInstance(UserListDTO, users, {
+      excludeExtraneousValues: true,
+    });
+
     return {
-      results: users,
+      results: usersDTO,
       count: totalItems,
       next,
       previous,

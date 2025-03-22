@@ -10,8 +10,7 @@ import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { ProfileDTO } from './dto/profile.dto';
-import { plainToInstance } from 'class-transformer';
-import { UserListDTO } from './dto/user-list.dto';
+import { IsNull } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -138,24 +137,18 @@ export class UserService {
   }
 
   async countActiveUsers(): Promise<number> {
-    return await this.userRepository
-      .createQueryBuilder('user')
-      .where('user.deletedAt IS NULL')
-      .getCount();
+    return this.userRepository.count({
+      where: { deletedAt: IsNull() },
+    });
   }
 
-  async getActiveUsers(page: number, limit: number): Promise<UserListDTO[]> {
-    const users = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.profile', 'profile')
-      .where('user.deletedAt IS NULL')
-      .orderBy('user.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
-      .getMany();
-
-    return plainToInstance(UserListDTO, users, {
-      excludeExtraneousValues: true,
+  async getActiveUsers(page: number, limit: number): Promise<User[]> {
+    return this.userRepository.find({
+      where: { deletedAt: IsNull() },
+      relations: ['profile'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
   }
 }
