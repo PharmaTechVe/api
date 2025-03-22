@@ -1,10 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
-import { CreateProductDTO } from './dto/create-product.dto';
+import {
+  CreateProductDTO,
+  CreateProductPresentationDTO,
+} from './dto/create-product.dto';
 import { Manufacturer } from './entities/manufacturer.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { Presentation } from './entities/presentation.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductsService {
@@ -12,11 +18,20 @@ export class ProductsService {
     @InjectRepository(ProductPresentation)
     private productPresentationRepository: Repository<ProductPresentation>,
 
+    @InjectRepository(Presentation)
+    private PresentationRepository: Repository<Presentation>,
+
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
 
     @InjectRepository(Manufacturer)
     private manufacturerRepository: Repository<Manufacturer>,
+
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+
+    @InjectRepository(ProductImage)
+    private productImageRepository: Repository<ProductImage>,
   ) {}
 
   async countProducts(): Promise<number> {
@@ -61,6 +76,22 @@ export class ProductsService {
     return manufacturer;
   }
 
+  async findCategories(ids: string[]): Promise<Category[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const categories = await this.categoryRepository.findBy({
+      id: In(ids),
+    });
+
+    if (categories.length !== ids.length) {
+      throw new NotFoundException('One or more categories not found');
+    }
+
+    return categories;
+  }
+
   async createProduct(
     createProductDto: CreateProductDTO,
     manufacturer: Manufacturer,
@@ -72,5 +103,75 @@ export class ProductsService {
 
     const savedProduct = await this.productRepository.save(newProduct);
     return savedProduct;
+  }
+
+  async createProductImage(product: Product, images: string[]): Promise<void> {
+    const productImages = images.map((url) =>
+      this.productImageRepository.create({ url, product }),
+    );
+    await this.productImageRepository.save(productImages);
+  }
+
+  async addCategoriesToProduct(
+    product: Product,
+    categoriesToAdd: Category[],
+  ): Promise<void> {
+    if (categoriesToAdd.length === 0) {
+      return;
+    }
+
+    if (!product.categories) {
+      product.categories = [];
+    }
+
+    product.categories = [...product.categories, ...categoriesToAdd];
+
+    await this.productRepository.save(product);
+  }
+
+  async findPresentations(ids: string[]): Promise<Presentation[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const presentations = await this.PresentationRepository.findBy({
+      id: In(ids),
+    });
+
+    if (presentations.length !== ids.length) {
+      throw new NotFoundException('One or more presentations not found');
+    }
+
+    return presentations;
+  }
+
+  async addPresentationsToProduct(
+    product: Product,
+    presentations: Presentation[],
+    productPresentationDTOs: CreateProductPresentationDTO[],
+  ): Promise<void> {
+    if (productPresentationDTOs.length === 0) {
+      return;
+    }
+
+    const productPresentations = productPresentationDTOs.map((dto) => {
+      const presentation = presentations.find(
+        (p) => p.id === dto.presentationId,
+      );
+
+      if (!presentation) {
+        throw new NotFoundException(
+          `Presentation with ID ${dto.presentationId} not found`,
+        );
+      }
+
+      return this.productPresentationRepository.create({
+        product,
+        presentation,
+        price: dto.price,
+      });
+    });
+
+    await this.productPresentationRepository.save(productPresentations);
   }
 }

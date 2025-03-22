@@ -13,6 +13,8 @@ import { ManufacturerService } from './services/manufacturer.service';
 import { ManufacturerController } from './controllers/manufacturer.controller';
 import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { Country } from 'src/country/entities/country.entity';
       Manufacturer,
       Presentation,
       Country,
+      Category,
+      ProductImage,
     ]),
     AuthModule,
   ],
