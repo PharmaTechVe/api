@@ -10,6 +10,7 @@ import {
   HttpStatus,
   Get,
   Param,
+  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
@@ -57,5 +58,21 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.OK })
   async getProfile(@Param('userId') userId: string): Promise<ProfileDTO> {
     return this.userService.getUserProfile(userId);
+  }
+
+  @Delete(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiOperation({ summary: 'Delete user logically' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'User deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Forbidden action',
+  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  async deleteUser(@Param('userId') userId: string): Promise<void> {
+    await this.userService.deleteUser(userId);
   }
 }
