@@ -23,7 +23,7 @@ export class UserDTO {
   lastName: string;
 
   @ApiProperty({ description: 'The email of the user', uniqueItems: true })
-  @Transform(({ value }: { value: string }) => value?.trim())
+  @Transform(({ value }: { value: string }) => value.trim().toLowerCase())
   @IsNotEmpty()
   @IsEmail()
   @Expose()

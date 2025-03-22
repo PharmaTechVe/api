@@ -13,6 +13,7 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   Query,
+  Delete,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -127,5 +128,21 @@ export class UserController {
       next,
       previous,
     };
+  }
+
+  @Delete(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiOperation({ summary: 'Delete user logically' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'User deleted successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Forbidden action',
+  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
+  async deleteUser(@Param('userId') userId: string): Promise<void> {
+    await this.userService.deleteUser(userId);
   }
 }

@@ -13,7 +13,8 @@ export class UserOrAdminGuard implements CanActivate {
       .switchToHttp()
       .getRequest();
     const user: User = request.user;
-    const paramUserId: string = request.params.userId;
+    let paramUserId: string = request.params.userId;
+    paramUserId = paramUserId.replace(/[{}]/g, '');
 
     if (!user) {
       throw new ForbiddenException('Access denied: No user found in request.');
