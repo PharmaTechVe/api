@@ -1,5 +1,5 @@
 import { Column, Entity, OneToMany } from 'typeorm';
-import { Manufacturer } from './manufacturer.entity';
+import { Manufacturer } from '../../products/entities/manufacturer.entity';
 import { UUIDModel } from 'src/utils/entity';
 
 @Entity('country')

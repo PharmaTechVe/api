@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { Product } from './product.entity';
-import { Country } from './country.entity';
+import { Country } from '../../country/entities/country.entity';
 import { BaseModel } from 'src/utils/entity';
 
 @Entity('manufacturer')
