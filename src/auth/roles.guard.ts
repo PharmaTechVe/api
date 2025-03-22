@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from 'src/auth/roles.decorador';
-import { Role } from './rol.enum'; // Asegúrate de que el enum está bien importado
+import { Role } from './rol.enum';
 import { Request } from 'express';
 
 interface RequestWithUser extends Request {

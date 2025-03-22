@@ -6,13 +6,19 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  HttpCode,
+  HttpStatus,
+  Get,
+  Param,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { OtpDTO } from './dto/otp.dto';
+import { ProfileDTO } from './dto/profile.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Request } from 'express';
 import { User } from './entities/user.entity';
+import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 
 @ApiTags('User')
 @Controller('user')
@@ -42,5 +48,14 @@ export class UserController {
       throw new NotFoundException('Invalid or not found OTP code');
     }
     await this.userService.validateEmail(userOtp);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiOperation({ summary: 'Get user profile details' })
+  @ApiResponse({ status: HttpStatus.OK })
+  async getProfile(@Param('userId') userId: string): Promise<ProfileDTO> {
+    return this.userService.getUserProfile(userId);
   }
 }
