@@ -11,7 +11,7 @@ export class Manufacturer extends BaseModel {
   @Column({ type: 'text', name: 'description' })
   description: string;
 
-  @ManyToOne(() => Country, (country) => country.manufacturer)
+  @ManyToOne(() => Country, (country) => country.manufacturer, { eager: true })
   @JoinColumn({ name: 'country_id' })
   country: Country;
 

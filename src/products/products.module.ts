@@ -9,6 +9,10 @@ import { AuthModule } from 'src/auth/auth.module';
 import { Presentation } from './entities/presentation.entity';
 import { PresentationService } from './services/presentation.service';
 import { PresentationController } from './controllers/presentation.controller';
+import { ManufacturerService } from './services/manufacturer.service';
+import { ManufacturerController } from './controllers/manufacturer.controller';
+import { CountryService } from 'src/country/country.service';
+import { Country } from 'src/country/entities/country.entity';
 
 @Module({
   imports: [
@@ -17,10 +21,20 @@ import { PresentationController } from './controllers/presentation.controller';
       ProductPresentation,
       Manufacturer,
       Presentation,
+      Country,
     ]),
     AuthModule,
   ],
-  controllers: [ProductsController, PresentationController],
-  providers: [ProductsService, PresentationService],
+  controllers: [
+    ProductsController,
+    PresentationController,
+    ManufacturerController,
+  ],
+  providers: [
+    ProductsService,
+    PresentationService,
+    ManufacturerService,
+    CountryService,
+  ],
 })
 export class ProductsModule {}
