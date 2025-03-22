@@ -19,6 +19,6 @@ export class Profile extends UUIDModel {
   @Column({ type: 'date', name: 'birth_date' })
   birthDate: Date;
 
-  @Column({ type: 'enum', enum: UserGender })
+  @Column({ type: 'enum', enum: UserGender, nullable: true })
   gender: UserGender;
 }
