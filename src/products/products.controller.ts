@@ -27,10 +27,10 @@ import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { CreateProductDTO } from './dto/create-product.dto';
 import { Product } from './entities/product.entity';
-import { Role } from 'src/auth/rol.enum';
 import { Roles } from 'src/auth/roles.decorador';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
@@ -76,7 +76,7 @@ export class ProductsController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN, Role.BRANCH_ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create a new product',
