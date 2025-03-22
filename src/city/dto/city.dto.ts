@@ -1,6 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsUUID } from 'class-validator';
 import { StateDTO } from 'src/state/dto/state.dto';
+import { UUIDBaseDTO } from 'src/utils/dto/base.dto';
 
 export class CreateCityDTO {
   @ApiProperty({ description: 'The name of the city' })
@@ -15,10 +16,7 @@ export class CreateCityDTO {
 
 export class UpdateCityDTO extends PartialType(CreateCityDTO) {}
 
-export class CityDTO {
-  @ApiProperty({ description: 'The UUID of the city' })
-  id: string;
-
+export class CityDTO extends UUIDBaseDTO {
   @ApiProperty({ description: 'The name of the city' })
   name: string;
 
