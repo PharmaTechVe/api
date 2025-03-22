@@ -55,6 +55,7 @@ export class AuthController {
       },
       otp,
     );
+
     return user;
   }
 
