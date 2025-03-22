@@ -118,6 +118,20 @@ export class ProductsController {
       );
     }
 
+    if (
+      createProductDto.presentations &&
+      createProductDto.presentations.length
+    ) {
+      const ids = createProductDto.presentations.map((p) => p.presentationId);
+      const presentations = await this.productsServices.findPresentations(ids);
+
+      await this.productsServices.addPresentationsToProduct(
+        newProduct,
+        presentations,
+        createProductDto.presentations,
+      );
+    }
+
     return newProduct;
   }
 }

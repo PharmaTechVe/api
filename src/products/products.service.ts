@@ -3,16 +3,23 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { In, Repository } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
-import { CreateProductDTO } from './dto/create-product.dto';
+import {
+  CreateProductDTO,
+  CreateProductPresentationDTO,
+} from './dto/create-product.dto';
 import { Manufacturer } from './entities/manufacturer.entity';
 import { Category } from './entities/category.entity';
 import { ProductImage } from './entities/product-image.entity';
+import { Presentation } from './entities/presentation.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(ProductPresentation)
     private productPresentationRepository: Repository<ProductPresentation>,
+
+    @InjectRepository(Presentation)
+    private PresentationRepository: Repository<Presentation>,
 
     @InjectRepository(Product)
     private productRepository: Repository<Product>,
@@ -120,5 +127,51 @@ export class ProductsService {
     product.categories = [...product.categories, ...categoriesToAdd];
 
     await this.productRepository.save(product);
+  }
+
+  async findPresentations(ids: string[]): Promise<Presentation[]> {
+    if (!ids || ids.length === 0) {
+      return [];
+    }
+
+    const presentations = await this.PresentationRepository.findBy({
+      id: In(ids),
+    });
+
+    if (presentations.length !== ids.length) {
+      throw new NotFoundException('One or more presentations not found');
+    }
+
+    return presentations;
+  }
+
+  async addPresentationsToProduct(
+    product: Product,
+    presentations: Presentation[],
+    productPresentationDTOs: CreateProductPresentationDTO[],
+  ): Promise<void> {
+    if (productPresentationDTOs.length === 0) {
+      return;
+    }
+
+    const productPresentations = productPresentationDTOs.map((dto) => {
+      const presentation = presentations.find(
+        (p) => p.id === dto.presentationId,
+      );
+
+      if (!presentation) {
+        throw new NotFoundException(
+          `Presentation with ID ${dto.presentationId} not found`,
+        );
+      }
+
+      return this.productPresentationRepository.create({
+        product,
+        presentation,
+        price: dto.price,
+      });
+    });
+
+    await this.productPresentationRepository.save(productPresentations);
   }
 }

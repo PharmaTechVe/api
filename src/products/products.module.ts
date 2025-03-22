@@ -8,12 +8,14 @@ import { Manufacturer } from './entities/manufacturer.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Category } from './entities/category.entity';
 import { ProductImage } from './entities/product-image.entity';
+import { Presentation } from './entities/presentation.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Product,
       ProductPresentation,
+      Presentation,
       Manufacturer,
       Category,
       ProductImage,
