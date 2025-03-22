@@ -11,6 +11,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { CategoryModule } from './category/category.module';
 import { CountryModule } from './country/country.module';
 import { StateModule } from './state/state.module';
+import { CityModule } from './city/city.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { StateModule } from './state/state.module';
     CategoryModule,
     CountryModule,
     StateModule,
+    CityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
