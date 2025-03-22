@@ -12,6 +12,7 @@ import { CategoryModule } from './category/category.module';
 import { CountryModule } from './country/country.module';
 import { StateModule } from './state/state.module';
 import { CityModule } from './city/city.module';
+import { BranchModule } from './branch/branch.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CityModule } from './city/city.module';
     CountryModule,
     StateModule,
     CityModule,
+    BranchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

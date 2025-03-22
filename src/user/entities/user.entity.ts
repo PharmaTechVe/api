@@ -1,7 +1,8 @@
 import { BaseModel } from 'src/utils/entity';
-import { Entity, Column, OneToOne } from 'typeorm';
+import { Entity, Column, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import type { UserOTP } from './user-otp.entity';
+import { Branch } from 'src/branch/entities/branch.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -46,4 +47,8 @@ export class User extends BaseModel {
 
   @OneToOne('UserOTP', (userOTP: UserOTP) => userOTP.user, { eager: true })
   otp: UserOTP;
+
+  @ManyToOne(() => Branch, (branch) => branch.users)
+  @JoinColumn({ name: 'branch_id' })
+  branch: Branch;
 }
