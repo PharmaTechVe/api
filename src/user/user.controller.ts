@@ -21,6 +21,7 @@ import {
   ApiResponse,
   ApiOkResponse,
   getSchemaPath,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { OtpDTO } from './dto/otp.dto';
@@ -47,6 +48,7 @@ export class UserController {
 
   @Post('otp')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Validate OTP to verify email' })
   @ApiResponse({ status: 204, description: 'OTP validated successfully' })
   @ApiResponse({ status: 400, description: 'OTP code has expired' })
@@ -73,6 +75,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @Get(':userId')
   @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile details' })
   @ApiResponse({ status: HttpStatus.OK })
   async getProfile(@Param('userId') userId: string): Promise<ProfileDTO> {
@@ -82,6 +85,7 @@ export class UserController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'List of active users',
     description:
@@ -131,6 +135,7 @@ export class UserController {
 
   @Delete(':userId')
   @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete user logically' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
