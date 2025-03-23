@@ -23,9 +23,17 @@ export class PresentationService {
     return await this.presentationRepository.save(presentation);
   }
 
-  async findAll(): Promise<Presentation[]> {
+  async countPresentations(): Promise<number> {
+    return await this.presentationRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Presentation[]> {
     return await this.presentationRepository.find({
       where: { deletedAt: IsNull() },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
   }
 

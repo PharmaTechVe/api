@@ -10,11 +10,23 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
+  ParseIntPipe,
+  Query,
+  DefaultValuePipe,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import {
   CreateManufacturerDTO,
   UpdateManufacturerDTO,
@@ -22,9 +34,16 @@ import {
 } from '../dto/manufacturer.dto';
 import { ManufacturerService } from '../services/manufacturer.service';
 import { UserRole } from 'src/user/entities/user.entity';
+import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
+import { getPaginationUrl } from 'src/utils/pagination-urls';
 @Controller('manufacturer')
+@ApiExtraModels(PaginationDTO, ResponseManufacturerDTO)
 export class ManufacturerController {
-  constructor(private readonly manufacturerService: ManufacturerService) {}
+  constructor(
+    private readonly manufacturerService: ManufacturerService,
+    private configService: ConfigService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -47,13 +66,47 @@ export class ManufacturerController {
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all manufacturers' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({
     description: 'Successful retrieval of manufacturers',
     status: HttpStatus.OK,
-    type: [ResponseManufacturerDTO],
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(PaginationDTO) },
+        {
+          properties: {
+            results: {
+              type: 'array',
+              items: { $ref: getSchemaPath(ResponseManufacturerDTO) },
+            },
+          },
+        },
+      ],
+    },
   })
-  async findAll(): Promise<ResponseManufacturerDTO[]> {
-    return await this.manufacturerService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Req() req: Request,
+  ): Promise<PaginationDTO<ResponseManufacturerDTO>> {
+    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
+    const count = await this.manufacturerService.countManufacturers();
+    const manufacturers = await this.manufacturerService.findAll(page, limit);
+    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
+    return { results: manufacturers, count, next, previous };
   }
 
   @Get(':id')

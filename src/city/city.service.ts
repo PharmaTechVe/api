@@ -19,8 +19,33 @@ export class CityService {
     return await this.cityRepository.save(city);
   }
 
-  async findAll(): Promise<City[]> {
-    return await this.cityRepository.find();
+  async countCities(stateId?: string): Promise<number> {
+    if (stateId) {
+      const state = await this.stateService.findOne(stateId);
+      return await this.cityRepository.count({
+        where: { state: { id: state.id } },
+      });
+    }
+    return await this.cityRepository.count();
+  }
+
+  async findAll(
+    page: number,
+    pageSize: number,
+    stateId?: string,
+  ): Promise<City[]> {
+    if (stateId) {
+      const state = await this.stateService.findOne(stateId);
+      return await this.cityRepository.find({
+        where: { state: { id: state.id } },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+    }
+    return await this.cityRepository.find({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
   }
 
   async findOne(id: string): Promise<City> {
@@ -31,13 +56,6 @@ export class CityService {
       throw new NotFoundException(`City #${id} not found`);
     }
     return city;
-  }
-
-  async findByStateId(stateId: string): Promise<City[]> {
-    const state = await this.stateService.findOne(stateId);
-    return await this.cityRepository.find({
-      where: { state: { id: state.id } },
-    });
   }
 
   async update(id: string, updateCityDto: UpdateCityDTO): Promise<City> {

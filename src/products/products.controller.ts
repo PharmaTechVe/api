@@ -17,6 +17,7 @@ import {
   ApiExtraModels,
   ApiOkResponse,
   ApiOperation,
+  ApiQuery,
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -45,6 +46,20 @@ export class ProductsController {
     summary: 'List all available products',
     description:
       'returns all available products (deletedAt is NULL). It will include their images, lots, presentations, manufacturers and categories.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
   })
   @ApiOkResponse({
     description: 'Products obtained correctly.',

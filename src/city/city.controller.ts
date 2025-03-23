@@ -10,18 +10,36 @@ import {
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
+  Req,
+  DefaultValuePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { CityService } from './city.service';
 import { CreateCityDTO, UpdateCityDTO, CityDTO } from './dto/city.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
+import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
+import { getPaginationUrl } from 'src/utils/pagination-urls';
 
 @Controller('city')
+@ApiExtraModels(PaginationDTO, CityDTO)
 export class CityController {
-  constructor(private readonly cityService: CityService) {}
+  constructor(
+    private readonly cityService: CityService,
+    private configService: ConfigService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -39,16 +57,54 @@ export class CityController {
 
   @Get()
   @ApiOperation({ summary: 'List all cities or filter by state ID' })
+  @ApiQuery({
+    name: 'stateId',
+    required: false,
+    description: 'Filter states by state ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({
     description: 'Successful retrieval of cities',
     status: HttpStatus.OK,
-    type: [CityDTO],
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(PaginationDTO) },
+        {
+          properties: {
+            results: {
+              type: 'array',
+              items: { $ref: getSchemaPath(CityDTO) },
+            },
+          },
+        },
+      ],
+    },
   })
-  async findAll(@Query('stateId') stateId?: string): Promise<CityDTO[]> {
-    if (stateId) {
-      return await this.cityService.findByStateId(stateId);
-    }
-    return await this.cityService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Req() req: Request,
+    @Query('stateId') stateId?: string,
+  ): Promise<PaginationDTO<CityDTO>> {
+    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
+    const count = await this.cityService.countCities(stateId);
+    const cities = await this.cityService.findAll(page, limit, stateId);
+    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
+    return { results: cities, count, next, previous };
   }
 
   @Get(':id')

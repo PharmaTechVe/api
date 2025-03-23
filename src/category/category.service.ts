@@ -16,8 +16,15 @@ export class CategoryService {
     return await this.categoryRespository.save(categoryData);
   }
 
-  async findAll(): Promise<Category[]> {
-    return await this.categoryRespository.find();
+  async countCategories(): Promise<number> {
+    return await this.categoryRespository.count();
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Category[]> {
+    return await this.categoryRespository.find({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
   }
 
   async findOne(id: string): Promise<Category> {

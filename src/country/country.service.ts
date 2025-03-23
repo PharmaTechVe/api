@@ -16,8 +16,15 @@ export class CountryService {
     return await this.countryRepository.save(country);
   }
 
-  async findAll(): Promise<Country[]> {
-    return await this.countryRepository.find();
+  async countCountries(): Promise<number> {
+    return await this.countryRepository.count();
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Country[]> {
+    return await this.countryRepository.find({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
   }
 
   async findOne(id: string): Promise<Country> {

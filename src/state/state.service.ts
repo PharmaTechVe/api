@@ -19,8 +19,31 @@ export class StateService {
     return await this.stateRepository.save(state);
   }
 
-  async findAll(): Promise<State[]> {
-    return await this.stateRepository.find();
+  async countStates(countryId?: string): Promise<number> {
+    if (countryId) {
+      return await this.stateRepository.count({
+        where: { country: { id: countryId } },
+      });
+    }
+    return await this.stateRepository.count();
+  }
+
+  async findAll(
+    page: number,
+    pageSize: number,
+    countryId?: string,
+  ): Promise<State[]> {
+    if (countryId) {
+      return await this.stateRepository.find({
+        where: { country: { id: countryId } },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      });
+    }
+    return await this.stateRepository.find({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
   }
 
   async findOne(id: string): Promise<State> {
@@ -43,11 +66,5 @@ export class StateService {
       throw new NotFoundException(`State #${id} not found`);
     }
     return true;
-  }
-
-  async findByCountryId(countryId: string): Promise<State[]> {
-    return await this.stateRepository.find({
-      where: { country: { id: countryId } },
-    });
   }
 }

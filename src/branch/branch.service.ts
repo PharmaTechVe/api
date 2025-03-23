@@ -19,8 +19,18 @@ export class BranchService {
     return await this.branchRepository.save(branch);
   }
 
-  async findAll(): Promise<Branch[]> {
-    return await this.branchRepository.find({ where: { deletedAt: IsNull() } });
+  async countBranches(): Promise<number> {
+    return await this.branchRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Branch[]> {
+    return await this.branchRepository.find({
+      where: { deletedAt: IsNull() },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
   }
 
   async findOne(id: string): Promise<Branch> {

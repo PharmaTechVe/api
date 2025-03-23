@@ -10,11 +10,23 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
+  ParseIntPipe,
+  Query,
+  DefaultValuePipe,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExtraModels,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import {
   CreatePresentationDTO,
   UpdatePresentationDTO,
@@ -22,10 +34,17 @@ import {
 } from '../dto/presentation.dto';
 import { PresentationService } from '../services/presentation.service';
 import { UserRole } from 'src/user/entities/user.entity';
+import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
+import { getPaginationUrl } from 'src/utils/pagination-urls';
 
 @Controller('presentation')
+@ApiExtraModels(PaginationDTO, ResponsePresentationDTO)
 export class PresentationController {
-  constructor(private readonly presentationService: PresentationService) {}
+  constructor(
+    private readonly presentationService: PresentationService,
+    private configService: ConfigService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -48,13 +67,47 @@ export class PresentationController {
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all presentations' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
   @ApiResponse({
     description: 'Successful retrieval of presentations',
     status: HttpStatus.OK,
-    type: [ResponsePresentationDTO],
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(PaginationDTO) },
+        {
+          properties: {
+            results: {
+              type: 'array',
+              items: { $ref: getSchemaPath(ResponsePresentationDTO) },
+            },
+          },
+        },
+      ],
+    },
   })
-  async findAll(): Promise<ResponsePresentationDTO[]> {
-    return await this.presentationService.findAll();
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Req() req: Request,
+  ): Promise<PaginationDTO<ResponsePresentationDTO>> {
+    const baseUrl = this.configService.get<string>('API_URL') + req.path;
+    const count = await this.presentationService.countPresentations();
+    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
+    const presentations = await this.presentationService.findAll(page, limit);
+    return { results: presentations, count, next, previous };
   }
 
   @Get(':id')

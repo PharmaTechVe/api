@@ -28,9 +28,17 @@ export class ManufacturerService {
     return await this.manufacturerRepository.save(manufacturer);
   }
 
-  async findAll(): Promise<Manufacturer[]> {
+  async countManufacturers(): Promise<number> {
+    return await this.manufacturerRepository.count({
+      where: { deletedAt: IsNull() },
+    });
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Manufacturer[]> {
     return await this.manufacturerRepository.find({
       where: { deletedAt: IsNull() },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
   }
 
