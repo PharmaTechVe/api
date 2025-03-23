@@ -22,7 +22,7 @@
     "migration:generate": "npm run typeorm -- migration:generate -d ./src/database/typeorm.config.ts",
     "migration:run": "npm run typeorm -- migration:run -d ./src/database/typeorm.config.ts",
     "migration:revert": "npm run typeorm -- migration:revert -d ./src/database/typeorm.config.ts",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
