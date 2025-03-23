@@ -8,6 +8,11 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { LoggerModule } from 'nestjs-pino';
+import { CategoryModule } from './category/category.module';
+import { CountryModule } from './country/country.module';
+import { StateModule } from './state/state.module';
+import { CityModule } from './city/city.module';
+import { BranchModule } from './branch/branch.module';
 
 @Module({
   imports: [
@@ -39,6 +44,11 @@ import { LoggerModule } from 'nestjs-pino';
     UserModule,
     AuthModule,
     EmailModule,
+    CategoryModule,
+    CountryModule,
+    StateModule,
+    CityModule,
+    BranchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

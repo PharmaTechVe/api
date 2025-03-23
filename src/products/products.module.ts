@@ -6,23 +6,39 @@ import { Product } from './entities/product.entity';
 import { ProductPresentation } from './entities/product-presentation.entity';
 import { Manufacturer } from './entities/manufacturer.entity';
 import { AuthModule } from 'src/auth/auth.module';
-import { Category } from './entities/category.entity';
-import { ProductImage } from './entities/product-image.entity';
 import { Presentation } from './entities/presentation.entity';
+import { PresentationService } from './services/presentation.service';
+import { PresentationController } from './controllers/presentation.controller';
+import { ManufacturerService } from './services/manufacturer.service';
+import { ManufacturerController } from './controllers/manufacturer.controller';
+import { CountryService } from 'src/country/country.service';
+import { Country } from 'src/country/entities/country.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       Product,
       ProductPresentation,
-      Presentation,
       Manufacturer,
+      Presentation,
+      Country,
       Category,
       ProductImage,
     ]),
     AuthModule,
   ],
-  controllers: [ProductsController],
-  providers: [ProductsService],
+  controllers: [
+    ProductsController,
+    PresentationController,
+    ManufacturerController,
+  ],
+  providers: [
+    ProductsService,
+    PresentationService,
+    ManufacturerService,
+    CountryService,
+  ],
 })
 export class ProductsModule {}

@@ -8,9 +8,9 @@ import {
   CreateProductPresentationDTO,
 } from './dto/create-product.dto';
 import { Manufacturer } from './entities/manufacturer.entity';
-import { Category } from './entities/category.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Presentation } from './entities/presentation.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductsService {
