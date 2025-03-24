@@ -12,6 +12,7 @@ import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @Injectable()
 export class UserService {
@@ -33,6 +34,14 @@ export class UserService {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
       throw new BadRequestException('Invalid request');
+    }
+    return user;
+  }
+
+  async findOne(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User #${id} not found`);
     }
     return user;
   }
@@ -163,7 +172,8 @@ export class UserService {
     await this.userRepository.save(userToDelete);
   }
 
-  async updateUser(user: User, updateUserDto: Partial<User>): Promise<User> {
+  async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
+    const user = await this.findOne(id);
     const updatedUser = this.userRepository.merge(user, updateUserDto);
     return await this.userRepository.save(updatedUser);
   }
