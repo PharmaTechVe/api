@@ -162,4 +162,9 @@ export class UserService {
     userToDelete.deletedAt = new Date();
     await this.userRepository.save(userToDelete);
   }
+
+  async updateUser(user: User, updateUserDto: Partial<User>): Promise<User> {
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+    return await this.userRepository.save(updatedUser);
+  }
 }
