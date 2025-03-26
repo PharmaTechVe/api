@@ -15,6 +15,9 @@ import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { PromoController } from './controllers/promo.controller';
+import { PromoService } from './services/promo.service';
+import { Promo } from './entities/promo.entity';
 
 @Module({
   imports: [
@@ -26,6 +29,7 @@ import { Category } from 'src/category/entities/category.entity';
       Country,
       Category,
       ProductImage,
+      Promo,
     ]),
     AuthModule,
   ],
@@ -33,12 +37,14 @@ import { Category } from 'src/category/entities/category.entity';
     ProductsController,
     PresentationController,
     ManufacturerController,
+    PromoController,
   ],
   providers: [
     ProductsService,
     PresentationService,
     ManufacturerService,
     CountryService,
+    PromoService,
   ],
 })
 export class ProductsModule {}
