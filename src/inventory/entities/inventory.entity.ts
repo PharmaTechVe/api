@@ -11,11 +11,12 @@ export class Inventory extends BaseModel {
   @ManyToOne(
     () => ProductPresentation,
     (productPresentation) => productPresentation.inventories,
+    { eager: true },
   )
   @JoinColumn({ name: 'product_presentation_id' })
   productPresentation: ProductPresentation;
 
-  @ManyToOne(() => Branch, (branch) => branch.inventories)
+  @ManyToOne(() => Branch, (branch) => branch.inventories, { eager: true })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 }
