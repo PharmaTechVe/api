@@ -12,6 +12,8 @@ import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
+import { UserAdress } from './entities/user-address.entity';
+import { CreateUserAddressDTO } from './dto/create-user-address.dto';
 
 @Injectable()
 export class UserService {
@@ -22,6 +24,8 @@ export class UserService {
     private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
+    @InjectRepository(UserAdress)
+    private UserAdressRepository: Repository<UserAdress>,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -161,5 +165,26 @@ export class UserService {
     }
     userToDelete.deletedAt = new Date();
     await this.userRepository.save(userToDelete);
+  }
+
+  async createAddress(
+    userId: string,
+    addressData: CreateUserAddressDTO,
+  ): Promise<CreateUserAddressDTO> {
+    const newAddress = this.UserAdressRepository.create({
+      ...addressData,
+      user: { id: userId },
+      city: { id: addressData.cityId },
+    });
+    const savedAddress = await this.UserAdressRepository.save(newAddress);
+
+    return {
+      id: savedAddress.id,
+      adress: savedAddress.adress,
+      zipCode: savedAddress.zipCode,
+      latitude: savedAddress.latitude,
+      longitude: savedAddress.longitude,
+      cityId: addressData.cityId,
+    };
   }
 }

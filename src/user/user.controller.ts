@@ -37,6 +37,7 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
+import { CreateUserAddressDTO } from './dto/create-user-address.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -148,5 +149,17 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
   async deleteUser(@Param('userId') userId: string): Promise<void> {
     await this.userService.deleteUser(userId);
+  }
+
+  @Post(':userId/address')
+  @HttpCode(HttpStatus.CREATED)
+  //@ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new address for the user' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: CreateUserAddressDTO })
+  async createAddress(
+    @Param('userId') userId: string,
+    @Body() createAddressDto: CreateUserAddressDTO,
+  ): Promise<CreateUserAddressDTO> {
+    return this.userService.createAddress(userId, createAddressDto);
   }
 }
