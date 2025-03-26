@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { In, Repository } from 'typeorm';
+import { In, Repository, Brackets, SelectQueryBuilder } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
 import {
   CreateProductDTO,
@@ -34,18 +34,46 @@ export class ProductsService {
     private productImageRepository: Repository<ProductImage>,
   ) {}
 
-  async countProducts(): Promise<number> {
-    return await this.productPresentationRepository
+  private applySearchQuery(
+    query: SelectQueryBuilder<ProductPresentation>,
+    searchQuery?: string,
+  ): SelectQueryBuilder<ProductPresentation> {
+    if (!searchQuery) return query;
+
+    return query.andWhere(
+      new Brackets((qb) => {
+        qb.where('LOWER(product.name) LIKE LOWER(:searchQuery)', {
+          searchQuery: `%${searchQuery}%`,
+        })
+          .orWhere('LOWER(product.generic_name) LIKE LOWER(:searchQuery)', {
+            searchQuery: `%${searchQuery}%`,
+          })
+          .orWhere('LOWER(manufacturer.name) LIKE LOWER(:searchQuery)', {
+            searchQuery: `%${searchQuery}%`,
+          });
+      }),
+    );
+  }
+  async countProducts(searchQuery?: string): Promise<number> {
+    let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
+      .leftJoin('product_presentation.product', 'product')
+      .leftJoin('product.manufacturer', 'manufacturer')
       .where('product_presentation.deletedAt IS NULL')
-      .getCount();
+      .andWhere('product.deletedAt IS NULL')
+      .andWhere('manufacturer.deletedAt IS NULL');
+
+    query = this.applySearchQuery(query, searchQuery);
+
+    return query.getCount();
   }
 
   async getProducts(
     page: number,
     limit: number,
+    searchQuery?: string,
   ): Promise<ProductPresentation[]> {
-    const products = await this.productPresentationRepository
+    let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
       .leftJoinAndSelect('product_presentation.product', 'product')
       .leftJoinAndSelect('product.images', 'images')
@@ -56,7 +84,11 @@ export class ProductsService {
       .andWhere('product.deletedAt IS NULL')
       .andWhere('manufacturer.deletedAt IS NULL')
       .andWhere('images.deletedAt IS NULL')
-      .andWhere('presentation.deletedAt IS NULL')
+      .andWhere('presentation.deletedAt IS NULL');
+
+    query = this.applySearchQuery(query, searchQuery);
+
+    const products = await query
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
