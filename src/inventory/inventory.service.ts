@@ -1,26 +1,62 @@
-import { Injectable } from '@nestjs/common';
-import { CreateInventoryDto } from './dto/create-inventory.dto';
-import { UpdateInventoryDto } from './dto/update-inventory.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateInventoryDTO, UpdateInventoryDTO } from './dto/inventory.dto';
+import { Inventory } from './entities/inventory.entity';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
+import { BranchService } from 'src/branch/branch.service';
 
 @Injectable()
 export class InventoryService {
-  create(createInventoryDto: CreateInventoryDto) {
-    return createInventoryDto;
+  constructor(
+    @InjectRepository(Inventory)
+    private readonly inventoryRepository: Repository<Inventory>,
+    private readonly branchService: BranchService,
+    @InjectRepository(ProductPresentation)
+    private readonly productPresentationRepository: Repository<ProductPresentation>,
+  ) {}
+
+  async create(createInventoryDTO: CreateInventoryDTO): Promise<Inventory> {
+    const inventory = this.inventoryRepository.create(createInventoryDTO);
+    inventory.branch = await this.branchService.findOne(
+      createInventoryDTO.branchId,
+    );
+    inventory.productPresentation =
+      await this.productPresentationRepository.findOneByOrFail({
+        id: createInventoryDTO.productPresentationId,
+      });
+    return await this.inventoryRepository.save(inventory);
   }
 
-  findAll() {
-    return `This action returns all inventory`;
+  async findAll(): Promise<Inventory[]> {
+    return await this.inventoryRepository.find({
+      relations: ['branch', 'productPresentation'],
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} inventory`;
+  async findOne(id: string): Promise<Inventory> {
+    const inventory = await this.inventoryRepository.findOne({ where: { id } });
+    if (!inventory) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
+    return inventory;
   }
 
-  update(id: number, updateInventoryDto: UpdateInventoryDto) {
-    return updateInventoryDto;
+  async update(
+    id: string,
+    updateInventoryDTO: UpdateInventoryDTO,
+  ): Promise<Inventory> {
+    const inventory = await this.findOne(id);
+    const updatedInventory = { ...inventory, ...updateInventoryDTO };
+    return await this.inventoryRepository.save(updatedInventory);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} inventory`;
+  async remove(id: string): Promise<boolean> {
+    const inventory = await this.findOne(id);
+    const deleted = await this.inventoryRepository.softDelete(inventory.id);
+    if (!deleted.affected) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
+    return true;
   }
 }
