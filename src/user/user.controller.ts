@@ -154,7 +154,7 @@ export class UserController {
 
   @Post(':userId/address')
   @HttpCode(HttpStatus.CREATED)
-  //@ApiBearerAuth()
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new address for the user' })
   @ApiResponse({ status: HttpStatus.CREATED, type: CreateUserAddressDTO })
   async createAddress(
@@ -166,7 +166,7 @@ export class UserController {
 
   @Get(':userId/address/:addressId')
   @HttpCode(HttpStatus.OK)
-  //@ApiBearerAuth()
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get details of a specific address (admin or same user)',
   })
