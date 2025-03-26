@@ -14,6 +14,7 @@ import {
   ParseIntPipe,
   Query,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -161,5 +162,64 @@ export class UserController {
     @Body() createAddressDto: CreateUserAddressDTO,
   ): Promise<CreateUserAddressDTO> {
     return this.userService.createAddress(userId, createAddressDto);
+  }
+
+  @Get(':userId/address/:addressId')
+  @HttpCode(HttpStatus.OK)
+  //@ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get details of a specific address (admin or same user)',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: CreateUserAddressDTO })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async getAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+  ): Promise<CreateUserAddressDTO> {
+    return this.userService.getAddress(userId, addressId);
+  }
+
+  @Get(':userId/address')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List addresses for a user (admin or same user)' })
+  @ApiResponse({ status: HttpStatus.OK, type: [CreateUserAddressDTO] })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async listAddresses(
+    @Param('userId') userId: string,
+  ): Promise<CreateUserAddressDTO[]> {
+    return this.userService.getListAddresses(userId);
+  }
+
+  @Delete(':userId/address/:addressId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete (soft delete) an address (admin or same user)',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Address deleted successfully',
+  })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async deleteAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+  ): Promise<void> {
+    return this.userService.deleteAddress(userId, addressId);
+  }
+
+  @Patch(':userId/address/:addressId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update an address partially (admin or same user)' })
+  @ApiResponse({ status: HttpStatus.OK, type: CreateUserAddressDTO })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async updateAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+    @Body() updateDto: Partial<CreateUserAddressDTO>,
+  ): Promise<CreateUserAddressDTO> {
+    return this.userService.updateAddress(userId, addressId, updateDto);
   }
 }

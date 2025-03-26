@@ -14,6 +14,7 @@ import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -186,5 +187,98 @@ export class UserService {
       longitude: savedAddress.longitude,
       cityId: addressData.cityId,
     };
+  }
+
+  async getAddress(
+    userId: string,
+    addressId: string,
+  ): Promise<CreateUserAddressDTO> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    return plainToInstance(CreateUserAddressDTO, {
+      id: address.id,
+      adress: address.adress,
+      zipCode: address.zipCode,
+      latitude: address.latitude,
+      longitude: address.longitude,
+      cityId: address.city ? address.city.id : null,
+      nameCity: address.city.name,
+      nameState: address.city.state.name,
+      nameCountry: address.city.state.country.name,
+    });
+  }
+
+  async getListAddresses(userId: string): Promise<CreateUserAddressDTO[]> {
+    const addresses = await this.UserAdressRepository.find({
+      where: { user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!addresses.length) {
+      throw new NotFoundException('No addresses found for this user.');
+    }
+    return addresses.map((address) =>
+      plainToInstance(CreateUserAddressDTO, {
+        id: address.id,
+        adress: address.adress,
+        zipCode: address.zipCode,
+        latitude: address.latitude,
+        longitude: address.longitude,
+        cityId: address.city ? address.city.id : null,
+        nameCity: address.city.name,
+        nameState: address.city.state.name,
+        nameCountry: address.city.state.country.name,
+      }),
+    );
+  }
+
+  async deleteAddress(userId: string, addressId: string): Promise<void> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const result = await this.UserAdressRepository.softDelete(address.id);
+    if (!result.affected) {
+      throw new NotFoundException(`Address #${addressId} not found`);
+    }
+  }
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updateData: Partial<CreateUserAddressDTO>,
+  ): Promise<CreateUserAddressDTO> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const updatedAddress = await this.UserAdressRepository.save({
+      ...address,
+      ...updateData,
+      city: updateData.cityId ? { id: updateData.cityId } : address.city,
+    });
+    return plainToInstance(CreateUserAddressDTO, {
+      id: updatedAddress.id,
+      adress: updatedAddress.adress,
+      zipCode: updatedAddress.zipCode,
+      latitude: updatedAddress.latitude,
+      longitude: updatedAddress.longitude,
+      cityId: updatedAddress.city ? updatedAddress.city.id : null,
+      nameCity: updatedAddress.city.name,
+      nameState: updatedAddress.city.state.name,
+      nameCountry: updatedAddress.city.state.country.name,
+    });
   }
 }
