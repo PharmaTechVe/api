@@ -9,23 +9,39 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
+  Query,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { InventoryService } from './inventory.service';
 import {
   CreateInventoryDTO,
   UpdateInventoryDTO,
   ResponseInventoryDTO,
+  InventoryQueryDTO,
 } from './dto/inventory.dto';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
-import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  getSchemaPath,
+} from '@nestjs/swagger';
 import { Inventory } from './entities/inventory.entity';
+import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
+import { getPaginationUrl } from 'src/utils/pagination-urls';
 
 @Controller('inventory')
 export class InventoryController {
-  constructor(private readonly inventoryService: InventoryService) {}
+  constructor(
+    private readonly inventoryService: InventoryService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
@@ -45,8 +61,60 @@ export class InventoryController {
 
   @Get()
   @ApiOperation({ summary: 'List all inventory' })
-  async findAll(): Promise<ResponseInventoryDTO[]> {
-    return await this.inventoryService.findAll();
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
+  @ApiResponse({
+    description: 'Successful retrieval of inventories',
+    status: HttpStatus.OK,
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(PaginationDTO) },
+        {
+          properties: {
+            results: {
+              type: 'array',
+              items: { $ref: getSchemaPath(ResponseInventoryDTO) },
+            },
+          },
+        },
+      ],
+    },
+  })
+  async findAll(
+    @Query() query: InventoryQueryDTO,
+    @Req() req: Request,
+  ): Promise<PaginationDTO<ResponseInventoryDTO>> {
+    const baseUrl = this.configService.get<string>('API_URL') + req.path;
+    const [result, count] = await this.inventoryService.findAll(
+      query.calculateSkip(),
+      query.limit,
+      query.branchId,
+      query.productPresentationId,
+    );
+    const { next, previous } = getPaginationUrl(
+      baseUrl,
+      query.page,
+      query.limit,
+      count,
+    );
+    return {
+      results: result,
+      count,
+      next,
+      previous,
+    };
   }
 
   @Get(':id')

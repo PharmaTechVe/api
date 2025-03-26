@@ -27,14 +27,14 @@ export class PaginationQueryDTO {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  pageSize: number;
+  limit: number;
 
-  constructor(page: number, pageSize: number) {
+  constructor(page: number, limit: number) {
     this.page = page ? page : 1;
-    this.pageSize = pageSize ? pageSize : 10;
+    this.limit = limit ? limit : 10;
   }
 
   calculateSkip() {
-    return (this.page - 1) * this.pageSize;
+    return (this.page - 1) * this.limit;
   }
 }
