@@ -153,6 +153,7 @@ export class UserController {
   }
 
   @Patch(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
   async UpdateUser(
     @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDTO,
