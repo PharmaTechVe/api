@@ -1,4 +1,5 @@
 import { City } from 'src/city/entities/city.entity';
+import { Inventory } from 'src/inventory/entities/inventory.entity';
 import { User } from 'src/user/entities/user.entity';
 import { BaseModel } from 'src/utils/entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
@@ -23,4 +24,7 @@ export class Branch extends BaseModel {
 
   @OneToMany(() => User, (user) => user.branch)
   users: User[];
+
+  @OneToMany(() => Inventory, (inventory) => inventory.branch)
+  inventories: Inventory[];
 }
