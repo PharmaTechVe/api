@@ -13,6 +13,7 @@ import { CountryModule } from './country/country.module';
 import { StateModule } from './state/state.module';
 import { CityModule } from './city/city.module';
 import { BranchModule } from './branch/branch.module';
+import { InventoryModule } from './inventory/inventory.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { BranchModule } from './branch/branch.module';
     StateModule,
     CityModule,
     BranchModule,
+    InventoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
