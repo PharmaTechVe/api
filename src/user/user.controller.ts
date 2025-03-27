@@ -157,9 +157,19 @@ export class UserController {
   async UpdateUser(
     @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDTO,
-  ): Promise<User> {
+  ): Promise<ProfileDTO> {
     const user = await this.userService.updateUser(userId, updateUserDto);
-    await this.userService.updateProfile(userId, updateUserDto);
-    return user;
+    const profile = await this.userService.updateProfile(userId, updateUserDto);
+    return {
+      birthDate: profile.birthDate,
+      documentId: user.documentId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+      profilePicture: profile.profilePicture,
+      gender: profile.gender,
+    };
   }
 }
