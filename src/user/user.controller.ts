@@ -167,13 +167,13 @@ export class UserController {
       createAddressDto,
     );
 
-    return {
+    return plainToInstance(CreateUserAddressDTO, {
       adress: savedAddress.adress,
       zipCode: savedAddress.zipCode,
       latitude: savedAddress.latitude,
       longitude: savedAddress.longitude,
       cityId: savedAddress.city.id,
-    };
+    });
   }
 
   @Get(':userId/address/:addressId')
@@ -190,7 +190,7 @@ export class UserController {
   ): Promise<UserAddressDTO> {
     const address = await this.userService.getAddress(userId, addressId);
 
-    return {
+    return plainToInstance(UserAddressDTO, {
       id: address.id,
       adress: address.adress,
       zipCode: address.zipCode,
@@ -200,7 +200,7 @@ export class UserController {
       nameCity: address.city.name,
       nameState: address.city.state.name,
       nameCountry: address.city.state.country.name,
-    };
+    });
   }
 
   @Get(':userId/address')
@@ -213,17 +213,19 @@ export class UserController {
     @Param('userId') userId: string,
   ): Promise<UserAddressDTO[]> {
     const addresses = await this.userService.getListAddresses(userId);
-    return addresses.map((address) => ({
-      id: address.id,
-      adress: address.adress,
-      zipCode: address.zipCode,
-      latitude: address.latitude,
-      longitude: address.longitude,
-      cityId: address.city.id,
-      nameCity: address.city.name,
-      nameState: address.city.state.name,
-      nameCountry: address.city.state.country.name,
-    }));
+    return addresses.map((address) =>
+      plainToInstance(UserAddressDTO, {
+        id: address.id,
+        adress: address.adress,
+        zipCode: address.zipCode,
+        latitude: address.latitude,
+        longitude: address.longitude,
+        cityId: address.city.id,
+        nameCity: address.city.name,
+        nameState: address.city.state.name,
+        nameCountry: address.city.state.country.name,
+      }),
+    );
   }
 
   @Delete(':userId/address/:addressId')
@@ -260,7 +262,7 @@ export class UserController {
       addressId,
       updateData,
     );
-    return {
+    return plainToInstance(UserAddressDTO, {
       id: updatedAddress.id,
       adress: updatedAddress.adress,
       zipCode: updatedAddress.zipCode,
@@ -270,6 +272,6 @@ export class UserController {
       nameCity: updatedAddress.city.name,
       nameState: updatedAddress.city.state.name,
       nameCountry: updatedAddress.city.state.country.name,
-    };
+    });
   }
 }
