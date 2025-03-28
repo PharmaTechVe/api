@@ -14,8 +14,6 @@ import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UserAddressDTO } from './dto/reponse-user-address.dto';
-import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UserService {
@@ -172,25 +170,16 @@ export class UserService {
   async createAddress(
     userId: string,
     addressData: CreateUserAddressDTO,
-  ): Promise<UserAddressDTO> {
+  ): Promise<UserAdress> {
     const newAddress = this.UserAdressRepository.create({
       ...addressData,
       user: { id: userId },
       city: { id: addressData.cityId },
     });
-    const savedAddress = await this.UserAdressRepository.save(newAddress);
-
-    return {
-      id: savedAddress.id,
-      adress: savedAddress.adress,
-      zipCode: savedAddress.zipCode,
-      latitude: savedAddress.latitude,
-      longitude: savedAddress.longitude,
-      cityId: addressData.cityId,
-    };
+    return await this.UserAdressRepository.save(newAddress);
   }
 
-  async getAddress(userId: string, addressId: string): Promise<UserAddressDTO> {
+  async getAddress(userId: string, addressId: string): Promise<UserAdress> {
     const address = await this.UserAdressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -198,21 +187,10 @@ export class UserService {
     if (!address) {
       throw new NotFoundException('Address not found.');
     }
-
-    return plainToInstance(UserAddressDTO, {
-      id: address.id,
-      adress: address.adress,
-      zipCode: address.zipCode,
-      latitude: address.latitude,
-      longitude: address.longitude,
-      cityId: address.city ? address.city.id : null,
-      nameCity: address.city.name,
-      nameState: address.city.state.name,
-      nameCountry: address.city.state.country.name,
-    });
+    return address;
   }
 
-  async getListAddresses(userId: string): Promise<UserAddressDTO[]> {
+  async getListAddresses(userId: string): Promise<UserAdress[]> {
     const addresses = await this.UserAdressRepository.find({
       where: { user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -220,19 +198,7 @@ export class UserService {
     if (!addresses.length) {
       throw new NotFoundException('No addresses found for this user.');
     }
-    return addresses.map((address) =>
-      plainToInstance(UserAddressDTO, {
-        id: address.id,
-        adress: address.adress,
-        zipCode: address.zipCode,
-        latitude: address.latitude,
-        longitude: address.longitude,
-        cityId: address.city ? address.city.id : null,
-        nameCity: address.city.name,
-        nameState: address.city.state.name,
-        nameCountry: address.city.state.country.name,
-      }),
-    );
+    return addresses;
   }
 
   async deleteAddress(userId: string, addressId: string): Promise<void> {
@@ -253,7 +219,7 @@ export class UserService {
     userId: string,
     addressId: string,
     updateData: Partial<CreateUserAddressDTO>,
-  ): Promise<UserAddressDTO> {
+  ): Promise<UserAdress> {
     const address = await this.UserAdressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -267,16 +233,6 @@ export class UserService {
       ...updateData,
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
     });
-    return plainToInstance(UserAddressDTO, {
-      id: updatedAddress.id,
-      adress: updatedAddress.adress,
-      zipCode: updatedAddress.zipCode,
-      latitude: updatedAddress.latitude,
-      longitude: updatedAddress.longitude,
-      cityId: updatedAddress.city ? updatedAddress.city.id : null,
-      nameCity: updatedAddress.city.name,
-      nameState: updatedAddress.city.state.name,
-      nameCountry: updatedAddress.city.state.country.name,
-    });
+    return updatedAddress;
   }
 }

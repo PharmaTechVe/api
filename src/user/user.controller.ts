@@ -39,6 +39,7 @@ import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UserAddressDTO } from './dto/reponse-user-address.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -161,7 +162,18 @@ export class UserController {
     @Param('userId') userId: string,
     @Body() createAddressDto: CreateUserAddressDTO,
   ): Promise<CreateUserAddressDTO> {
-    return this.userService.createAddress(userId, createAddressDto);
+    const savedAddress = await this.userService.createAddress(
+      userId,
+      createAddressDto,
+    );
+
+    return {
+      adress: savedAddress.adress,
+      zipCode: savedAddress.zipCode,
+      latitude: savedAddress.latitude,
+      longitude: savedAddress.longitude,
+      cityId: savedAddress.city.id,
+    };
   }
 
   @Get(':userId/address/:addressId')
@@ -170,25 +182,48 @@ export class UserController {
   @ApiOperation({
     summary: 'Get details of a specific address (admin or same user)',
   })
-  @ApiResponse({ status: HttpStatus.OK, type: CreateUserAddressDTO })
+  @ApiResponse({ status: HttpStatus.OK, type: UserAddressDTO })
   @UseGuards(AuthGuard, UserOrAdminGuard)
   async getAddress(
     @Param('userId') userId: string,
     @Param('addressId') addressId: string,
-  ): Promise<CreateUserAddressDTO> {
-    return this.userService.getAddress(userId, addressId);
+  ): Promise<UserAddressDTO> {
+    const address = await this.userService.getAddress(userId, addressId);
+
+    return {
+      id: address.id,
+      adress: address.adress,
+      zipCode: address.zipCode,
+      latitude: address.latitude,
+      longitude: address.longitude,
+      cityId: address.city.id,
+      nameCity: address.city.name,
+      nameState: address.city.state.name,
+      nameCountry: address.city.state.country.name,
+    };
   }
 
   @Get(':userId/address')
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List addresses for a user (admin or same user)' })
-  @ApiResponse({ status: HttpStatus.OK, type: [CreateUserAddressDTO] })
+  @ApiResponse({ status: HttpStatus.OK, type: [UserAddressDTO] })
   @UseGuards(AuthGuard, UserOrAdminGuard)
-  async listAddresses(
+  async getListAddresses(
     @Param('userId') userId: string,
-  ): Promise<CreateUserAddressDTO[]> {
-    return this.userService.getListAddresses(userId);
+  ): Promise<UserAddressDTO[]> {
+    const addresses = await this.userService.getListAddresses(userId);
+    return addresses.map((address) => ({
+      id: address.id,
+      adress: address.adress,
+      zipCode: address.zipCode,
+      latitude: address.latitude,
+      longitude: address.longitude,
+      cityId: address.city.id,
+      nameCity: address.city.name,
+      nameState: address.city.state.name,
+      nameCountry: address.city.state.country.name,
+    }));
   }
 
   @Delete(':userId/address/:addressId')
@@ -213,13 +248,28 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an address partially (admin or same user)' })
-  @ApiResponse({ status: HttpStatus.OK, type: CreateUserAddressDTO })
+  @ApiResponse({ status: HttpStatus.OK, type: UserAddressDTO })
   @UseGuards(AuthGuard, UserOrAdminGuard)
   async updateAddress(
     @Param('userId') userId: string,
     @Param('addressId') addressId: string,
-    @Body() updateDto: Partial<CreateUserAddressDTO>,
-  ): Promise<CreateUserAddressDTO> {
-    return this.userService.updateAddress(userId, addressId, updateDto);
+    @Body() updateData: Partial<CreateUserAddressDTO>,
+  ): Promise<UserAddressDTO> {
+    const updatedAddress = await this.userService.updateAddress(
+      userId,
+      addressId,
+      updateData,
+    );
+    return {
+      id: updatedAddress.id,
+      adress: updatedAddress.adress,
+      zipCode: updatedAddress.zipCode,
+      latitude: updatedAddress.latitude,
+      longitude: updatedAddress.longitude,
+      cityId: updatedAddress.city.id,
+      nameCity: updatedAddress.city.name,
+      nameState: updatedAddress.city.state.name,
+      nameCountry: updatedAddress.city.state.country.name,
+    };
   }
 }
