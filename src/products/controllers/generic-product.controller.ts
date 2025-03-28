@@ -11,6 +11,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   Req,
+  HttpCode,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { GenericProductService } from '../services/generic-product.service';
@@ -37,7 +38,9 @@ import {
 } from 'src/utils/dto/pagination.dto';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { ConfigService } from '@nestjs/config';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Generic Product')
 @Controller('product/generic')
 export class GenericProductController {
   constructor(
@@ -135,7 +138,7 @@ export class GenericProductController {
   @ApiResponse({
     description: 'Successful update of a generic product',
     status: HttpStatus.OK,
-    type: Product,
+    type: ResponseGenericProductDTO,
   })
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -144,6 +147,7 @@ export class GenericProductController {
     return await this.genericProductService.update(id, updateProductDTO);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
