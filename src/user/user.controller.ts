@@ -14,6 +14,7 @@ import {
   ParseIntPipe,
   Query,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +38,7 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -148,5 +150,26 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
   async deleteUser(@Param('userId') userId: string): Promise<void> {
     await this.userService.deleteUser(userId);
+  }
+
+  @Patch(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async UpdateUser(
+    @Param('userId') userId: string,
+    @Body() updateUserDto: UpdateUserDTO,
+  ): Promise<ProfileDTO> {
+    const user = await this.userService.updateUser(userId, updateUserDto);
+    const profile = await this.userService.updateProfile(userId, updateUserDto);
+    return {
+      birthDate: profile.birthDate,
+      documentId: user.documentId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+      profilePicture: profile.profilePicture,
+      gender: profile.gender,
+    };
   }
 }
