@@ -48,4 +48,17 @@ export class ProductPresentationService {
 
     return this.repository.save(newProductPresentation);
   }
+
+  async findByProductAndPresentationId(
+    productId: string,
+    presentationId: string,
+  ): Promise<ProductPresentation | null> {
+    return this.repository.findOne({
+      where: {
+        product: { id: productId },
+        presentation: { id: presentationId },
+      },
+      relations: ['product', 'presentation'],
+    });
+  }
 }
