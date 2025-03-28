@@ -61,6 +61,13 @@ export class ProductsController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description:
+      'Search text to filter by name, generic_name or manufacturer.name',
+    type: String,
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -81,11 +88,16 @@ export class ProductsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Req() req: Request,
+    @Query('q') searchText?: string,
   ): Promise<PaginationDTO<ProductPresentationDTO>> {
     const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.productsServices.countProducts();
+    const count = await this.productsServices.countProducts(searchText);
     const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const products = await this.productsServices.getProducts(page, limit);
+    const products = await this.productsServices.getProducts(
+      page,
+      limit,
+      searchText,
+    );
     return { results: products, count, next, previous };
   }
 
