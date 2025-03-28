@@ -16,9 +16,11 @@ import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { ProductPresentationController } from './controllers/product-presentation.controller';
 import { PromoController } from './controllers/promo.controller';
 import { PromoService } from './services/promo.service';
 import { Promo } from './entities/promo.entity';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -37,6 +39,7 @@ import { Promo } from './entities/promo.entity';
     ProductsController,
     PresentationController,
     ManufacturerController,
+    ProductPresentationController,
     PromoController,
   ],
   providers: [
