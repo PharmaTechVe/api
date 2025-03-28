@@ -29,6 +29,7 @@ export class GenericProductDTO {
   @IsInt()
   @IsNotEmpty()
   @Min(1)
+  @ApiProperty({ description: 'Priority of the product' })
   priority: number;
 }
 
