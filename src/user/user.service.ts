@@ -14,6 +14,7 @@ import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UserAddressDTO } from './dto/reponse-user-address.dto';
 import { plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -171,7 +172,7 @@ export class UserService {
   async createAddress(
     userId: string,
     addressData: CreateUserAddressDTO,
-  ): Promise<CreateUserAddressDTO> {
+  ): Promise<UserAddressDTO> {
     const newAddress = this.UserAdressRepository.create({
       ...addressData,
       user: { id: userId },
@@ -189,10 +190,7 @@ export class UserService {
     };
   }
 
-  async getAddress(
-    userId: string,
-    addressId: string,
-  ): Promise<CreateUserAddressDTO> {
+  async getAddress(userId: string, addressId: string): Promise<UserAddressDTO> {
     const address = await this.UserAdressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -201,7 +199,7 @@ export class UserService {
       throw new NotFoundException('Address not found.');
     }
 
-    return plainToInstance(CreateUserAddressDTO, {
+    return plainToInstance(UserAddressDTO, {
       id: address.id,
       adress: address.adress,
       zipCode: address.zipCode,
@@ -214,7 +212,7 @@ export class UserService {
     });
   }
 
-  async getListAddresses(userId: string): Promise<CreateUserAddressDTO[]> {
+  async getListAddresses(userId: string): Promise<UserAddressDTO[]> {
     const addresses = await this.UserAdressRepository.find({
       where: { user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -223,7 +221,7 @@ export class UserService {
       throw new NotFoundException('No addresses found for this user.');
     }
     return addresses.map((address) =>
-      plainToInstance(CreateUserAddressDTO, {
+      plainToInstance(UserAddressDTO, {
         id: address.id,
         adress: address.adress,
         zipCode: address.zipCode,
@@ -255,7 +253,7 @@ export class UserService {
     userId: string,
     addressId: string,
     updateData: Partial<CreateUserAddressDTO>,
-  ): Promise<CreateUserAddressDTO> {
+  ): Promise<UserAddressDTO> {
     const address = await this.UserAdressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
@@ -269,7 +267,7 @@ export class UserService {
       ...updateData,
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
     });
-    return plainToInstance(CreateUserAddressDTO, {
+    return plainToInstance(UserAddressDTO, {
       id: updatedAddress.id,
       adress: updatedAddress.adress,
       zipCode: updatedAddress.zipCode,

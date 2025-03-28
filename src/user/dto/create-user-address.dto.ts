@@ -2,13 +2,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional, IsNumber, IsString } from 'class-validator';
 
 export class CreateUserAddressDTO {
-  @ApiProperty({
-    description: 'The unique identifier of the address',
-    required: false,
-  })
-  @IsOptional()
-  id?: string;
-
   @ApiProperty({ description: 'Street address or main address information' })
   @IsNotEmpty()
   @IsString()
