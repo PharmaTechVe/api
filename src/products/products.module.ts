@@ -15,6 +15,8 @@ import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Category } from 'src/category/entities/category.entity';
+import { ProductPresentationController } from './controllers/product-presentation.controller';
+import { ProductPresentationService } from './services/product-presentation.service';
 
 @Module({
   imports: [
@@ -33,12 +35,14 @@ import { Category } from 'src/category/entities/category.entity';
     ProductsController,
     PresentationController,
     ManufacturerController,
+    ProductPresentationController,
   ],
   providers: [
     ProductsService,
     PresentationService,
     ManufacturerService,
     CountryService,
+    ProductPresentationService,
   ],
 })
 export class ProductsModule {}
