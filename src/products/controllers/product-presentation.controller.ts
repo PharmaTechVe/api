@@ -1,9 +1,14 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -16,11 +21,13 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
 
 @Controller('/product/:id/presentation')
 export class ProductPresentationController {
   constructor(
-    private productPresentationServices: ProductPresentationService,
+    private productPresentationService: ProductPresentationService,
     private readonly productService: ProductsService,
     private readonly presentationService: PresentationService,
   ) {}
@@ -29,7 +36,7 @@ export class ProductPresentationController {
   async getProductPresentations(
     @Param('id') id: string,
   ): Promise<ProductPresentation[]> {
-    return this.productPresentationServices.findByProductId(id);
+    return this.productPresentationService.findByProductId(id);
   }
 
   @Post()
@@ -43,7 +50,7 @@ export class ProductPresentationController {
     const presentation = await this.presentationService.findOne(
       createProductPresentationDto.presentationId,
     );
-    return this.productPresentationServices.createProductPresentation(
+    return this.productPresentationService.createProductPresentation(
       product,
       presentation,
       createProductPresentationDto,
@@ -56,7 +63,7 @@ export class ProductPresentationController {
     @Param('presentationId') presentationId: string,
   ): Promise<ProductPresentation> {
     const productPresentation =
-      await this.productPresentationServices.findByProductAndPresentationId(
+      await this.productPresentationService.findByProductAndPresentationId(
         productId,
         presentationId,
       );
@@ -68,5 +75,38 @@ export class ProductPresentationController {
     }
 
     return productPresentation;
+  }
+
+  @Patch(':presentationId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('presentationId', new ParseUUIDPipe()) presentationId: string,
+    @Body() updateProductPresentationDto: UpdateProductPresentationDTO,
+  ): Promise<ProductPresentation> {
+    return await this.productPresentationService.update(
+      id,
+      presentationId,
+      updateProductPresentationDto,
+    );
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':presentationId')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete produtPresentation by ID' })
+  @ApiResponse({
+    description: 'Successful deletion of productPresentation',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('presentationId', new ParseUUIDPipe()) presentationId: string,
+  ): Promise<void> {
+    await this.productPresentationService.remove(id, presentationId);
   }
 }
