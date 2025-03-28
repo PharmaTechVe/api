@@ -14,6 +14,7 @@ import {
   ParseIntPipe,
   Query,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +38,9 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
+import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UserAddressDTO } from './dto/reponse-user-address.dto';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -148,5 +152,148 @@ export class UserController {
   @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'User not found' })
   async deleteUser(@Param('userId') userId: string): Promise<void> {
     await this.userService.deleteUser(userId);
+  }
+
+  @Post(':userId/address')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new address for the user' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: CreateUserAddressDTO })
+  async createAddress(
+    @Param('userId') userId: string,
+    @Body() createAddressDto: CreateUserAddressDTO,
+  ): Promise<CreateUserAddressDTO> {
+    const savedAddress = await this.userService.createAddress(
+      userId,
+      createAddressDto,
+    );
+
+    return plainToInstance(CreateUserAddressDTO, {
+      adress: savedAddress.adress,
+      zipCode: savedAddress.zipCode,
+      latitude: savedAddress.latitude,
+      longitude: savedAddress.longitude,
+      cityId: savedAddress.city.id,
+    });
+  }
+
+  @Get(':userId/address/:addressId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get details of a specific address (admin or same user)',
+  })
+  @ApiResponse({ status: HttpStatus.OK, type: UserAddressDTO })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async getAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+  ): Promise<UserAddressDTO> {
+    const address = await this.userService.getAddress(userId, addressId);
+
+    return plainToInstance(UserAddressDTO, {
+      id: address.id,
+      adress: address.adress,
+      zipCode: address.zipCode,
+      latitude: address.latitude,
+      longitude: address.longitude,
+      cityId: address.city.id,
+      nameCity: address.city.name,
+      nameState: address.city.state.name,
+      nameCountry: address.city.state.country.name,
+    });
+  }
+
+  @Get(':userId/address')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List addresses for a user (admin or same user)' })
+  @ApiResponse({ status: HttpStatus.OK, type: [UserAddressDTO] })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async getListAddresses(
+    @Param('userId') userId: string,
+  ): Promise<UserAddressDTO[]> {
+    const addresses = await this.userService.getListAddresses(userId);
+    return addresses.map((address) =>
+      plainToInstance(UserAddressDTO, {
+        id: address.id,
+        adress: address.adress,
+        zipCode: address.zipCode,
+        latitude: address.latitude,
+        longitude: address.longitude,
+        cityId: address.city.id,
+        nameCity: address.city.name,
+        nameState: address.city.state.name,
+        nameCountry: address.city.state.country.name,
+      }),
+    );
+  }
+
+  @Delete(':userId/address/:addressId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Delete (soft delete) an address (admin or same user)',
+  })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Address deleted successfully',
+  })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async deleteAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+  ): Promise<void> {
+    return this.userService.deleteAddress(userId, addressId);
+  }
+
+  @Patch(':userId/address/:addressId')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update an address partially (admin or same user)' })
+  @ApiResponse({ status: HttpStatus.OK, type: UserAddressDTO })
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async updateAddress(
+    @Param('userId') userId: string,
+    @Param('addressId') addressId: string,
+    @Body() updateData: Partial<CreateUserAddressDTO>,
+  ): Promise<UserAddressDTO> {
+    const updatedAddress = await this.userService.updateAddress(
+      userId,
+      addressId,
+      updateData,
+    );
+    return plainToInstance(UserAddressDTO, {
+      id: updatedAddress.id,
+      adress: updatedAddress.adress,
+      zipCode: updatedAddress.zipCode,
+      latitude: updatedAddress.latitude,
+      longitude: updatedAddress.longitude,
+      cityId: updatedAddress.city.id,
+      nameCity: updatedAddress.city.name,
+      nameState: updatedAddress.city.state.name,
+      nameCountry: updatedAddress.city.state.country.name,
+    });
+  }
+
+  @Patch(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async UpdateUser(
+    @Param('userId') userId: string,
+    @Body() updateUserDto: UpdateUserDTO,
+  ): Promise<ProfileDTO> {
+    const user = await this.userService.updateUser(userId, updateUserDto);
+    const profile = await this.userService.updateProfile(userId, updateUserDto);
+    return {
+      birthDate: profile.birthDate,
+      documentId: user.documentId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+      profilePicture: profile.profilePicture,
+      gender: profile.gender,
+    };
   }
 }

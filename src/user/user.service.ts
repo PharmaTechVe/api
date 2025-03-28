@@ -12,6 +12,9 @@ import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
 import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
+import { UserAdress } from './entities/user-address.entity';
+import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @Injectable()
 export class UserService {
@@ -22,6 +25,8 @@ export class UserService {
     private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
+    @InjectRepository(UserAdress)
+    private UserAdressRepository: Repository<UserAdress>,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -35,6 +40,24 @@ export class UserService {
       throw new BadRequestException('Invalid request');
     }
     return user;
+  }
+
+  async findUserById(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User #${id} not found`);
+    }
+    return user;
+  }
+
+  async findProfileByUserId(id: string): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id } },
+    });
+    if (!profile) {
+      throw new NotFoundException(`Profile #${id} not found`);
+    }
+    return profile;
   }
 
   async findByOTP(otp: string): Promise<User> {
@@ -161,5 +184,89 @@ export class UserService {
     }
     userToDelete.deletedAt = new Date();
     await this.userRepository.save(userToDelete);
+  }
+
+  async createAddress(
+    userId: string,
+    addressData: CreateUserAddressDTO,
+  ): Promise<UserAdress> {
+    const newAddress = this.UserAdressRepository.create({
+      ...addressData,
+      user: { id: userId },
+      city: { id: addressData.cityId },
+    });
+    return await this.UserAdressRepository.save(newAddress);
+  }
+
+  async getAddress(userId: string, addressId: string): Promise<UserAdress> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+    return address;
+  }
+
+  async getListAddresses(userId: string): Promise<UserAdress[]> {
+    const addresses = await this.UserAdressRepository.find({
+      where: { user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!addresses.length) {
+      throw new NotFoundException('No addresses found for this user.');
+    }
+    return addresses;
+  }
+
+  async deleteAddress(userId: string, addressId: string): Promise<void> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const result = await this.UserAdressRepository.softDelete(address.id);
+    if (!result.affected) {
+      throw new NotFoundException(`Address #${addressId} not found`);
+    }
+  }
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updateData: Partial<CreateUserAddressDTO>,
+  ): Promise<UserAdress> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const updatedAddress = await this.UserAdressRepository.save({
+      ...address,
+      ...updateData,
+      city: updateData.cityId ? { id: updateData.cityId } : address.city,
+    });
+    return updatedAddress;
+  }
+
+  async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
+    const user = await this.findUserById(id);
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+    return await this.userRepository.save(updatedUser);
+  }
+
+  async updateProfile(
+    id: string,
+    updateUserDto: UpdateUserDTO,
+  ): Promise<Profile> {
+    const profile = await this.findProfileByUserId(id);
+    const updatedprofile = this.profileRepository.merge(profile, updateUserDto);
+    return await this.profileRepository.save(updatedprofile);
   }
 }
