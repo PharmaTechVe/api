@@ -4,6 +4,7 @@ import { ProductsService } from './products.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { ProductPresentation } from './entities/product-presentation.entity';
+import { ProductPresentationService } from './services/product-presentation.service';
 import { Manufacturer } from './entities/manufacturer.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Presentation } from './entities/presentation.entity';
@@ -16,7 +17,9 @@ import { Country } from 'src/country/entities/country.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Category } from 'src/category/entities/category.entity';
 import { ProductPresentationController } from './controllers/product-presentation.controller';
-import { ProductPresentationService } from './services/product-presentation.service';
+import { PromoController } from './controllers/promo.controller';
+import { PromoService } from './services/promo.service';
+import { Promo } from './entities/promo.entity';
 
 @Module({
   imports: [
@@ -28,6 +31,7 @@ import { ProductPresentationService } from './services/product-presentation.serv
       Country,
       Category,
       ProductImage,
+      Promo,
     ]),
     AuthModule,
   ],
@@ -36,12 +40,14 @@ import { ProductPresentationService } from './services/product-presentation.serv
     PresentationController,
     ManufacturerController,
     ProductPresentationController,
+    PromoController,
   ],
   providers: [
     ProductsService,
     PresentationService,
     ManufacturerService,
     CountryService,
+    PromoService,
     ProductPresentationService,
   ],
 })

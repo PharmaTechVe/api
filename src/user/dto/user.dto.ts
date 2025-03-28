@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Expose } from 'class-transformer';
+import { Transform, Expose, TransformFnParams } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
@@ -22,15 +22,19 @@ export class UserDTO {
   @Expose()
   lastName: string;
 
-  @ApiProperty({ description: 'The email of the user', uniqueItems: true })
-  @Transform(({ value }: { value: string }) => value.trim().toLowerCase())
+  @ApiProperty({ description: 'El email del usuario', uniqueItems: true })
+  @Transform(({ value }: TransformFnParams): string => {
+    return typeof value === 'string' ? value.trim().toLowerCase() : '';
+  })
   @IsNotEmpty()
   @IsEmail()
   @Expose()
   email: string;
 
-  @ApiProperty({ description: 'the password of the user' })
-  @Transform(({ value }: { value: string }) => value.trim())
+  @ApiProperty({ description: 'La contraseña del usuario' })
+  @Transform(({ value }: TransformFnParams): string => {
+    return typeof value === 'string' ? value.trim() : '';
+  })
   @IsNotEmpty()
   @MinLength(8)
   password: string;
