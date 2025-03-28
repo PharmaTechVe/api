@@ -14,6 +14,7 @@ import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @Injectable()
 export class UserService {
@@ -39,6 +40,24 @@ export class UserService {
       throw new BadRequestException('Invalid request');
     }
     return user;
+  }
+
+  async findUserById(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User #${id} not found`);
+    }
+    return user;
+  }
+
+  async findProfileByUserId(id: string): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id } },
+    });
+    if (!profile) {
+      throw new NotFoundException(`Profile #${id} not found`);
+    }
+    return profile;
   }
 
   async findByOTP(otp: string): Promise<User> {
@@ -234,5 +253,20 @@ export class UserService {
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
     });
     return updatedAddress;
+  }
+
+  async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
+    const user = await this.findUserById(id);
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+    return await this.userRepository.save(updatedUser);
+  }
+
+  async updateProfile(
+    id: string,
+    updateUserDto: UpdateUserDTO,
+  ): Promise<Profile> {
+    const profile = await this.findProfileByUserId(id);
+    const updatedprofile = this.profileRepository.merge(profile, updateUserDto);
+    return await this.profileRepository.save(updatedprofile);
   }
 }

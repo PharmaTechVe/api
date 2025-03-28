@@ -40,6 +40,7 @@ import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
 import { UserAddressDTO } from './dto/reponse-user-address.dto';
+import { UpdateUserDTO } from './dto/user-update.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -273,5 +274,26 @@ export class UserController {
       nameState: updatedAddress.city.state.name,
       nameCountry: updatedAddress.city.state.country.name,
     });
+  }
+
+  @Patch(':userId')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
+  async UpdateUser(
+    @Param('userId') userId: string,
+    @Body() updateUserDto: UpdateUserDTO,
+  ): Promise<ProfileDTO> {
+    const user = await this.userService.updateUser(userId, updateUserDto);
+    const profile = await this.userService.updateProfile(userId, updateUserDto);
+    return {
+      birthDate: profile.birthDate,
+      documentId: user.documentId,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      phoneNumber: user.phoneNumber,
+      profilePicture: profile.profilePicture,
+      gender: profile.gender,
+    };
   }
 }
