@@ -8,7 +8,7 @@ export class State extends UUIDModel {
   @Column({ type: 'character varying', name: 'name' })
   name: string;
 
-  @ManyToOne(() => Country, (country) => country.state)
+  @ManyToOne(() => Country, (country) => country.state, { eager: true })
   @JoinColumn({ name: 'country_id' })
   country: Country;
 
