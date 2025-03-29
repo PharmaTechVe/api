@@ -9,6 +9,7 @@ import {
 } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
+import { CategoryDTO } from './find-products.dto';
 
 export class GenericProductDTO {
   @IsString()
@@ -51,4 +52,7 @@ export class ResponseGenericProductDTO extends IntersectionType(
 ) {
   @ApiProperty({ description: 'Manufacturer of the product' })
   manufacturer: ResponseManufacturerDTO;
+
+  @ApiProperty({ description: 'List of categories of the product' })
+  categories: CategoryDTO[];
 }

@@ -30,14 +30,14 @@ export class GenericProductService {
       take: limit,
       where: { deletedAt: IsNull() },
       order: { createdAt: 'DESC' },
-      relations: ['manufacturer'],
+      relations: ['manufacturer', 'categories'],
     });
   }
 
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['manufacturer'],
+      relations: ['manufacturer', 'categories'],
     });
     if (!product) {
       throw new NotFoundException(`Product #${id} not found`);
