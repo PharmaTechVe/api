@@ -232,6 +232,6 @@ export class ProductsService {
   }
 
   async deleteProductImage(image: ProductImage): Promise<void> {
-    await this.productImageRepository.remove(image);
+    await this.productImageRepository.softRemove(image);
   }
 }
