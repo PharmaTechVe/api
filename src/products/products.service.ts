@@ -216,4 +216,21 @@ export class ProductsService {
 
     await this.productPresentationRepository.save(productPresentations);
   }
+
+  async findProductImage(productId: string, imageId: string) {
+    return this.productImageRepository.findOne({
+      where: {
+        id: imageId,
+        product: { id: productId },
+      },
+    });
+  }
+
+  async updateProductImage(image: ProductImage): Promise<ProductImage> {
+    return this.productImageRepository.save(image);
+  }
+
+  async deleteProductImage(image: ProductImage): Promise<void> {
+    await this.productImageRepository.remove(image);
+  }
 }
