@@ -14,6 +14,7 @@ import { ProductImage } from '../entities/product-image.entity';
 @Controller('product/:productId/image')
 export class ProductImageController {
   constructor(private readonly productsService: ProductsService) {}
+
   @Get()
   async getProductImages(
     @Param('productId') productId: string,
