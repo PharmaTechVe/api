@@ -53,6 +53,9 @@ export class ResponseGenericProductDTO extends IntersectionType(
   @ApiProperty({ description: 'Manufacturer of the product' })
   manufacturer: ResponseManufacturerDTO;
 
-  @ApiProperty({ description: 'List of categories of the product' })
+  @ApiProperty({
+    description: 'List of categories of the product',
+    type: [CategoryDTO],
+  })
   categories: CategoryDTO[];
 }

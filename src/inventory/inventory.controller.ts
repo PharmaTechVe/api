@@ -75,6 +75,18 @@ export class InventoryController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'productPresentationId',
+    required: false,
+    description: 'Filter by product presentation ID',
+    type: String,
+  })
   @ApiResponse({
     description: 'Successful retrieval of inventories',
     status: HttpStatus.OK,
