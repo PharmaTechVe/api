@@ -10,7 +10,6 @@ import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
-import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
@@ -139,26 +138,13 @@ export class UserService {
     await this.userOTPRepository.remove(userOtp);
   }
 
-  async getUserProfile(userId: string): Promise<ProfileDTO> {
-    const profile = await this.profileRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'],
-    });
-    if (!profile) {
+  async getUserProfile(userId: string): Promise<User> {
+    const user = await this.findUserById(userId);
+    if (!user) {
       throw new NotFoundException('Profile not found');
     }
 
-    return {
-      firstName: profile.user.firstName,
-      lastName: profile.user.lastName,
-      email: profile.user.email,
-      documentId: profile.user.documentId,
-      phoneNumber: profile.user.phoneNumber,
-      birthDate: profile.birthDate,
-      gender: profile.gender,
-      profilePicture: profile.profilePicture,
-      role: profile.user.role,
-    };
+    return user;
   }
 
   async countActiveUsers(): Promise<number> {
