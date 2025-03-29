@@ -99,6 +99,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id, deletedAt: IsNull() },
+      relations: ['images'],
     });
     if (!product) {
       throw new NotFoundException(`Product #${id} not found`);
@@ -215,5 +216,22 @@ export class ProductsService {
     });
 
     await this.productPresentationRepository.save(productPresentations);
+  }
+
+  async findProductImage(productId: string, imageId: string) {
+    return this.productImageRepository.findOne({
+      where: {
+        id: imageId,
+        product: { id: productId },
+      },
+    });
+  }
+
+  async updateProductImage(image: ProductImage): Promise<ProductImage> {
+    return this.productImageRepository.save(image);
+  }
+
+  async deleteProductImage(image: ProductImage): Promise<void> {
+    await this.productImageRepository.softRemove(image);
   }
 }

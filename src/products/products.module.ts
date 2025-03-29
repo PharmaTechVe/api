@@ -22,6 +22,7 @@ import { ProductPresentationController } from './controllers/product-presentatio
 import { PromoController } from './controllers/promo.controller';
 import { PromoService } from './services/promo.service';
 import { Promo } from './entities/promo.entity';
+import { ProductImageController } from './controllers/product-image.controller';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { Promo } from './entities/promo.entity';
     GenericProductController,
     ProductPresentationController,
     PromoController,
+    ProductImageController,
   ],
   providers: [
     ProductsService,
