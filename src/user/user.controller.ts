@@ -26,7 +26,6 @@ import {
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { OtpDTO } from './dto/otp.dto';
-import { ProfileDTO } from './dto/profile.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Request } from 'express';
 import { User, UserRole } from './entities/user.entity';
@@ -81,9 +80,12 @@ export class UserController {
   @UseGuards(AuthGuard, UserOrAdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user profile details' })
-  @ApiResponse({ status: HttpStatus.OK })
-  async getProfile(@Param('userId') userId: string): Promise<ProfileDTO> {
-    return this.userService.getUserProfile(userId);
+  @ApiResponse({ status: HttpStatus.OK, type: UserListDTO })
+  async getProfile(@Param('userId') userId: string): Promise<UserListDTO> {
+    const user = await this.userService.getUserProfile(userId);
+    return plainToInstance(UserListDTO, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -137,6 +139,7 @@ export class UserController {
     };
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':userId')
   @UseGuards(AuthGuard, UserOrAdminGuard)
   @ApiBearerAuth()
@@ -154,6 +157,7 @@ export class UserController {
     await this.userService.deleteUser(userId);
   }
 
+  @UseGuards(AuthGuard)
   @Post(':userId/address')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
@@ -278,22 +282,18 @@ export class UserController {
 
   @Patch(':userId')
   @UseGuards(AuthGuard, UserOrAdminGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile' })
+  @ApiResponse({ status: HttpStatus.OK, type: UserListDTO })
   async UpdateUser(
     @Param('userId') userId: string,
     @Body() updateUserDto: UpdateUserDTO,
-  ): Promise<ProfileDTO> {
-    const user = await this.userService.updateUser(userId, updateUserDto);
-    const profile = await this.userService.updateProfile(userId, updateUserDto);
-    return {
-      birthDate: profile.birthDate,
-      documentId: user.documentId,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      phoneNumber: user.phoneNumber,
-      profilePicture: profile.profilePicture,
-      gender: profile.gender,
-    };
+  ): Promise<UserListDTO> {
+    await this.userService.updateUser(userId, updateUserDto);
+    await this.userService.updateProfile(userId, updateUserDto);
+    const userUpdated = await this.userService.findUserById(userId);
+    return plainToInstance(UserListDTO, userUpdated, {
+      excludeExtraneousValues: true,
+    });
   }
 }
