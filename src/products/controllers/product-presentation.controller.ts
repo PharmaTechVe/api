@@ -22,7 +22,11 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
+import {
+  ResponseProductPresentationDetailDTO,
+  ResponseProductPresentationDTO,
+  UpdateProductPresentationDTO,
+} from '../dto/product-presentation.dto';
 
 @Controller('/product/:id/presentation')
 export class ProductPresentationController {
@@ -33,15 +37,29 @@ export class ProductPresentationController {
   ) {}
 
   @Get()
+  @ApiOperation({ summary: 'Get all product presentations by product Id' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of product presentations',
+    type: ResponseProductPresentationDTO,
+    isArray: true,
+  })
   async getProductPresentations(
     @Param('id') id: string,
-  ): Promise<ProductPresentation[]> {
+  ): Promise<ResponseProductPresentationDTO[]> {
     return this.productPresentationService.findByProductId(id);
   }
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a product presentation' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Product presentation created successfully',
+    type: ProductPresentation,
+  })
   async createProductPresentation(
     @Param('id') productId: string,
     @Body() createProductPresentationDto: CreateProductPresentationDTO,
@@ -58,10 +76,18 @@ export class ProductPresentationController {
   }
 
   @Get(':presentationId')
+  @ApiOperation({
+    summary: 'Get product presentation by product and presentation ID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Product presentation found',
+    type: ResponseProductPresentationDetailDTO,
+  })
   async getProductPresentationDetail(
     @Param('id') productId: string,
     @Param('presentationId') presentationId: string,
-  ): Promise<ProductPresentation> {
+  ): Promise<ResponseProductPresentationDetailDTO> {
     const productPresentation =
       await this.productPresentationService.findByProductAndPresentationId(
         productId,

@@ -157,6 +157,7 @@ export class UserController {
     await this.userService.deleteUser(userId);
   }
 
+  @UseGuards(AuthGuard)
   @Post(':userId/address')
   @HttpCode(HttpStatus.CREATED)
   @ApiBearerAuth()
