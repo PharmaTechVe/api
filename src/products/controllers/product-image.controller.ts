@@ -15,6 +15,8 @@ import { ProductsService } from '../products.service';
 import { UpdateProductImageDto } from '../dto/update-product-image.dto';
 import { ProductImage } from '../entities/product-image.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { Roles } from 'src/auth/roles.decorador';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @Controller('product/:productId/image')
 export class ProductImageController {
@@ -22,7 +24,6 @@ export class ProductImageController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'List images of the product' })
   @ApiResponse({ status: HttpStatus.OK, type: [ProductImage] })
   async getProductImages(
@@ -37,7 +38,6 @@ export class ProductImageController {
 
   @Get(':imageId')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get details of a specific image',
   })
@@ -62,6 +62,7 @@ export class ProductImageController {
   @ApiOperation({ summary: 'Update an image partially' })
   @ApiResponse({ status: HttpStatus.OK, type: ProductImage })
   @UseGuards(AuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   async updateProductImage(
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
@@ -85,6 +86,7 @@ export class ProductImageController {
     summary: 'Delete (soft delete) an image',
   })
   @UseGuards(AuthGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   async deleteProductImage(
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
