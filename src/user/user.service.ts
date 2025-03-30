@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserDTO } from './dto/user.dto';
+import { UserAdminDTO, UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
@@ -98,6 +98,19 @@ export class UserService {
     profile.birthDate = new Date(userData.birthDate);
     await this.profileRepository.save(profile);
     return user;
+  }
+
+  async createAdmin(user: UserAdminDTO): Promise<User> {
+    const newUser = this.userRepository.create(user);
+    const userCreated = await this.userRepository.save(newUser);
+    const profile = new Profile();
+    profile.user = userCreated;
+    if (user.gender) {
+      profile.gender = user.gender;
+    }
+    profile.birthDate = new Date(user.birthDate);
+    await this.profileRepository.save(profile);
+    return userCreated;
   }
 
   async update(user: User, userData: Partial<UserDTO>): Promise<User> {

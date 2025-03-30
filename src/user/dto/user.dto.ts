@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { Transform, Expose, TransformFnParams } from 'class-transformer';
 import {
   IsDateString,
@@ -10,8 +10,19 @@ import {
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
+import { UserRole } from '../entities/user.entity';
 
-export class UserDTO {
+class PasswordDTO {
+  @ApiProperty({ description: 'La contraseña del usuario' })
+  @Transform(({ value }: TransformFnParams): string => {
+    return typeof value === 'string' ? value.trim() : '';
+  })
+  @IsNotEmpty()
+  @MinLength(8)
+  password: string;
+}
+
+export class BaseUserDTO {
   @ApiProperty({ description: 'The name of the user' })
   @IsNotEmpty()
   @Expose()
@@ -30,14 +41,6 @@ export class UserDTO {
   @IsEmail()
   @Expose()
   email: string;
-
-  @ApiProperty({ description: 'La contraseña del usuario' })
-  @Transform(({ value }: TransformFnParams): string => {
-    return typeof value === 'string' ? value.trim() : '';
-  })
-  @IsNotEmpty()
-  @MinLength(8)
-  password: string;
 
   @ApiProperty({ description: 'the id of the user', uniqueItems: true })
   @IsNotEmpty()
@@ -71,4 +74,13 @@ export class UserDTO {
   @IsOptional()
   @IsEnum(UserGender)
   gender?: UserGender;
+}
+
+export class UserDTO extends IntersectionType(BaseUserDTO, PasswordDTO) {}
+
+export class UserAdminDTO extends BaseUserDTO {
+  @ApiProperty({ description: 'the role of the user' })
+  @IsNotEmpty()
+  @Expose()
+  role: UserRole;
 }

@@ -40,6 +40,7 @@ import { plainToInstance } from 'class-transformer';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
 import { UserAddressDTO } from './dto/reponse-user-address.dto';
 import { UpdateUserDTO } from './dto/user-update.dto';
+import { UserAdminDTO } from './dto/user.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -293,6 +294,20 @@ export class UserController {
     await this.userService.updateProfile(userId, updateUserDto);
     const userUpdated = await this.userService.findUserById(userId);
     return plainToInstance(UserListDTO, userUpdated, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new user (admin only)' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: UserListDTO })
+  async createUser(@Body() createUserDto: UserAdminDTO): Promise<UserListDTO> {
+    const user = await this.userService.createAdmin(createUserDto);
+    return plainToInstance(UserListDTO, user, {
       excludeExtraneousValues: true,
     });
   }
