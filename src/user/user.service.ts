@@ -74,6 +74,10 @@ export class UserService {
     if (!userOTP) {
       throw new NotFoundException('User not found');
     }
+    if (userOTP.expiresAt < new Date()) {
+      await this.userOTPRepository.remove(userOTP);
+      throw new BadRequestException('OTP code has expired');
+    }
     return userOTP.user;
   }
 
@@ -163,6 +167,7 @@ export class UserService {
 
   async validateEmail(userOtp: UserOTP): Promise<void> {
     if (userOtp.expiresAt < new Date()) {
+      await this.userOTPRepository.remove(userOtp);
       throw new BadRequestException('OTP code has expired');
     }
     await this.userRepository.update(userOtp.user.id, { isValidated: true });
