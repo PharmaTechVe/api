@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from '../products.service';
@@ -17,6 +18,8 @@ import { ProductImage } from '../entities/product-image.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { CreateProductImageDto } from '../dto/create-product-image.dto';
 
 @Controller('product/:productId/image')
 export class ProductImageController {
@@ -34,6 +37,26 @@ export class ProductImageController {
       throw new NotFoundException('Product not found');
     }
     return product.images;
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @Post()
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create a new image for the product' })
+  @ApiResponse({ status: HttpStatus.CREATED })
+  async createProductImage(
+    @Param('productId') productId: string,
+    @Body() createProductImageDto: CreateProductImageDto,
+  ): Promise<void> {
+    const product = await this.productsService.findOne(productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    await this.productsService.createProductImage(product, [
+      createProductImageDto.url,
+    ]);
   }
 
   @Get(':imageId')
@@ -61,7 +84,7 @@ export class ProductImageController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an image partially' })
   @ApiResponse({ status: HttpStatus.OK, type: ProductImage })
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   async updateProductImage(
     @Param('productId') productId: string,
@@ -85,7 +108,7 @@ export class ProductImageController {
   @ApiOperation({
     summary: 'Delete (soft delete) an image',
   })
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   async deleteProductImage(
     @Param('productId') productId: string,
