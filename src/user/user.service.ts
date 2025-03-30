@@ -104,6 +104,18 @@ export class UserService {
   }
 
   async createAdmin(user: UserAdminDTO): Promise<User> {
+    const emailUsed = await this.userExists({
+      email: user.email,
+    });
+    if (emailUsed) {
+      throw new BadRequestException('The email is already in use');
+    }
+    const documentUsed = await this.userExists({
+      documentId: user.documentId,
+    });
+    if (documentUsed) {
+      throw new BadRequestException('The document is already in use');
+    }
     const password: string = this.configService.get('ADMIN_PASSWORD', '');
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
