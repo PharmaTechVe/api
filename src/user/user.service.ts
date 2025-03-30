@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcryptjs';
 import {
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/create-user-address.dto';
 import { UpdateUserDTO } from './dto/user-update.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -26,6 +28,7 @@ export class UserService {
     private userOTPRepository: Repository<UserOTP>,
     @InjectRepository(UserAdress)
     private UserAdressRepository: Repository<UserAdress>,
+    private configService: ConfigService,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -101,7 +104,10 @@ export class UserService {
   }
 
   async createAdmin(user: UserAdminDTO): Promise<User> {
+    const password: string = this.configService.get('ADMIN_PASSWORD', '');
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
+    newUser.password = hashedPassword;
     const userCreated = await this.userRepository.save(newUser);
     const profile = new Profile();
     profile.user = userCreated;
