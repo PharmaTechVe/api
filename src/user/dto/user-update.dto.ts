@@ -1,6 +1,14 @@
-import { IsDate, IsEnum, IsOptional, IsString, IsUrl } from 'class-validator';
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { IsOlderThan } from 'src/utils/is-older-than-validator';
 
 export class UpdateUserDTO {
   @IsOptional()
@@ -24,10 +32,18 @@ export class UpdateUserDTO {
   @IsUrl()
   profilePicture?: string;
 
+  @ApiProperty({ description: 'the birth date of the user' })
+  @Transform(
+    ({ value }: { value: string }) =>
+      new Date(value).toISOString().split('T')[0],
+  )
   @IsOptional()
-  @IsDate()
-  @ApiProperty({ description: 'Date of birth of the user' })
-  birthDate?: Date;
+  @IsDateString(
+    { strict: true },
+    { message: 'birthDate must be a valid date in YYYY-MM-DD format' },
+  )
+  @IsOlderThan(14)
+  birthDate: string;
 
   @IsOptional()
   @IsEnum(UserGender)
