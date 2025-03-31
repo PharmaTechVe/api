@@ -9,6 +9,7 @@ import { UserGender } from '../entities/profile.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
+import { UserRole } from '../entities/user.entity';
 
 export class UpdateUserDTO {
   @IsOptional()
@@ -49,4 +50,9 @@ export class UpdateUserDTO {
   @IsEnum(UserGender)
   @ApiProperty({ description: 'Gender of the user', enum: UserGender })
   gender?: UserGender;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  @ApiProperty({ description: 'Role of the user', enum: UserRole })
+  role?: UserRole;
 }
