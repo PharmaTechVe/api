@@ -51,13 +51,14 @@ export class GenericProductService {
   ): Promise<Product> {
     const product = await this.findOne(id);
 
+    let manufacturer = {};
     if (updateProductDTO.manufacturerId) {
-      const manufacturer = await this.manufacturerService.findOne(
+      const manufacturerData = await this.manufacturerService.findOne(
         updateProductDTO.manufacturerId,
       );
-      Object.assign(updateProductDTO, { manufacturer });
+      manufacturer = { manufacturer: manufacturerData };
     }
-    const updateProduct = { ...product, ...updateProductDTO };
+    const updateProduct = { ...product, ...updateProductDTO, ...manufacturer };
     const updatedProduct = await this.productRepository.save(updateProduct);
     return this.findOne(updatedProduct.id);
   }
