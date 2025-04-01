@@ -6,6 +6,7 @@ import {
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  Matches,
   MinLength,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
@@ -48,6 +49,10 @@ export class BaseUserDTO {
   documentId: string;
 
   @ApiProperty({ description: 'the phone number of the user', required: false })
+  @Matches(/^\+?[0-9]*$/, {
+    message:
+      'phoneNumber must contain only numbers and may start with a "+" sign',
+  })
   @IsOptional()
   @Expose()
   phoneNumber?: string;
