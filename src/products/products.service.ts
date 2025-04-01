@@ -78,7 +78,7 @@ export class ProductsService {
       .leftJoinAndSelect('product_presentation.product', 'product')
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('product.manufacturer', 'manufacturer')
-      .leftJoinAndSelect('product.categories', 'categories')
+      .innerJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product_presentation.presentation', 'presentation')
       .where('product_presentation.deleted_at IS NULL')
       .andWhere('product.deleted_at IS NULL')
