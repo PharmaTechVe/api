@@ -59,9 +59,9 @@ export class ProductsService {
       .createQueryBuilder('product_presentation')
       .leftJoin('product_presentation.product', 'product')
       .leftJoin('product.manufacturer', 'manufacturer')
-      .where('product_presentation.deletedAt IS NULL')
-      .andWhere('product.deletedAt IS NULL')
-      .andWhere('manufacturer.deletedAt IS NULL');
+      .where('product_presentation.deleted_at IS NULL')
+      .andWhere('product.deleted_at IS NULL')
+      .andWhere('manufacturer.deleted_at IS NULL');
 
     query = this.applySearchQuery(query, searchQuery);
 
@@ -80,11 +80,11 @@ export class ProductsService {
       .leftJoinAndSelect('product.manufacturer', 'manufacturer')
       .leftJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product_presentation.presentation', 'presentation')
-      .where('product_presentation.deletedAt IS NULL')
-      .andWhere('product.deletedAt IS NULL')
-      .andWhere('manufacturer.deletedAt IS NULL')
-      .andWhere('images.deletedAt IS NULL')
-      .andWhere('presentation.deletedAt IS NULL');
+      .where('product_presentation.deleted_at IS NULL')
+      .andWhere('product.deleted_at IS NULL')
+      .andWhere('manufacturer.deleted_at IS NULL')
+      .andWhere('images.deleted_at IS NULL')
+      .andWhere('presentation.deleted_at IS NULL');
 
     query = this.applySearchQuery(query, searchQuery);
 
