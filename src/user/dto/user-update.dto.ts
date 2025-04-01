@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  Matches,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -25,6 +26,10 @@ export class UpdateUserDTO {
   @IsOptional()
   @IsString()
   @ApiProperty({ description: 'Email address of the user' })
+  @Matches(/^\+?[0-9]*$/, {
+    message:
+      'phoneNumber must contain only numbers and may start with a "+" sign',
+  })
   phoneNumber?: string;
 
   @IsOptional()
