@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcryptjs';
 import {
   Injectable,
   NotFoundException,
@@ -5,13 +6,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserDTO } from './dto/user.dto';
+import { UserAdminDTO, UserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
-import { ProfileDTO } from './dto/profile.dto';
 import { IsNull } from 'typeorm';
+import { UserAdress } from './entities/user-address.entity';
+import { CreateUserAddressDTO } from './dto/create-user-address.dto';
+import { UpdateUserDTO } from './dto/user-update.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -22,6 +26,9 @@ export class UserService {
     private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
+    @InjectRepository(UserAdress)
+    private UserAdressRepository: Repository<UserAdress>,
+    private configService: ConfigService,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -37,6 +44,24 @@ export class UserService {
     return user;
   }
 
+  async findUserById(id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User #${id} not found`);
+    }
+    return user;
+  }
+
+  async findProfileByUserId(id: string): Promise<Profile> {
+    const profile = await this.profileRepository.findOne({
+      where: { user: { id } },
+    });
+    if (!profile) {
+      throw new NotFoundException(`Profile #${id} not found`);
+    }
+    return profile;
+  }
+
   async findByOTP(otp: string): Promise<User> {
     const userOTP = await this.userOTPRepository.findOne({
       where: {
@@ -48,6 +73,10 @@ export class UserService {
     });
     if (!userOTP) {
       throw new NotFoundException('User not found');
+    }
+    if (userOTP.expiresAt < new Date()) {
+      await this.userOTPRepository.remove(userOTP);
+      throw new BadRequestException('OTP code has expired');
     }
     return userOTP.user;
   }
@@ -76,6 +105,34 @@ export class UserService {
     profile.birthDate = new Date(userData.birthDate);
     await this.profileRepository.save(profile);
     return user;
+  }
+
+  async createAdmin(user: UserAdminDTO): Promise<User> {
+    const emailUsed = await this.userExists({
+      email: user.email,
+    });
+    if (emailUsed) {
+      throw new BadRequestException('The email is already in use');
+    }
+    const documentUsed = await this.userExists({
+      documentId: user.documentId,
+    });
+    if (documentUsed) {
+      throw new BadRequestException('The document is already in use');
+    }
+    const password: string = this.configService.get('ADMIN_PASSWORD', '');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = this.userRepository.create(user);
+    newUser.password = hashedPassword;
+    const userCreated = await this.userRepository.save(newUser);
+    const profile = new Profile();
+    profile.user = userCreated;
+    if (user.gender) {
+      profile.gender = user.gender;
+    }
+    profile.birthDate = new Date(user.birthDate);
+    await this.profileRepository.save(profile);
+    return userCreated;
   }
 
   async update(user: User, userData: Partial<UserDTO>): Promise<User> {
@@ -110,32 +167,20 @@ export class UserService {
 
   async validateEmail(userOtp: UserOTP): Promise<void> {
     if (userOtp.expiresAt < new Date()) {
+      await this.userOTPRepository.remove(userOtp);
       throw new BadRequestException('OTP code has expired');
     }
     await this.userRepository.update(userOtp.user.id, { isValidated: true });
     await this.userOTPRepository.remove(userOtp);
   }
 
-  async getUserProfile(userId: string): Promise<ProfileDTO> {
-    const profile = await this.profileRepository.findOne({
-      where: { user: { id: userId } },
-      relations: ['user'],
-    });
-    if (!profile) {
+  async getUserProfile(userId: string): Promise<User> {
+    const user = await this.findUserById(userId);
+    if (!user) {
       throw new NotFoundException('Profile not found');
     }
 
-    return {
-      firstName: profile.user.firstName,
-      lastName: profile.user.lastName,
-      email: profile.user.email,
-      documentId: profile.user.documentId,
-      phoneNumber: profile.user.phoneNumber,
-      birthDate: profile.birthDate,
-      gender: profile.gender,
-      profilePicture: profile.profilePicture,
-      role: profile.user.role,
-    };
+    return user;
   }
 
   async countActiveUsers(): Promise<number> {
@@ -161,5 +206,89 @@ export class UserService {
     }
     userToDelete.deletedAt = new Date();
     await this.userRepository.save(userToDelete);
+  }
+
+  async createAddress(
+    userId: string,
+    addressData: CreateUserAddressDTO,
+  ): Promise<UserAdress> {
+    const newAddress = this.UserAdressRepository.create({
+      ...addressData,
+      user: { id: userId },
+      city: { id: addressData.cityId },
+    });
+    return await this.UserAdressRepository.save(newAddress);
+  }
+
+  async getAddress(userId: string, addressId: string): Promise<UserAdress> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+    return address;
+  }
+
+  async getListAddresses(userId: string): Promise<UserAdress[]> {
+    const addresses = await this.UserAdressRepository.find({
+      where: { user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!addresses.length) {
+      throw new NotFoundException('No addresses found for this user.');
+    }
+    return addresses;
+  }
+
+  async deleteAddress(userId: string, addressId: string): Promise<void> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const result = await this.UserAdressRepository.softDelete(address.id);
+    if (!result.affected) {
+      throw new NotFoundException(`Address #${addressId} not found`);
+    }
+  }
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updateData: Partial<CreateUserAddressDTO>,
+  ): Promise<UserAdress> {
+    const address = await this.UserAdressRepository.findOne({
+      where: { id: addressId, user: { id: userId } },
+      relations: ['city', 'city.state', 'city.state.country'],
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found.');
+    }
+
+    const updatedAddress = await this.UserAdressRepository.save({
+      ...address,
+      ...updateData,
+      city: updateData.cityId ? { id: updateData.cityId } : address.city,
+    });
+    return updatedAddress;
+  }
+
+  async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
+    const user = await this.findUserById(id);
+    const updatedUser = this.userRepository.merge(user, updateUserDto);
+    return await this.userRepository.save(updatedUser);
+  }
+
+  async updateProfile(
+    id: string,
+    updateUserDto: UpdateUserDTO,
+  ): Promise<Profile> {
+    const profile = await this.findProfileByUserId(id);
+    const updatedprofile = this.profileRepository.merge(profile, updateUserDto);
+    return await this.profileRepository.save(updatedprofile);
   }
 }

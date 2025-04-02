@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { In, Repository } from 'typeorm';
+import { In, Repository, Brackets, SelectQueryBuilder, IsNull } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
 import {
   CreateProductDTO,
@@ -34,34 +34,77 @@ export class ProductsService {
     private productImageRepository: Repository<ProductImage>,
   ) {}
 
-  async countProducts(): Promise<number> {
-    return await this.productPresentationRepository
+  private applySearchQuery(
+    query: SelectQueryBuilder<ProductPresentation>,
+    searchQuery?: string,
+  ): SelectQueryBuilder<ProductPresentation> {
+    if (!searchQuery) return query;
+
+    return query.andWhere(
+      new Brackets((qb) => {
+        qb.where('LOWER(product.name) LIKE LOWER(:searchQuery)', {
+          searchQuery: `%${searchQuery}%`,
+        })
+          .orWhere('LOWER(product.generic_name) LIKE LOWER(:searchQuery)', {
+            searchQuery: `%${searchQuery}%`,
+          })
+          .orWhere('LOWER(manufacturer.name) LIKE LOWER(:searchQuery)', {
+            searchQuery: `%${searchQuery}%`,
+          });
+      }),
+    );
+  }
+  async countProducts(searchQuery?: string): Promise<number> {
+    let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
-      .where('product_presentation.deletedAt IS NULL')
-      .getCount();
+      .leftJoin('product_presentation.product', 'product')
+      .leftJoin('product.manufacturer', 'manufacturer')
+      .where('product_presentation.deleted_at IS NULL')
+      .andWhere('product.deleted_at IS NULL')
+      .andWhere('manufacturer.deleted_at IS NULL');
+
+    query = this.applySearchQuery(query, searchQuery);
+
+    return query.getCount();
   }
 
   async getProducts(
     page: number,
     limit: number,
+    searchQuery?: string,
   ): Promise<ProductPresentation[]> {
-    const products = await this.productPresentationRepository
+    let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
       .leftJoinAndSelect('product_presentation.product', 'product')
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('product.manufacturer', 'manufacturer')
-      .leftJoinAndSelect('product.categories', 'categories')
+      .innerJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product_presentation.presentation', 'presentation')
-      .where('product_presentation.deletedAt IS NULL')
-      .andWhere('product.deletedAt IS NULL')
-      .andWhere('manufacturer.deletedAt IS NULL')
-      .andWhere('images.deletedAt IS NULL')
-      .andWhere('presentation.deletedAt IS NULL')
+      .where('product_presentation.deleted_at IS NULL')
+      .andWhere('product.deleted_at IS NULL')
+      .andWhere('manufacturer.deleted_at IS NULL')
+      .andWhere('images.deleted_at IS NULL')
+      .andWhere('presentation.deleted_at IS NULL');
+
+    query = this.applySearchQuery(query, searchQuery);
+
+    const products = await query
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
 
     return products;
+  }
+
+  async findOne(id: string): Promise<Product> {
+    const product = await this.productRepository.findOne({
+      where: { id, deletedAt: IsNull() },
+      relations: ['images'],
+    });
+    if (!product) {
+      throw new NotFoundException(`Product #${id} not found`);
+    }
+    return product;
   }
 
   async findManufacturer(id: string): Promise<Manufacturer> {
@@ -173,5 +216,22 @@ export class ProductsService {
     });
 
     await this.productPresentationRepository.save(productPresentations);
+  }
+
+  async findProductImage(productId: string, imageId: string) {
+    return this.productImageRepository.findOne({
+      where: {
+        id: imageId,
+        product: { id: productId },
+      },
+    });
+  }
+
+  async updateProductImage(image: ProductImage): Promise<ProductImage> {
+    return this.productImageRepository.save(image);
+  }
+
+  async deleteProductImage(image: ProductImage): Promise<void> {
+    await this.productImageRepository.softRemove(image);
   }
 }
