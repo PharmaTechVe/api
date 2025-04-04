@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
@@ -90,10 +91,11 @@ export class CityController {
   })
   async findAll(
     @Pagination() pagination: PaginationQueryDTO,
+    @Query('stateId') stateId?: string,
   ): Promise<{ data: CityDTO[]; total: number }> {
     const { page, limit } = pagination;
-    const data = await this.cityService.findAll(page, limit);
-    const total = await this.cityService.countCities();
+    const data = await this.cityService.findAll(page, limit, stateId);
+    const total = await this.cityService.countCities(stateId);
     return { data, total };
   }
 
