@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ProductPresentation } from '../entities/product-presentation.entity';
+import { ProductPresentation } from '../../products/entities/product-presentation.entity';
 import { BaseModel } from 'src/utils/entity';
 
 @Entity({ name: 'promo' })

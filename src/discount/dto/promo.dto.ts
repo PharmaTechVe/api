@@ -6,7 +6,7 @@ import {
   IsDateString,
   IsUUID,
 } from 'class-validator';
-import { ResponseProductPresentationDTO } from '../dto/product-presentation.dto';
+import { ResponseProductPresentationDTO } from '../../products/dto/product-presentation.dto';
 
 export class PromoDTO {
   @IsString()

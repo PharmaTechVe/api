@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
 import { CreatePromoDTO, UpdatePromoDTO } from '../dto/promo.dto';
 import { Promo } from '../entities/promo.entity';
-import { ProductPresentationService } from '../services/product-presentation.service';
+import { ProductPresentationService } from '../../products/services/product-presentation.service';
 
 @Injectable()
 export class PromoService {
@@ -47,7 +47,7 @@ export class PromoService {
       relations: ['productPresentation'],
     });
     if (!promo) {
-      throw new NotFoundException(`Promo con id ${id} no encontrada`);
+      throw new NotFoundException(`Promo with id ${id} not found`);
     }
     return promo;
   }

@@ -19,9 +19,6 @@ import { Category } from 'src/category/entities/category.entity';
 import { GenericProductController } from './controllers/generic-product.controller';
 import { GenericProductService } from './services/generic-product.service';
 import { ProductPresentationController } from './controllers/product-presentation.controller';
-import { PromoController } from './controllers/promo.controller';
-import { PromoService } from './services/promo.service';
-import { Promo } from './entities/promo.entity';
 import { ProductImageController } from './controllers/product-image.controller';
 
 @Module({
@@ -34,7 +31,6 @@ import { ProductImageController } from './controllers/product-image.controller';
       Country,
       Category,
       ProductImage,
-      Promo,
     ]),
     AuthModule,
   ],
@@ -44,7 +40,6 @@ import { ProductImageController } from './controllers/product-image.controller';
     ManufacturerController,
     GenericProductController,
     ProductPresentationController,
-    PromoController,
     ProductImageController,
   ],
   providers: [
@@ -53,8 +48,8 @@ import { ProductImageController } from './controllers/product-image.controller';
     ManufacturerService,
     CountryService,
     GenericProductService,
-    PromoService,
     ProductPresentationService,
   ],
+  exports: [ProductPresentationService],
 })
 export class ProductsModule {}
