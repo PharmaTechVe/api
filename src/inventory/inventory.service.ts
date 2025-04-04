@@ -28,25 +28,6 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  /*async findAll(
-    skip: number,
-    limit: number,
-    branchId?: string,
-    productPresentationId?: string,
-  ): Promise<[Inventory[], number]> {
-    return await this.inventoryRepository.findAndCount({
-      relations: ['branch', 'productPresentation'],
-      where: {
-        branch: branchId ? { id: branchId } : undefined,
-        productPresentation: productPresentationId
-          ? { id: productPresentationId }
-          : undefined,
-      },
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
-  }*/
   async countInventories(
     branchId?: string,
     productPresentationId?: string,

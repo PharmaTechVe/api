@@ -31,17 +31,13 @@ import {
 import { PresentationService } from '../services/presentation.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('presentation')
 @ApiExtraModels(PaginationDTO, ResponsePresentationDTO)
 export class PresentationController {
-  constructor(
-    private readonly presentationService: PresentationService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly presentationService: PresentationService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
