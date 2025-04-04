@@ -10,12 +10,8 @@ import {
   HttpStatus,
   HttpCode,
   ParseUUIDPipe,
-  Query,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
@@ -35,8 +31,9 @@ import {
 import { PromoService } from '../services/promo.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('promo')
 @ApiExtraModels(PaginationDTO, ResponsePromoDTO)
@@ -44,10 +41,7 @@ import { getPaginationUrl } from 'src/utils/pagination-urls';
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class PromoController {
-  constructor(
-    private readonly promoService: PromoService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly promoService: PromoService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a promo' })
@@ -63,6 +57,7 @@ export class PromoController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all promos' })
   @ApiQuery({
     name: 'page',
@@ -96,15 +91,12 @@ export class PromoController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponsePromoDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const count = await this.promoService.countPromos();
-    const promos = await this.promoService.findAll(page, limit);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return { results: promos, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: ResponsePromoDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.promoService.findAll(page, limit);
+    const total = await this.promoService.countPromos();
+    return { data, total };
   }
 
   @Get(':id')

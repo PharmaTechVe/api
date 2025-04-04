@@ -9,12 +9,9 @@ import {
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
-  ParseIntPipe,
   Query,
-  DefaultValuePipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { StateService } from './state.service';
 import { CreateStateDTO, UpdateStateDTO, StateDTO } from './dto/state.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -30,16 +27,14 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('state')
 @ApiExtraModels(PaginationDTO, StateDTO)
 export class StateController {
-  constructor(
-    private readonly stateService: StateService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly stateService: StateService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -56,6 +51,7 @@ export class StateController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all states or filter by country ID' })
   @ApiQuery({
     name: 'countryId',
@@ -95,21 +91,13 @@ export class StateController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
+    @Pagination() pagination: PaginationQueryDTO,
     @Query('countryId') countryId?: string,
-  ): Promise<PaginationDTO<StateDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const countStates = await this.stateService.countStates(countryId);
-    const states = await this.stateService.findAll(page, limit, countryId);
-    const { next, previous } = getPaginationUrl(
-      baseUrl,
-      page,
-      limit,
-      countStates,
-    );
-    return { results: states, count: countStates, next, previous };
+  ): Promise<{ data: StateDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.stateService.findAll(page, limit, countryId);
+    const total = await this.stateService.countStates(countryId);
+    return { data, total };
   }
 
   @Get(':id')
