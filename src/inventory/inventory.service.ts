@@ -28,7 +28,7 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async findAll(
+  /*async findAll(
     skip: number,
     limit: number,
     branchId?: string,
@@ -45,6 +45,40 @@ export class InventoryService {
       order: { createdAt: 'DESC' },
       skip,
       take: limit,
+    });
+  }*/
+  async countInventories(
+    branchId?: string,
+    productPresentationId?: string,
+  ): Promise<number> {
+    return await this.inventoryRepository.count({
+      relations: ['branch', 'productPresentation'],
+      where: {
+        branch: branchId ? { id: branchId } : undefined,
+        productPresentation: productPresentationId
+          ? { id: productPresentationId }
+          : undefined,
+      },
+    });
+  }
+
+  async findAll(
+    page: number,
+    pageSize: number,
+    branchId?: string,
+    productPresentationId?: string,
+  ): Promise<Inventory[]> {
+    return await this.inventoryRepository.find({
+      relations: ['branch', 'productPresentation'],
+      where: {
+        branch: branchId ? { id: branchId } : undefined,
+        productPresentation: productPresentationId
+          ? { id: productPresentationId }
+          : undefined,
+      },
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
   }
 

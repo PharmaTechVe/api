@@ -10,9 +10,8 @@ import {
   HttpStatus,
   HttpCode,
   Query,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { InventoryService } from './inventory.service';
 import {
   CreateInventoryDTO,
@@ -33,15 +32,13 @@ import {
 } from '@nestjs/swagger';
 import { Inventory } from './entities/inventory.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('inventory')
 export class InventoryController {
-  constructor(
-    private readonly inventoryService: InventoryService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly inventoryService: InventoryService) {}
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
@@ -60,6 +57,7 @@ export class InventoryController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all inventory' })
   @ApiQuery({
     name: 'page',
@@ -105,28 +103,21 @@ export class InventoryController {
     },
   })
   async findAll(
+    @Pagination() pagination: PaginationQueryDTO,
     @Query() query: InventoryQueryDTO,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponseInventoryDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const [result, count] = await this.inventoryService.findAll(
-      query.calculateSkip(),
-      query.limit,
+  ): Promise<{ data: ResponseInventoryDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.inventoryService.findAll(
+      page,
+      limit,
       query.branchId,
       query.productPresentationId,
     );
-    const { next, previous } = getPaginationUrl(
-      baseUrl,
-      query.page,
-      query.limit,
-      count,
+    const total = await this.inventoryService.countInventories(
+      query.branchId,
+      query.productPresentationId,
     );
-    return {
-      results: result,
-      count,
-      next,
-      previous,
-    };
+    return { data, total };
   }
 
   @Get(':id')
