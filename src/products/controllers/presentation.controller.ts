@@ -10,12 +10,8 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
-  ParseIntPipe,
-  Query,
-  DefaultValuePipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
@@ -36,8 +32,9 @@ import { PresentationService } from '../services/presentation.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('presentation')
 @ApiExtraModels(PaginationDTO, ResponsePresentationDTO)
 export class PresentationController {
@@ -65,6 +62,7 @@ export class PresentationController {
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @UseInterceptors(PaginationInterceptor)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List all presentations' })
   @ApiQuery({
@@ -99,15 +97,13 @@ export class PresentationController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponsePresentationDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const count = await this.presentationService.countPresentations();
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const presentations = await this.presentationService.findAll(page, limit);
-    return { results: presentations, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: ResponsePresentationDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.presentationService.findAll(page, limit);
+    const total = await this.presentationService.countPresentations();
+
+    return { data, total };
   }
 
   @Get(':id')
