@@ -93,4 +93,8 @@ export class AuthService {
     await this.userService.update(user, { password });
     return true;
   }
+
+  async validatePassword(user: User, password: string): Promise<boolean> {
+    return await bcrypt.compare(password, user.password);
+  }
 }
