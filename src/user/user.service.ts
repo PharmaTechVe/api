@@ -6,15 +6,14 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserAdminDTO, UserDTO } from './dto/user.dto';
+import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
 import { User } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
 import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
-import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UpdateUserDTO } from './dto/user-update.dto';
+import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

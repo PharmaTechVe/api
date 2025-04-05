@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ProductPresentationService } from '../services/product-presentation.service';
 import { ProductPresentation } from '../entities/product-presentation.entity';
-import { CreateProductPresentationDTO } from '../dto/create-product.dto';
+import { CreateProductPresentationDTO } from '../dto/product.dto';
 import { ProductsService } from '../products.service';
 import { PresentationService } from '../services/presentation.service';
 import { AuthGuard } from 'src/auth/auth.guard';
