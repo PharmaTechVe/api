@@ -8,4 +8,4 @@ export class CreateProductImageDTO {
   url: string;
 }
 
-export class UpdateProductImageDto extends PartialType(CreateProductImageDTO) {}
+export class UpdateProductImageDTO extends PartialType(CreateProductImageDTO) {}
