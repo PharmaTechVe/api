@@ -13,13 +13,13 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from '../products.service';
-import { UpdateProductImageDto } from '../dto/update-product-image.dto';
+import { UpdateProductImageDto } from '../dto/product-image.dto';
 import { ProductImage } from '../entities/product-image.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { CreateProductImageDto } from '../dto/create-product-image.dto';
+import { CreateProductImageDTO } from '../dto/product-image.dto';
 
 @Controller('product/:productId/image')
 export class ProductImageController {
@@ -48,7 +48,7 @@ export class ProductImageController {
   @ApiResponse({ status: HttpStatus.CREATED })
   async createProductImage(
     @Param('productId') productId: string,
-    @Body() createProductImageDto: CreateProductImageDto,
+    @Body() createProductImageDto: CreateProductImageDTO,
   ): Promise<void> {
     const product = await this.productsService.findOne(productId);
     if (!product) {
