@@ -37,8 +37,7 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
-import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UserAddressDTO } from './dto/reponse-user-address.dto';
+import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
 import { UpdateUserDTO } from './dto/user-update.dto';
 import { UserAdminDTO } from './dto/user.dto';
 
