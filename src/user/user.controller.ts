@@ -32,14 +32,12 @@ import { User, UserRole } from './entities/user.entity';
 import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { UserListDTO } from './dto/user-list.dto';
+import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
-import { UpdateUserDTO } from './dto/user-update.dto';
-import { UserAdminDTO } from './dto/user.dto';
 
 @ApiTags('User')
 @Controller('user')
