@@ -6,7 +6,7 @@ import { ProductPresentation } from './entities/product-presentation.entity';
 import {
   CreateProductDTO,
   CreateProductPresentationDTO,
-} from './dto/create-product.dto';
+} from './dto/product.dto';
 import { Manufacturer } from './entities/manufacturer.entity';
 import { ProductImage } from './entities/product-image.entity';
 import { Presentation } from './entities/presentation.entity';
