@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   HttpCode,
@@ -14,7 +15,7 @@ import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
 import { UserDTO } from 'src/user/dto/user.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard, CustomRequest } from './auth.guard';
-import { PasswordDTO } from './dto/password.dto';
+import { ChangePasswordDTO, PasswordDTO } from './dto/password.dto';
 import { ForgotPasswordDTO } from './dto/forgot-password.dto';
 import { UserService } from 'src/user/user.service';
 import { generateOTP } from 'src/utils/string';
@@ -143,6 +144,34 @@ export class AuthController {
       otp,
     );
 
+    return HttpStatus.NO_CONTENT;
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('current-password')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update user password validating the current password',
+  })
+  @ApiResponse({ status: HttpStatus.NO_CONTENT })
+  async updateCurrentPassword(
+    @Req() req: CustomRequest,
+    @Body() changePasswordDTO: ChangePasswordDTO,
+  ) {
+    const isValidated = await this.authService.validatePassword(
+      req.user,
+      changePasswordDTO.currentPassword,
+    );
+    if (!isValidated) {
+      throw new BadRequestException('Invalid current password');
+    }
+    const isUpdated = await this.authService.updatePassword(
+      req.user,
+      changePasswordDTO.password,
+    );
+    if (!isUpdated) {
+      return HttpStatus.BAD_REQUEST;
+    }
     return HttpStatus.NO_CONTENT;
   }
 }
