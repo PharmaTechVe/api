@@ -27,3 +27,25 @@ export class CreateUserAddressDTO {
   @IsString()
   cityId: string;
 }
+
+export class UserAddressDTO extends CreateUserAddressDTO {
+  @ApiProperty({
+    description: 'The unique identifier of the address',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: 'The name of the city of the address',
+  })
+  nameCity: string;
+
+  @ApiProperty({
+    description: 'The name of the state of the address',
+  })
+  nameState: string;
+
+  @ApiProperty({
+    description: 'The name of the country of the address',
+  })
+  nameCountry: string;
+}
