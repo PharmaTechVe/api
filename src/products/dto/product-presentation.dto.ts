@@ -1,8 +1,8 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { PresentationDTO } from './find-products.dto';
 import { GenericProductDTO } from './generic-product.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
+import { ResponsePresentationDTO } from './presentation.dto';
 
 export class ProductPresentationDTO {
   @IsNumber()
@@ -32,7 +32,7 @@ export class ResponseProductPresentationDTO extends ProductPresentationDTO {
   id: string;
 
   @ApiProperty({})
-  presentation: PresentationDTO;
+  presentation: ResponsePresentationDTO;
 }
 
 export class ResponseProductPresentationDetailDTO extends IntersectionType(
@@ -42,6 +42,6 @@ export class ResponseProductPresentationDetailDTO extends IntersectionType(
   @ApiProperty()
   product: GenericProductDTO;
 
-  @ApiProperty({ type: PresentationDTO })
-  presentation: PresentationDTO;
+  @ApiProperty({ type: ResponsePresentationDTO })
+  presentation: ResponsePresentationDTO;
 }

@@ -30,16 +30,15 @@ import { User, UserRole } from './entities/user.entity';
 import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { UserListDTO } from './dto/user-list.dto';
+import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
-import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UserAddressDTO } from './dto/reponse-user-address.dto';
-import { UpdateUserDTO } from './dto/user-update.dto';
-import { UserAdminDTO } from './dto/user.dto';
+import { UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
+import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
+
 @ApiTags('User')
 @Controller('user')
 export class UserController {

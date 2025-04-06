@@ -1,12 +1,19 @@
-import { ApiProperty, IntersectionType } from '@nestjs/swagger';
-import { Transform, Expose, TransformFnParams } from 'class-transformer';
+import {
+  ApiProperty,
+  IntersectionType,
+  OmitType,
+  PartialType,
+} from '@nestjs/swagger';
+import { Transform, Expose, TransformFnParams, Type } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  IsUrl,
   Matches,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
@@ -19,6 +26,7 @@ class PasswordDTO {
     return typeof value === 'string' ? value.trim() : '';
   })
   @IsNotEmpty()
+  @MaxLength(255)
   @MinLength(8)
   password: string;
 }
@@ -68,7 +76,7 @@ export class BaseUserDTO {
     { message: 'birthDate must be a valid date in YYYY-MM-DD format' },
   )
   @IsOlderThan(14)
-  birthDate: string;
+  birthDate: Date;
 
   @ApiProperty({
     description: 'the gender of the user',
@@ -88,4 +96,82 @@ export class UserAdminDTO extends BaseUserDTO {
   @IsNotEmpty()
   @Expose()
   role: UserRole;
+}
+
+class ProfileDTO {
+  @ApiProperty({ description: 'URL of the profile picture', nullable: true })
+  @Expose()
+  @IsNotEmpty()
+  profilePicture?: string;
+
+  @ApiProperty({
+    description: 'birthDate must be a valid date in YYYY-MM-DD format',
+  })
+  @Expose()
+  @IsNotEmpty()
+  birthDate: Date;
+
+  @ApiProperty({ description: 'gender of the user' })
+  @Expose()
+  gender: string;
+}
+
+export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
+  @ApiProperty({ description: 'User ID' })
+  @IsNotEmpty()
+  @Expose()
+  id: string;
+
+  @ApiProperty({ description: 'User creation date' })
+  @IsNotEmpty()
+  @Expose()
+  createdAt: Date;
+
+  @ApiProperty({ description: 'User update date' })
+  @IsNotEmpty()
+  @Expose()
+  updatedAt: Date;
+
+  @ApiProperty({
+    description: 'The date when the user was deleted, if applicable',
+    nullable: true,
+  })
+  @Expose()
+  deletedAt: Date | null;
+
+  @ApiProperty({
+    description: 'Date the user made their last order (if applicable)',
+    nullable: true,
+  })
+  @Expose()
+  lastOrderDate: Date | null;
+
+  @ApiProperty({ description: 'User role' })
+  @Expose()
+  @IsNotEmpty()
+  role: string;
+
+  @ApiProperty({ description: 'User validation status' })
+  @IsNotEmpty()
+  @Expose()
+  isValidated: boolean;
+
+  @ApiProperty({ description: 'Profile object' })
+  @Expose()
+  @Type(() => ProfileDTO)
+  profile: ProfileDTO;
+}
+
+export class UpdateUserDTO extends PartialType(
+  OmitType(BaseUserDTO, ['documentId']),
+) {
+  @IsOptional()
+  @IsEnum(UserRole)
+  @ApiProperty({ description: 'Role of the user', enum: UserRole })
+  role?: UserRole;
+
+  @IsOptional()
+  @ApiProperty({ description: 'Profile picture URL of the user' })
+  @IsUrl()
+  profilePicture?: string;
 }
