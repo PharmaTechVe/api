@@ -6,14 +6,12 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
-  Req,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { GenericProductService } from '../services/generic-product.service';
 import {
   CreateGenericProductDTO,
@@ -36,17 +34,14 @@ import {
   PaginationDTO,
   PaginationQueryDTO,
 } from 'src/utils/dto/pagination.dto';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @ApiTags('Generic Product')
 @Controller('product/generic')
 export class GenericProductController {
-  constructor(
-    private readonly genericProductService: GenericProductService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly genericProductService: GenericProductService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -65,6 +60,7 @@ export class GenericProductController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all generic products with pagination' })
   @ApiQuery({
     name: 'page',
@@ -98,23 +94,12 @@ export class GenericProductController {
     },
   })
   async findAll(
-    @Query() query: PaginationQueryDTO,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponseGenericProductDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const { page, limit } = query;
-    const skip = query.calculateSkip();
-    const [results, count] = await this.genericProductService.findAll(
-      skip,
-      limit,
-    );
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return {
-      results,
-      count,
-      next,
-      previous,
-    };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: ResponseGenericProductDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.genericProductService.findAll(page, limit);
+    const total = await this.genericProductService.countProducts();
+    return { data, total };
   }
 
   @Get(':id')

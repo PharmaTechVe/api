@@ -10,11 +10,9 @@ import {
   HttpStatus,
   Get,
   Param,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Query,
   Delete,
   Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -34,18 +32,16 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('otp')
   @UseGuards(AuthGuard)
@@ -89,6 +85,7 @@ export class UserController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'List of active users',
@@ -112,28 +109,16 @@ export class UserController {
     },
   })
   async getActiveUsers(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<UserListDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const totalItems = await this.userService.countActiveUsers();
-    const { next, previous } = getPaginationUrl(
-      baseUrl,
-      page,
-      limit,
-      totalItems,
-    );
-    const users = await this.userService.getActiveUsers(page, limit);
-    const usersDTO = plainToInstance(UserListDTO, users, {
-      excludeExtraneousValues: true,
-    });
-
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: UserListDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.userService.getActiveUsers(page, limit);
+    const total = await this.userService.countActiveUsers();
     return {
-      results: usersDTO,
-      count: totalItems,
-      next,
-      previous,
+      data: plainToInstance(UserListDTO, data, {
+        excludeExtraneousValues: true,
+      }),
+      total,
     };
   }
 

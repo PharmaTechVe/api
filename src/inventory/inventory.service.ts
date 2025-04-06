@@ -28,13 +28,28 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async findAll(
-    skip: number,
-    limit: number,
+  async countInventories(
     branchId?: string,
     productPresentationId?: string,
-  ): Promise<[Inventory[], number]> {
-    return await this.inventoryRepository.findAndCount({
+  ): Promise<number> {
+    return await this.inventoryRepository.count({
+      relations: ['branch', 'productPresentation'],
+      where: {
+        branch: branchId ? { id: branchId } : undefined,
+        productPresentation: productPresentationId
+          ? { id: productPresentationId }
+          : undefined,
+      },
+    });
+  }
+
+  async findAll(
+    page: number,
+    pageSize: number,
+    branchId?: string,
+    productPresentationId?: string,
+  ): Promise<Inventory[]> {
+    return await this.inventoryRepository.find({
       relations: ['branch', 'productPresentation'],
       where: {
         branch: branchId ? { id: branchId } : undefined,
@@ -43,8 +58,8 @@ export class InventoryService {
           : undefined,
       },
       order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
   }
 

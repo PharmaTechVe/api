@@ -10,11 +10,8 @@ import {
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
-  Req,
-  DefaultValuePipe,
-  ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { CityService } from './city.service';
 import { CreateCityDTO, UpdateCityDTO, CityDTO } from './dto/city.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -30,16 +27,13 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('city')
 @ApiExtraModels(PaginationDTO, CityDTO)
 export class CityController {
-  constructor(
-    private readonly cityService: CityService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly cityService: CityService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -56,6 +50,7 @@ export class CityController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all cities or filter by state ID' })
   @ApiQuery({
     name: 'stateId',
@@ -95,16 +90,13 @@ export class CityController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
+    @Pagination() pagination: PaginationQueryDTO,
     @Query('stateId') stateId?: string,
-  ): Promise<PaginationDTO<CityDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.cityService.countCities(stateId);
-    const cities = await this.cityService.findAll(page, limit, stateId);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return { results: cities, count, next, previous };
+  ): Promise<{ data: CityDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.cityService.findAll(page, limit, stateId);
+    const total = await this.cityService.countCities(stateId);
+    return { data, total };
   }
 
   @Get(':id')
