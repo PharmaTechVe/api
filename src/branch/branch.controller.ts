@@ -30,9 +30,8 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { BranchQueryDTO, PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('branch')
 @ApiExtraModels(PaginationDTO, ResponseBranchDTO)
@@ -72,6 +71,20 @@ export class BranchController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for branch name',
+    type: String,
+    example: 'main',
+  })
+  @ApiQuery({
+    name: 'stateId',
+    required: false,
+    description: "State ID to filter branches by city's state",
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   @ApiResponse({
     description: 'Successful retrieval of branches',
     status: HttpStatus.OK,
@@ -90,11 +103,11 @@ export class BranchController {
     },
   })
   async findAll(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Pagination() pagination: BranchQueryDTO,
   ): Promise<{ data: ResponseBranchDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.branchService.findAll(page, limit);
-    const total = await this.branchService.countBranches();
+    const { page, limit, q, stateId } = pagination;
+    const data = await this.branchService.findAll(page, limit, q, stateId);
+    const total = await this.branchService.countBranches(q, stateId);
     return { data, total };
   }
 

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 
 export class PaginationDTO<T> {
   @ApiProperty()
@@ -41,4 +41,10 @@ export class PaginationQueryDTO {
   calculateSkip() {
     return (this.page - 1) * this.limit;
   }
+}
+
+export class BranchQueryDTO extends PaginationQueryDTO {
+  @IsOptional()
+  @IsUUID()
+  stateId?: string;
 }
