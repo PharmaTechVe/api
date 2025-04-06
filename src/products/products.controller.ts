@@ -1,13 +1,11 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Get,
-  ParseIntPipe,
   Post,
   Query,
-  Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
@@ -21,27 +19,23 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductPresentationDTO } from './dto/find-products.dto';
-import { Request } from 'express';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { ProductPresentationDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { CreateProductDTO } from './dto/create-product.dto';
+import { CreateProductDTO } from './dto/product.dto';
 import { Product } from './entities/product.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/user/entities/user.entity';
-
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
-  constructor(
-    private productsServices: ProductsService,
-    private configService: ConfigService,
-  ) {}
-
+  constructor(private productsServices: ProductsService) {}
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({
     summary: 'List all available products',
     description:
@@ -85,20 +79,18 @@ export class ProductsController {
     },
   })
   async getProducts(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
+    @Pagination() pagination: PaginationQueryDTO,
     @Query('q') searchText?: string,
-  ): Promise<PaginationDTO<ProductPresentationDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.productsServices.countProducts(searchText);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const products = await this.productsServices.getProducts(
+  ): Promise<{ data: ProductPresentationDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.productsServices.getProducts(
       page,
       limit,
       searchText,
     );
-    return { results: products, count, next, previous };
+    const total = await this.productsServices.countProducts(searchText);
+
+    return { data, total };
   }
 
   @Post()

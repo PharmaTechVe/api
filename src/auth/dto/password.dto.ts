@@ -10,3 +10,12 @@ export class PasswordDTO {
   @MinLength(8)
   password: string;
 }
+
+export class ChangePasswordDTO extends PasswordDTO {
+  @ApiProperty({ description: 'the current password of the user' })
+  @Transform(({ value }: { value: string }) => value.trim())
+  @IsNotEmpty()
+  @MaxLength(255)
+  @MinLength(8)
+  currentPassword: string;
+}

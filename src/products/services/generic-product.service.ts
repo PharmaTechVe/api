@@ -24,11 +24,17 @@ export class GenericProductService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(skip: number, limit: number): Promise<[Product[], number]> {
-    return await this.productRepository.findAndCount({
-      skip: skip,
-      take: limit,
+  async countProducts(): Promise<number> {
+    return await this.productRepository.count({
       where: { deletedAt: IsNull() },
+    });
+  }
+
+  async findAll(page: number, pageSize: number): Promise<Product[]> {
+    return await this.productRepository.find({
+      where: { deletedAt: IsNull() },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
       order: { createdAt: 'DESC' },
       relations: ['manufacturer', 'categories'],
     });

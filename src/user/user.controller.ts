@@ -10,11 +10,9 @@ import {
   HttpStatus,
   Get,
   Param,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Query,
   Delete,
   Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,23 +30,18 @@ import { User, UserRole } from './entities/user.entity';
 import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { UserListDTO } from './dto/user-list.dto';
+import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { plainToInstance } from 'class-transformer';
-import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UserAddressDTO } from './dto/reponse-user-address.dto';
-import { UpdateUserDTO } from './dto/user-update.dto';
-import { UserAdminDTO } from './dto/user.dto';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
+import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post('otp')
   @UseGuards(AuthGuard)
@@ -92,6 +85,7 @@ export class UserController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'List of active users',
@@ -115,28 +109,16 @@ export class UserController {
     },
   })
   async getActiveUsers(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<UserListDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const totalItems = await this.userService.countActiveUsers();
-    const { next, previous } = getPaginationUrl(
-      baseUrl,
-      page,
-      limit,
-      totalItems,
-    );
-    const users = await this.userService.getActiveUsers(page, limit);
-    const usersDTO = plainToInstance(UserListDTO, users, {
-      excludeExtraneousValues: true,
-    });
-
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: UserListDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.userService.getActiveUsers(page, limit);
+    const total = await this.userService.countActiveUsers();
     return {
-      results: usersDTO,
-      count: totalItems,
-      next,
-      previous,
+      data: plainToInstance(UserListDTO, data, {
+        excludeExtraneousValues: true,
+      }),
+      total,
     };
   }
 
@@ -179,6 +161,8 @@ export class UserController {
       latitude: savedAddress.latitude,
       longitude: savedAddress.longitude,
       cityId: savedAddress.city.id,
+      additionalInformation: savedAddress.additionalInformation,
+      referencePoint: savedAddress.referencePoint,
     });
   }
 
@@ -203,6 +187,8 @@ export class UserController {
       latitude: address.latitude,
       longitude: address.longitude,
       cityId: address.city.id,
+      additionalInformation: address.additionalInformation,
+      referencePoint: address.referencePoint,
       nameCity: address.city.name,
       nameState: address.city.state.name,
       nameCountry: address.city.state.country.name,
@@ -227,6 +213,8 @@ export class UserController {
         latitude: address.latitude,
         longitude: address.longitude,
         cityId: address.city.id,
+        additionalInformation: address.additionalInformation,
+        referencePoint: address.referencePoint,
         nameCity: address.city.name,
         nameState: address.city.state.name,
         nameCountry: address.city.state.country.name,
@@ -275,6 +263,8 @@ export class UserController {
       latitude: updatedAddress.latitude,
       longitude: updatedAddress.longitude,
       cityId: updatedAddress.city.id,
+      additionalInformation: updatedAddress.additionalInformation,
+      referencePoint: updatedAddress.referencePoint,
       nameCity: updatedAddress.city.name,
       nameState: updatedAddress.city.state.name,
       nameCountry: updatedAddress.city.state.country.name,
