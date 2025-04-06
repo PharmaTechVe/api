@@ -9,10 +9,7 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
-  Query,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CouponService } from '../services/coupon.service';
 import { CouponDTO, UpdateCouponDTO } from '../dto/coupon.dto';
@@ -21,18 +18,14 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-import { Request } from 'express';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('coupon')
 @ApiBearerAuth()
 export class CouponController {
-  constructor(
-    private readonly couponService: CouponService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly couponService: CouponService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -50,6 +43,7 @@ export class CouponController {
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all coupons' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -57,15 +51,12 @@ export class CouponController {
     type: [CouponDTO],
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<CouponDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const count = await this.couponService.countCoupon();
-    const coupons = await this.couponService.findAll(page, limit);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return { results: coupons, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: CouponDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.couponService.findAll(page, limit);
+    const total = await this.couponService.countCoupon();
+    return { data, total };
   }
 
   @Get(':code')
