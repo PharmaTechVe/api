@@ -20,6 +20,12 @@ export class CreateProductPresentationDTO {
   @ApiProperty()
   @IsNumber()
   price: number;
+
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  @ApiProperty({ description: 'The ID of the associated promo' })
+  promoId?: string;
 }
 
 export class CreateProductDTO {

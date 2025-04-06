@@ -48,3 +48,8 @@ export class CouponDTO {
 }
 
 export class UpdateCouponDTO extends PartialType(CouponDTO) {}
+
+export class ResponseCouponDTO extends CouponDTO {
+  @ApiProperty({ description: 'The promo id' })
+  id: string;
+}

@@ -1,28 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, Repository } from 'typeorm';
-import { CreatePromoDTO, UpdatePromoDTO } from '../dto/promo.dto';
+import { PromoDTO, UpdatePromoDTO } from '../dto/promo.dto';
 import { Promo } from '../entities/promo.entity';
-import { ProductPresentationService } from '../../products/services/product-presentation.service';
 
 @Injectable()
 export class PromoService {
   constructor(
     @InjectRepository(Promo)
     private readonly promoRepository: Repository<Promo>,
-    private productPresentationService: ProductPresentationService,
   ) {}
 
-  async create(createPromoDTO: CreatePromoDTO): Promise<Promo> {
+  async create(createPromoDTO: PromoDTO): Promise<Promo> {
     const promo = this.promoRepository.create(createPromoDTO);
-
-    if (createPromoDTO.productPresentationId) {
-      const productPresentation = await this.productPresentationService.findOne(
-        createPromoDTO.productPresentationId,
-      );
-      promo.productPresentation = productPresentation;
-    }
-
     return await this.promoRepository.save(promo);
   }
 
@@ -37,14 +27,12 @@ export class PromoService {
       where: { deletedAt: IsNull() },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      relations: ['productPresentation'],
     });
   }
 
   async findOne(id: string): Promise<Promo> {
     const promo = await this.promoRepository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['productPresentation'],
     });
     if (!promo) {
       throw new NotFoundException(`Promo with id ${id} not found`);
@@ -54,13 +42,6 @@ export class PromoService {
 
   async update(id: string, updatePromoDTO: UpdatePromoDTO): Promise<Promo> {
     const promo = await this.findOne(id);
-
-    if (updatePromoDTO.productPresentationId) {
-      const productPresentation = await this.productPresentationService.findOne(
-        updatePromoDTO.productPresentationId,
-      );
-      promo.productPresentation = productPresentation;
-    }
     const updatedPromo = { ...promo, ...updatePromoDTO };
     return this.promoRepository.save(updatedPromo);
   }

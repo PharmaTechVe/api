@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,6 +20,7 @@ import { GenericProductController } from './controllers/generic-product.controll
 import { GenericProductService } from './services/generic-product.service';
 import { ProductPresentationController } from './controllers/product-presentation.controller';
 import { ProductImageController } from './controllers/product-image.controller';
+import { DiscountModule } from '../discount/discount.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProductImageController } from './controllers/product-image.controller';
       ProductImage,
     ]),
     AuthModule,
+    forwardRef(() => DiscountModule),
   ],
   controllers: [
     ProductsController,
@@ -50,6 +52,5 @@ import { ProductImageController } from './controllers/product-image.controller';
     GenericProductService,
     ProductPresentationService,
   ],
-  exports: [ProductPresentationService],
 })
 export class ProductsModule {}

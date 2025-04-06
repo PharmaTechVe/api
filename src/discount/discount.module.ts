@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Coupon } from './entities/coupon.entity';
 import { Promo } from './entities/promo.entity';
@@ -12,7 +12,7 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Coupon, Promo]),
-    ProductsModule,
+    forwardRef(() => ProductsModule),
     AuthModule,
   ],
   controllers: [CouponController, PromoController],

@@ -23,11 +23,7 @@ import {
   ApiResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import {
-  CreatePromoDTO,
-  UpdatePromoDTO,
-  ResponsePromoDTO,
-} from '../dto/promo.dto';
+import { PromoDTO, UpdatePromoDTO, ResponsePromoDTO } from '../dto/promo.dto';
 import { PromoService } from '../services/promo.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
@@ -50,9 +46,7 @@ export class PromoController {
     status: HttpStatus.CREATED,
     type: ResponsePromoDTO,
   })
-  async create(
-    @Body() createPromoDto: CreatePromoDTO,
-  ): Promise<ResponsePromoDTO> {
+  async create(@Body() createPromoDto: PromoDTO): Promise<ResponsePromoDTO> {
     return await this.promoService.create(createPromoDto);
   }
 

@@ -21,8 +21,11 @@ export class ProductPresentation extends BaseModel {
   @OneToMany(() => Lot, (lot) => lot.productPresentation)
   lot: Lot[];
 
-  @OneToMany(() => Promo, (promo) => promo.productPresentation)
-  promos: Promo[];
+  @ManyToOne(() => Promo, (promo) => promo.productPresentations, {
+    nullable: true,
+  })
+  @JoinColumn({ name: 'promo_id' })
+  promo: Promo;
 
   @OneToMany(() => Inventory, (inventory) => inventory.productPresentation)
   inventories: Inventory[];
