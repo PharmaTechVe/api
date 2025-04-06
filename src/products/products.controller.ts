@@ -21,12 +21,12 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductPresentationDTO } from './dto/find-products.dto';
+import { ProductPresentationDTO } from './dto/product.dto';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { CreateProductDTO } from './dto/create-product.dto';
+import { CreateProductDTO } from './dto/product.dto';
 import { Product } from './entities/product.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { AuthGuard } from 'src/auth/auth.guard';
