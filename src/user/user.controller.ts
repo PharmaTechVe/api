@@ -33,7 +33,6 @@ import { Roles } from 'src/auth/roles.decorador';
 import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
-import { UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';

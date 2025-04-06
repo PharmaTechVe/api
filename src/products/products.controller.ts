@@ -20,9 +20,6 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { ProductPresentationDTO } from './dto/product.dto';
-import { Request } from 'express';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { CreateProductDTO } from './dto/product.dto';
 import { Product } from './entities/product.entity';
