@@ -26,6 +26,24 @@ export class CreateUserAddressDTO {
   @IsNotEmpty()
   @IsString()
   cityId: string;
+
+  @ApiProperty({
+    description: 'Additional information for the address',
+    required: false,
+    maxLength: 255,
+  })
+  @IsOptional()
+  @IsString()
+  additionalInformation?: string;
+
+  @ApiProperty({
+    description: 'Reference point for the address',
+    required: false,
+    maxLength: 255,
+  })
+  @IsOptional()
+  @IsString()
+  referencePoint?: string;
 }
 
 export class UserAddressDTO extends CreateUserAddressDTO {

@@ -24,4 +24,20 @@ export class UserAdress extends BaseModel {
 
   @Column({ type: 'float', name: 'longitude', nullable: true })
   longitude: number;
+
+  @Column({
+    type: 'character varying',
+    length: 255,
+    name: 'additional_information',
+    nullable: true,
+  })
+  additionalInformation?: string;
+
+  @Column({
+    type: 'character varying',
+    length: 255,
+    name: 'reference_point',
+    nullable: true,
+  })
+  referencePoint?: string;
 }

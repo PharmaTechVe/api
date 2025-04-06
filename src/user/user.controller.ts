@@ -161,6 +161,8 @@ export class UserController {
       latitude: savedAddress.latitude,
       longitude: savedAddress.longitude,
       cityId: savedAddress.city.id,
+      additionalInformation: savedAddress.additionalInformation,
+      referencePoint: savedAddress.referencePoint,
     });
   }
 
@@ -185,6 +187,8 @@ export class UserController {
       latitude: address.latitude,
       longitude: address.longitude,
       cityId: address.city.id,
+      additionalInformation: address.additionalInformation,
+      referencePoint: address.referencePoint,
       nameCity: address.city.name,
       nameState: address.city.state.name,
       nameCountry: address.city.state.country.name,
@@ -209,6 +213,8 @@ export class UserController {
         latitude: address.latitude,
         longitude: address.longitude,
         cityId: address.city.id,
+        additionalInformation: address.additionalInformation,
+        referencePoint: address.referencePoint,
         nameCity: address.city.name,
         nameState: address.city.state.name,
         nameCountry: address.city.state.country.name,
@@ -257,6 +263,8 @@ export class UserController {
       latitude: updatedAddress.latitude,
       longitude: updatedAddress.longitude,
       cityId: updatedAddress.city.id,
+      additionalInformation: updatedAddress.additionalInformation,
+      referencePoint: updatedAddress.referencePoint,
       nameCity: updatedAddress.city.name,
       nameState: updatedAddress.city.state.name,
       nameCountry: updatedAddress.city.state.country.name,
