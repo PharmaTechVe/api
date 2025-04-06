@@ -1,6 +1,6 @@
-import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
-import { ProductPresentation } from '../entities/product-presentation.entity';
+import { Entity, Column, OneToMany } from 'typeorm';
 import { BaseModel } from 'src/utils/entity';
+import { ProductPresentation } from './product-presentation.entity';
 
 @Entity({ name: 'promo' })
 export class Promo extends BaseModel {
@@ -13,9 +13,12 @@ export class Promo extends BaseModel {
   @Column({ type: 'timestamp with time zone', name: 'expired_at' })
   expiredAt: Date;
 
-  @ManyToOne(() => ProductPresentation, (presentation) => presentation.promos, {
-    eager: true,
-  })
-  @JoinColumn({ name: 'product_presentation_id' })
-  productPresentation: ProductPresentation;
+  @Column({ type: 'timestamp with time zone', name: 'start_at' })
+  startAt: Date;
+
+  @OneToMany(
+    () => ProductPresentation,
+    (productPresentation) => productPresentation.promo,
+  )
+  productPresentations: ProductPresentation[];
 }

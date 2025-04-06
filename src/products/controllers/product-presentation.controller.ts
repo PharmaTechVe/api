@@ -13,7 +13,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductPresentationService } from '../services/product-presentation.service';
-import { ProductPresentation } from '../entities/product-presentation.entity';
 import { CreateProductPresentationDTO } from '../dto/product.dto';
 import { ProductsService } from '../products.service';
 import { PresentationService } from '../services/presentation.service';
@@ -58,12 +57,12 @@ export class ProductPresentationController {
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Product presentation created successfully',
-    type: ProductPresentation,
+    type: ResponseProductPresentationDTO,
   })
   async createProductPresentation(
     @Param('id') productId: string,
     @Body() createProductPresentationDto: CreateProductPresentationDTO,
-  ): Promise<ProductPresentation> {
+  ): Promise<ResponseProductPresentationDTO> {
     const product = await this.productService.findOne(productId);
     const presentation = await this.presentationService.findOne(
       createProductPresentationDto.presentationId,
@@ -107,11 +106,17 @@ export class ProductPresentationController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update product presentation by ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Product presentation updated successfully',
+    type: ResponseProductPresentationDTO,
+  })
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Param('presentationId', new ParseUUIDPipe()) presentationId: string,
     @Body() updateProductPresentationDto: UpdateProductPresentationDTO,
-  ): Promise<ProductPresentation> {
+  ): Promise<ResponseProductPresentationDTO> {
     return await this.productPresentationService.update(
       id,
       presentationId,
