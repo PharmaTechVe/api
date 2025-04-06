@@ -1,12 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  IsDateString,
-  IsUUID,
-} from 'class-validator';
-import { ResponseProductPresentationDTO } from '../dto/product-presentation.dto';
+import { IsNotEmpty, IsNumber, IsString, IsDateString } from 'class-validator';
 
 export class PromoDTO {
   @IsString()
@@ -23,26 +16,16 @@ export class PromoDTO {
   @IsNotEmpty()
   @ApiProperty({ description: 'The expiration date of the promo' })
   expiredAt: Date;
-}
 
-export class CreatePromoDTO extends PromoDTO {
-  @IsString()
+  @IsDateString()
   @IsNotEmpty()
-  @IsUUID()
-  @ApiProperty({
-    description: 'The ID of the product presentation associated with the promo',
-  })
-  productPresentationId: string;
+  @ApiProperty({ description: 'The start date of the promo' })
+  startAt: Date;
 }
 
-export class UpdatePromoDTO extends PartialType(CreatePromoDTO) {}
+export class UpdatePromoDTO extends PartialType(PromoDTO) {}
 
 export class ResponsePromoDTO extends PromoDTO {
   @ApiProperty({ description: 'The promo id' })
   id: string;
-
-  @ApiProperty({
-    description: 'The presentation of the product associated with the promo',
-  })
-  productPresentation: ResponseProductPresentationDTO;
 }
