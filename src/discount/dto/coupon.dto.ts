@@ -1,4 +1,4 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, PartialType, IntersectionType } from '@nestjs/swagger';
 import {
   IsNotEmpty,
   IsString,
@@ -50,4 +50,4 @@ export class CouponDTO {
 
 export class UpdateCouponDTO extends PartialType(CouponDTO) {}
 
-export class ResponseCouponDTO extends BaseDTO {}
+export class ResponseCouponDTO extends IntersectionType(CouponDTO, BaseDTO) {}
