@@ -21,6 +21,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { OtpDTO } from './dto/otp.dto';
@@ -90,6 +91,34 @@ export class UserController {
     summary: 'List of active users',
     description:
       'Returns all active and validated users, including their associated profile.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for user firstName, lastName, or documentId',
+    type: String,
+    example: 'Abraham',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    description: 'Role to filter user by role',
+    enum: UserRole,
+    example: UserRole.ADMIN,
   })
   @ApiOkResponse({
     description: 'Users successfully obtained',
