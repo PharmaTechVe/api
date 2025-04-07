@@ -31,10 +31,9 @@ import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { PaginationDTO, UserQueryDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
 
@@ -109,11 +108,11 @@ export class UserController {
     },
   })
   async getActiveUsers(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Pagination() pagination: UserQueryDTO,
   ): Promise<{ data: UserListDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.userService.getActiveUsers(page, limit);
-    const total = await this.userService.countActiveUsers();
+    const { page, limit, q, role } = pagination;
+    const data = await this.userService.getActiveUsers(page, limit, q, role);
+    const total = await this.userService.countActiveUsers(q, role);
     return {
       data: plainToInstance(UserListDTO, data, {
         excludeExtraneousValues: true,
