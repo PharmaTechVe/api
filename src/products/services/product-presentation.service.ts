@@ -6,7 +6,7 @@ import { Presentation } from '../entities/presentation.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { IsNull, Repository } from 'typeorm';
 import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
-import { PromoService } from './promo.service';
+import { PromoService } from '../../discount/services/promo.service';
 
 @Injectable()
 export class ProductPresentationService {

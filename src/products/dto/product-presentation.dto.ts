@@ -9,7 +9,7 @@ import {
 import { GenericProductDTO } from './generic-product.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
-import { ResponsePromoDTO } from './promo.dto';
+import { ResponsePromoDTO } from '../../discount/dto/promo.dto';
 
 export class ProductPresentationDTO {
   @IsNumber()

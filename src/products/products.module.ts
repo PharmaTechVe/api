@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,10 +19,8 @@ import { Category } from 'src/category/entities/category.entity';
 import { GenericProductController } from './controllers/generic-product.controller';
 import { GenericProductService } from './services/generic-product.service';
 import { ProductPresentationController } from './controllers/product-presentation.controller';
-import { PromoController } from './controllers/promo.controller';
-import { PromoService } from './services/promo.service';
-import { Promo } from './entities/promo.entity';
 import { ProductImageController } from './controllers/product-image.controller';
+import { DiscountModule } from '../discount/discount.module';
 
 @Module({
   imports: [
@@ -34,9 +32,9 @@ import { ProductImageController } from './controllers/product-image.controller';
       Country,
       Category,
       ProductImage,
-      Promo,
     ]),
     AuthModule,
+    forwardRef(() => DiscountModule),
   ],
   controllers: [
     ProductsController,
@@ -44,7 +42,6 @@ import { ProductImageController } from './controllers/product-image.controller';
     ManufacturerController,
     GenericProductController,
     ProductPresentationController,
-    PromoController,
     ProductImageController,
   ],
   providers: [
@@ -53,7 +50,6 @@ import { ProductImageController } from './controllers/product-image.controller';
     ManufacturerService,
     CountryService,
     GenericProductService,
-    PromoService,
     ProductPresentationService,
   ],
 })

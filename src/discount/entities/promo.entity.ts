@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany } from 'typeorm';
+import { ProductPresentation } from '../../products/entities/product-presentation.entity';
 import { BaseModel } from 'src/utils/entity';
-import { ProductPresentation } from './product-presentation.entity';
 
 @Entity({ name: 'promo' })
 export class Promo extends BaseModel {

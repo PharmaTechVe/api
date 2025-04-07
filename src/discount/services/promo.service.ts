@@ -35,7 +35,7 @@ export class PromoService {
       where: { id, deletedAt: IsNull() },
     });
     if (!promo) {
-      throw new NotFoundException(`Promo con id ${id} no encontrada`);
+      throw new NotFoundException(`Promo with id ${id} not found`);
     }
     return promo;
   }
