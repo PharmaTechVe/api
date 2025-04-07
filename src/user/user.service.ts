@@ -7,11 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
-import { IsNull } from 'typeorm';
 import { UserAdress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
@@ -182,20 +181,52 @@ export class UserService {
     return user;
   }
 
-  async countActiveUsers(): Promise<number> {
-    return this.userRepository.count({
-      where: { deletedAt: IsNull() },
-    });
+  async countActiveUsers(q?: string, role?: UserRole): Promise<number> {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere(
+        '(user.firstName ILIKE :q OR user.lastName ILIKE :q OR user.documentId ILIKE :q)',
+        { q: `%${q}%` },
+      );
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    return qb.getCount();
   }
 
-  async getActiveUsers(page: number, limit: number): Promise<User[]> {
-    return this.userRepository.find({
-      where: { deletedAt: IsNull() },
-      relations: ['profile'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  async getActiveUsers(
+    page: number,
+    limit: number,
+    q?: string,
+    role?: UserRole,
+  ): Promise<User[]> {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere(
+        '(user.firstName ILIKE :q OR user.lastName ILIKE :q OR user.documentId ILIKE :q)',
+        { q: `%${q}%` },
+      );
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    qb.orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    return qb.getMany();
   }
 
   async deleteUser(userId: string): Promise<void> {

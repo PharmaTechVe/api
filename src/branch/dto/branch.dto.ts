@@ -1,6 +1,7 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
 import { CityDTO } from 'src/city/dto/city.dto';
+import { BaseDTO } from 'src/utils/dto/base.dto';
 
 class BranchDTO {
   @IsString()
@@ -36,10 +37,7 @@ export class CreateBranchDTO extends BranchDTO {
 
 export class UpdateBranchDTO extends PartialType(CreateBranchDTO) {}
 
-export class ResponseBranchDTO extends BranchDTO {
-  @ApiProperty({ description: 'The id of the branch' })
-  id: string;
-
+export class ResponseBranchDTO extends IntersectionType(BranchDTO, BaseDTO) {
   @ApiProperty({ description: 'The city of the branch' })
   city: CityDTO;
 }

@@ -19,18 +19,50 @@ export class BranchService {
     return await this.branchRepository.save(branch);
   }
 
-  async countBranches(): Promise<number> {
-    return await this.branchRepository.count({
-      where: { deletedAt: IsNull() },
-    });
+  async countBranches(q?: string, stateId?: string): Promise<number> {
+    const qb = this.branchRepository
+      .createQueryBuilder('branch')
+      .leftJoin('branch.city', 'city')
+      .leftJoin('city.state', 'state')
+      .where('branch.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere('branch.name ILIKE :q', { q: `%${q}%` });
+    }
+
+    if (stateId) {
+      qb.andWhere('state.id = :stateId', { stateId });
+    }
+
+    return qb.getCount();
   }
 
-  async findAll(page: number, pageSize: number): Promise<Branch[]> {
-    return await this.branchRepository.find({
-      where: { deletedAt: IsNull() },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+  async findAll(
+    page: number,
+    limit: number,
+    q?: string,
+    stateId?: string,
+  ): Promise<Branch[]> {
+    const qb = this.branchRepository
+      .createQueryBuilder('branch')
+      .leftJoinAndSelect('branch.city', 'city')
+      .leftJoinAndSelect('city.state', 'state')
+      .leftJoinAndSelect('state.country', 'country')
+      .where('branch.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere('branch.name ILIKE :q', { q: `%${q}%` });
+    }
+
+    if (stateId) {
+      qb.andWhere('state.id = :stateId', { stateId });
+    }
+
+    return qb
+      .skip((page - 1) * limit)
+      .take(limit)
+      .orderBy('branch.name', 'ASC')
+      .getMany();
   }
 
   async findOne(id: string): Promise<Branch> {

@@ -71,6 +71,13 @@ export class CategoryController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for category name',
+    type: String,
+    example: 'Antibiótico',
+  })
   @ApiResponse({
     description: 'Successful retrieve categories',
     status: HttpStatus.OK,
@@ -91,9 +98,9 @@ export class CategoryController {
   async findAll(
     @Pagination() pagination: PaginationQueryDTO,
   ): Promise<{ data: CategoryResponseDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.categoryService.findAll(page, limit);
-    const total = await this.categoryService.countCategories();
+    const { page, limit, q } = pagination;
+    const data = await this.categoryService.findAll(page, limit, q);
+    const total = await this.categoryService.countCategories(q);
 
     return { data, total };
   }

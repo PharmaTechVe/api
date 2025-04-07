@@ -21,6 +21,7 @@ import {
   ApiOkResponse,
   getSchemaPath,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { OtpDTO } from './dto/otp.dto';
@@ -31,10 +32,9 @@ import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { PaginationDTO, UserQueryDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
 
@@ -92,6 +92,34 @@ export class UserController {
     description:
       'Returns all active and validated users, including their associated profile.',
   })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+    type: Number,
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of items per page',
+    type: Number,
+    example: 10,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for user firstName, lastName, or documentId',
+    type: String,
+    example: 'Abraham',
+  })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    description: 'Role to filter user by role',
+    enum: UserRole,
+    example: UserRole.ADMIN,
+  })
   @ApiOkResponse({
     description: 'Users successfully obtained',
     schema: {
@@ -109,11 +137,11 @@ export class UserController {
     },
   })
   async getActiveUsers(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Pagination() pagination: UserQueryDTO,
   ): Promise<{ data: UserListDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.userService.getActiveUsers(page, limit);
-    const total = await this.userService.countActiveUsers();
+    const { page, limit, q, role } = pagination;
+    const data = await this.userService.getActiveUsers(page, limit, q, role);
+    const total = await this.userService.countActiveUsers(q, role);
     return {
       data: plainToInstance(UserListDTO, data, {
         excludeExtraneousValues: true,

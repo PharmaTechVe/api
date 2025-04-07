@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CategoryDTO, UpdateCategoryDTO } from './dto/category.dto';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -16,14 +16,23 @@ export class CategoryService {
     return await this.categoryRespository.save(categoryData);
   }
 
-  async countCategories(): Promise<number> {
-    return await this.categoryRespository.count();
+  async countCategories(q?: string): Promise<number> {
+    const where = q ? { name: ILike(`%${q}%`) } : {};
+    return await this.categoryRespository.count({ where });
   }
 
-  async findAll(page: number, pageSize: number): Promise<Category[]> {
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+  ): Promise<Category[]> {
+    const where = q ? { name: ILike(`%${q}%`) } : {};
+
     return await this.categoryRespository.find({
+      where,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: { name: 'ASC' },
     });
   }
 
