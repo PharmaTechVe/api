@@ -55,3 +55,9 @@ export class UserQueryDTO extends PaginationQueryDTO {
   @IsString()
   role?: UserRole;
 }
+
+export class GenericProductQueryDTO extends PaginationQueryDTO {
+  @IsOptional()
+  @IsUUID()
+  categoryId?: string;
+}

@@ -31,8 +31,8 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import {
+  GenericProductQueryDTO,
   PaginationDTO,
-  PaginationQueryDTO,
 } from 'src/utils/dto/pagination.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
@@ -76,6 +76,20 @@ export class GenericProductController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for Product name',
+    type: String,
+    example: 'Loratadina',
+  })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: 'Category ID to filter Generic Product by category',
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
   @ApiResponse({
     description: 'Successful retrieval of generic products',
     status: HttpStatus.OK,
@@ -94,11 +108,16 @@ export class GenericProductController {
     },
   })
   async findAll(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Pagination() pagination: GenericProductQueryDTO,
   ): Promise<{ data: ResponseGenericProductDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.genericProductService.findAll(page, limit);
-    const total = await this.genericProductService.countProducts();
+    const { page, limit, q, categoryId } = pagination;
+    const data = await this.genericProductService.findAll(
+      page,
+      limit,
+      q,
+      categoryId,
+    );
+    const total = await this.genericProductService.countProducts(q, categoryId);
     return { data, total };
   }
 
