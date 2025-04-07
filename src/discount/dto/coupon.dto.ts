@@ -7,6 +7,7 @@ import {
   Min,
   IsDateString,
 } from 'class-validator';
+import { BaseDTO } from 'src/utils/dto/base.dto';
 
 export class CouponDTO {
   @ApiProperty({
@@ -49,7 +50,4 @@ export class CouponDTO {
 
 export class UpdateCouponDTO extends PartialType(CouponDTO) {}
 
-export class ResponseCouponDTO extends CouponDTO {
-  @ApiProperty({ description: 'The promo id' })
-  id: string;
-}
+export class ResponseCouponDTO extends BaseDTO {}
