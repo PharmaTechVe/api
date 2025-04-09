@@ -15,6 +15,7 @@ import { CityModule } from './city/city.module';
 import { BranchModule } from './branch/branch.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { DiscountModule } from './discount/discount.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { DiscountModule } from './discount/discount.module';
     BranchModule,
     InventoryModule,
     DiscountModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],

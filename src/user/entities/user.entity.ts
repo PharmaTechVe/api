@@ -12,6 +12,7 @@ import type { UserOTP } from './user-otp.entity';
 import { Profile } from './profile.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { UserAdress } from './user-address.entity';
+import { Order } from 'src/order/entities/order.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -66,4 +67,7 @@ export class User extends BaseModel {
 
   @OneToMany(() => UserAdress, (userAdress) => userAdress.user)
   adresses: UserAdress[];
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 }
