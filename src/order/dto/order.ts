@@ -2,12 +2,17 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsEnum,
+  IsInt,
   IsOptional,
+  IsPositive,
   IsString,
   IsUUID,
+  Min,
+  ValidateNested,
 } from 'class-validator';
 import { OrderType } from '../entities/order.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -16,7 +21,9 @@ export class CreateOrderDetailDTO {
   productPresentationId: string;
 
   @ApiProperty({ description: 'Quantity of products' })
-  @IsString()
+  @IsInt()
+  @IsPositive()
+  @Min(1)
   quantity: number;
 }
 
@@ -46,6 +53,8 @@ export class CreateOrderDTO {
   })
   @IsArray()
   @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => CreateOrderDetailDTO)
   products: CreateOrderDetailDTO[];
 
   constructor(
