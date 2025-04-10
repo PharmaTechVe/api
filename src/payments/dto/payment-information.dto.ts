@@ -28,6 +28,6 @@ export class CreatePaymentInformationDTO {
   paymentMethod: PaymentMethod;
 }
 
-export class UpdatePaymentInformationDto extends PartialType(
+export class UpdatePaymentInformationDTO extends PartialType(
   CreatePaymentInformationDTO,
 ) {}
