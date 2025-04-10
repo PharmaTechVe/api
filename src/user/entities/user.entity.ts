@@ -11,7 +11,7 @@ import { Exclude } from 'class-transformer';
 import type { UserOTP } from './user-otp.entity';
 import { Profile } from './profile.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
-import { UserAdress } from './user-address.entity';
+import { UserAddress } from './user-address.entity';
 import { Order } from 'src/order/entities/order.entity';
 
 export enum UserRole {
@@ -65,8 +65,8 @@ export class User extends BaseModel {
   @OneToOne(() => Profile, (profile: Profile) => profile.user, { eager: true })
   profile: Profile;
 
-  @OneToMany(() => UserAdress, (userAdress) => userAdress.user)
-  adresses: UserAdress[];
+  @OneToMany(() => UserAddress, (userAdress) => userAdress.user)
+  adresses: UserAddress[];
 
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];

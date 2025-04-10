@@ -11,7 +11,7 @@ import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
-import { UserAdress } from './entities/user-address.entity';
+import { UserAddress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 
@@ -24,8 +24,8 @@ export class UserService {
     private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
-    @InjectRepository(UserAdress)
-    private UserAdressRepository: Repository<UserAdress>,
+    @InjectRepository(UserAddress)
+    private UserAddressRepository: Repository<UserAddress>,
     private configService: ConfigService,
   ) {}
 
@@ -241,17 +241,17 @@ export class UserService {
   async createAddress(
     userId: string,
     addressData: CreateUserAddressDTO,
-  ): Promise<UserAdress> {
-    const newAddress = this.UserAdressRepository.create({
+  ): Promise<UserAddress> {
+    const newAddress = this.UserAddressRepository.create({
       ...addressData,
       user: { id: userId },
       city: { id: addressData.cityId },
     });
-    return await this.UserAdressRepository.save(newAddress);
+    return await this.UserAddressRepository.save(newAddress);
   }
 
-  async getAddress(userId: string, addressId: string): Promise<UserAdress> {
-    const address = await this.UserAdressRepository.findOne({
+  async getAddress(userId: string, addressId: string): Promise<UserAddress> {
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -261,8 +261,8 @@ export class UserService {
     return address;
   }
 
-  async getListAddresses(userId: string): Promise<UserAdress[]> {
-    const addresses = await this.UserAdressRepository.find({
+  async getListAddresses(userId: string): Promise<UserAddress[]> {
+    const addresses = await this.UserAddressRepository.find({
       where: { user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -273,14 +273,14 @@ export class UserService {
   }
 
   async deleteAddress(userId: string, addressId: string): Promise<void> {
-    const address = await this.UserAdressRepository.findOne({
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
     });
     if (!address) {
       throw new NotFoundException('Address not found.');
     }
 
-    const result = await this.UserAdressRepository.softDelete(address.id);
+    const result = await this.UserAddressRepository.softDelete(address.id);
     if (!result.affected) {
       throw new NotFoundException(`Address #${addressId} not found`);
     }
@@ -290,8 +290,8 @@ export class UserService {
     userId: string,
     addressId: string,
     updateData: Partial<CreateUserAddressDTO>,
-  ): Promise<UserAdress> {
-    const address = await this.UserAdressRepository.findOne({
+  ): Promise<UserAddress> {
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -299,7 +299,7 @@ export class UserService {
       throw new NotFoundException('Address not found.');
     }
 
-    const updatedAddress = await this.UserAdressRepository.save({
+    const updatedAddress = await this.UserAddressRepository.save({
       ...address,
       ...updateData,
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
