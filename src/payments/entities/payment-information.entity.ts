@@ -1,4 +1,5 @@
 import { BaseModel } from 'src/utils/entity';
+import { Column, Entity } from 'typeorm';
 
 export enum PaymentMethod {
   CARD = 'card',
@@ -7,11 +8,23 @@ export enum PaymentMethod {
   CASH = 'cash',
 }
 
+@Entity('payment_information')
 export class PaymentInformation extends BaseModel {
+  @Column({ type: 'character varying', name: 'bank' })
   bank: string;
+
+  @Column({ type: 'character varying', name: 'account_type' })
   accountType: 'saving' | 'checking';
+
+  @Column({ type: 'character varying', name: 'account' })
   account: string;
+
+  @Column({ type: 'character varying', name: 'document_id' })
   documentId: string;
+
+  @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
-  paymentMethod: PaymentMethod; // enum de arriba
+
+  @Column({ type: 'enum', enum: PaymentMethod })
+  paymentMethod: PaymentMethod;
 }
