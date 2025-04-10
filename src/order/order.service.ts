@@ -76,8 +76,26 @@ export class OrderService {
     return order;
   }
 
-  findAll() {
-    return `This action returns all order`;
+  async findAll(
+    page: number,
+    pageSize: number,
+    userId?: string,
+    branchId?: string,
+    status?: string,
+  ) {
+    const where: Record<string, unknown> = {};
+    if (userId) where.user = { id: userId };
+    if (branchId) where.branch = { id: branchId };
+    if (status) where.status = status;
+    const relations = ['details'];
+    const [orders, total] = await this.orderRepository.findAndCount({
+      relations: relations,
+      where: where,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    return { orders, total };
   }
 
   findOne(id: number) {
@@ -87,9 +105,5 @@ export class OrderService {
   update(id: number, updateOrderDto: UpdateOrderDto) {
     console.log(updateOrderDto);
     return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
   }
 }
