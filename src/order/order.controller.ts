@@ -11,7 +11,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { CreateOrderDTO, OrderQueryDTO, ResponseOrderDTO } from './dto/order';
+import {
+  CreateOrderDTO,
+  OrderQueryDTO,
+  ResponseOrderDetailedDTO,
+  ResponseOrderDTO,
+} from './dto/order';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import {
   ApiBearerAuth,
@@ -122,5 +127,24 @@ export class OrderController {
       data: orders,
       total,
     };
+  }
+
+  @Get(':id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get order by ID' })
+  @ApiResponse({
+    description: 'Successful retrieval of order',
+    status: HttpStatus.OK,
+    type: ResponseOrderDetailedDTO,
+  })
+  async findOne(@Req() req: CustomRequest, id: string) {
+    let order;
+    if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
+      order = await this.orderService.findOne(id);
+    } else {
+      order = await this.orderService.findOne(id, req.user.id);
+    }
+    return order;
   }
 }
