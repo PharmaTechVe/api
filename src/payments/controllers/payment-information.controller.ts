@@ -21,7 +21,9 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Payment Information')
 @Controller('payment-information')
 export class PaymentInformationController {
   constructor(private readonly paymentInfoService: PaymentInformationService) {}
@@ -39,7 +41,7 @@ export class PaymentInformationController {
   async create(
     @Body() createPaymentInfoDto: CreatePaymentInformationDTO,
   ): Promise<ResponsePaymentInformationDTO> {
-    return this.paymentInfoService.create(createPaymentInfoDto);
+    return await this.paymentInfoService.create(createPaymentInfoDto);
   }
 
   @Get(':id')
