@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDTO } from './dto/order';
 import { User } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
@@ -114,6 +118,9 @@ export class OrderService {
         'details.productPresentation.presentation',
       ],
     });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
     return order;
   }
 
