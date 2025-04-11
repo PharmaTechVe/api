@@ -35,13 +35,14 @@ import { OrderStatus } from './entities/order.entity';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { UserValidatedGuard } from 'src/auth/guards/user-validated.guard';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, UserValidatedGuard)
   @Post()
   @ApiBearerAuth()
   @ApiOperation({
