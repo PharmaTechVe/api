@@ -1,6 +1,7 @@
 import { IsEnum, IsString } from 'class-validator';
 import { PaymentMethod } from '../entities/payment-information.entity';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
+import { BaseDTO } from 'src/utils/dto/base.dto';
 
 export class CreatePaymentInformationDTO {
   @ApiProperty()
@@ -30,4 +31,9 @@ export class CreatePaymentInformationDTO {
 
 export class UpdatePaymentInformationDTO extends PartialType(
   CreatePaymentInformationDTO,
+) {}
+
+export class ResponsePaymentInformationDTO extends IntersectionType(
+  CreatePaymentInformationDTO,
+  BaseDTO,
 ) {}

@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { PaymentInformation } from '../entities/payment-information.entity';
+import {
+  PaymentInformation,
+  PaymentMethod,
+} from '../entities/payment-information.entity';
 import { IsNull, Repository } from 'typeorm';
 import {
   CreatePaymentInformationDTO,
@@ -14,11 +17,15 @@ export class PaymentInformationService {
     private paymentInfoRepository: Repository<PaymentInformation>,
   ) {}
 
-  async findAll(page: number, pageSize: number): Promise<PaymentInformation[]> {
-    return await this.paymentInfoRepository.find({
+  async countPaymentInfo(): Promise<number> {
+    return await this.paymentInfoRepository.count({
       where: { deletedAt: IsNull() },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+    });
+  }
+
+  async findAll(paymentMethod: PaymentMethod): Promise<PaymentInformation[]> {
+    return await this.paymentInfoRepository.find({
+      where: { deletedAt: IsNull(), paymentMethod },
     });
   }
 
