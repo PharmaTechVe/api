@@ -15,6 +15,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
+import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -79,10 +80,11 @@ export class CreateOrderDTO {
 }
 
 export class ResponseOrderDetailDTO {
-  @ApiProperty({ description: 'ID of the product presentation' })
-  @IsString()
-  @IsUUID()
-  id: string;
+  @ApiProperty({
+    description: 'ID of the product presentation',
+    type: ResponseOrderProductPresentationDetailDTO,
+  })
+  productPresentation: ResponseOrderProductPresentationDetailDTO;
 
   @ApiProperty({ description: 'Quantity of products' })
   @IsInt()
@@ -102,7 +104,9 @@ export class ResponseOrderDTO extends BaseDTO {
 
   @ApiProperty({ description: 'Total price of the order' })
   totalPrice: number;
+}
 
+export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
   @ApiProperty({
     description: 'Products in the order',
     type: [ResponseOrderDetailDTO],
