@@ -1,5 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
+import { BaseDTO } from 'src/utils/dto/base.dto';
 
 export class CreatePaymentConfirmationDTO {
   @ApiProperty()
@@ -18,3 +19,8 @@ export class CreatePaymentConfirmationDTO {
   @IsString()
   phoneNumber: string;
 }
+
+export class ResponsePaymentConfirmationDTO extends IntersectionType(
+  CreatePaymentConfirmationDTO,
+  BaseDTO,
+) {}
