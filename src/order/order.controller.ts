@@ -11,6 +11,7 @@ import {
   Query,
   Param,
   ParseUUIDPipe,
+  Patch,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import {
@@ -18,6 +19,7 @@ import {
   OrderQueryDTO,
   ResponseOrderDetailedDTO,
   ResponseOrderDTO,
+  UpdateOrderStatusDTO,
 } from './dto/order';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import {
@@ -31,6 +33,8 @@ import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { OrderStatus } from './entities/order.entity';
 import { UserRole } from 'src/user/entities/user.entity';
+import { Roles } from 'src/auth/roles.decorador';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('order')
 export class OrderController {
@@ -151,5 +155,22 @@ export class OrderController {
       order = await this.orderService.findOne(id, req.user.id);
     }
     return order;
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update an order by ID' })
+  @ApiResponse({
+    description: 'Successful update of order',
+    status: HttpStatus.OK,
+    type: ResponseOrderDetailedDTO,
+  })
+  async update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateOrderStatusDTO: UpdateOrderStatusDTO,
+  ) {
+    return await this.orderService.update(id, updateOrderStatusDTO.status);
   }
 }
