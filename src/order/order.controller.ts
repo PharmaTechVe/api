@@ -31,7 +31,7 @@ import {
 } from '@nestjs/swagger';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { OrderStatus } from './entities/order.entity';
+import { OrderStatus, OrderType } from './entities/order.entity';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -58,7 +58,7 @@ export class OrderController {
   @UseInterceptors(PaginationInterceptor)
   @Get()
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List all coupons' })
+  @ApiOperation({ summary: 'List all orders' })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -79,6 +79,14 @@ export class OrderController {
     description: 'User ID to filter orders',
     type: String,
     example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: 'Order type to filter orders',
+    type: String,
+    enum: OrderType,
+    example: OrderType.PICKUP,
   })
   @ApiQuery({
     name: 'status',
@@ -118,8 +126,8 @@ export class OrderController {
   ): Promise<{ data: ResponseOrderDTO[]; total: number }> {
     const { page, limit, userId, branchId, status } = query;
     let user;
-    if (userId && req.user.role === UserRole.ADMIN) {
-      user = userId;
+    if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
+      if (userId) user = userId;
     } else {
       user = req.user.id;
     }
