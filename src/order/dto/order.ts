@@ -135,3 +135,12 @@ export class OrderQueryDTO extends PaginationQueryDTO {
   @IsEnum(OrderStatus)
   status?: OrderStatus;
 }
+
+export class UpdateOrderStatusDTO {
+  @ApiProperty({
+    description: 'New status of the order',
+    enum: OrderStatus,
+  })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}
