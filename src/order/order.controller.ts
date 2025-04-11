@@ -9,6 +9,8 @@ import {
   Get,
   UseInterceptors,
   Query,
+  Param,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import {
@@ -138,7 +140,10 @@ export class OrderController {
     status: HttpStatus.OK,
     type: ResponseOrderDetailedDTO,
   })
-  async findOne(@Req() req: CustomRequest, id: string) {
+  async findOne(
+    @Req() req: CustomRequest,
+    @Param('id', new ParseUUIDPipe()) id: string,
+  ) {
     let order;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       order = await this.orderService.findOne(id);
