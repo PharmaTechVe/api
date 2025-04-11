@@ -87,9 +87,7 @@ export class OrderService {
     if (userId) where.user = { id: userId };
     if (branchId) where.branch = { id: branchId };
     if (status) where.status = status;
-    const relations = ['details'];
     const [orders, total] = await this.orderRepository.findAndCount({
-      relations: relations,
       where: where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * pageSize,
@@ -98,8 +96,21 @@ export class OrderService {
     return { orders, total };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: string, userId?: string) {
+    const where: Record<string, unknown> = { id };
+    if (userId) where.user = { id: userId };
+    const order = await this.orderRepository.findOne({
+      where: where,
+      relations: [
+        'details',
+        'details.productPresentation',
+        'details.productPresentation.promo',
+        'details.productPresentation.product',
+        'details.productPresentation.product.images',
+        'details.productPresentation.presentation',
+      ],
+    });
+    return order;
   }
 
   update(id: number, updateOrderDto: UpdateOrderDto) {
