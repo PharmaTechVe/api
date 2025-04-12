@@ -1,11 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { UpdateOrderDto } from './dto/update-order.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDTO } from './dto/order';
 import { User } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, OrderDetail, OrderType } from './entities/order.entity';
+import {
+  Order,
+  OrderDetail,
+  OrderStatus,
+  OrderType,
+} from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 
@@ -76,20 +84,52 @@ export class OrderService {
     return order;
   }
 
-  findAll() {
-    return `This action returns all order`;
+  async findAll(
+    page: number,
+    pageSize: number,
+    userId?: string,
+    branchId?: string,
+    status?: string,
+  ) {
+    const where: Record<string, unknown> = {};
+    if (userId) where.user = { id: userId };
+    if (branchId) where.branch = { id: branchId };
+    if (status) where.status = status;
+    const [orders, total] = await this.orderRepository.findAndCount({
+      where: where,
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    });
+    return { orders, total };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async findOne(id: string, userId?: string) {
+    const where: Record<string, unknown> = { id };
+    if (userId) where.user = { id: userId };
+    const order = await this.orderRepository.findOne({
+      where: where,
+      relations: [
+        'details',
+        'details.productPresentation',
+        'details.productPresentation.promo',
+        'details.productPresentation.product',
+        'details.productPresentation.product.images',
+        'details.productPresentation.presentation',
+      ],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
   }
 
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    console.log(updateOrderDto);
-    return `This action updates a #${id} order`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async update(id: string, status: OrderStatus) {
+    const result = await this.orderRepository.update(id, { status });
+    if (result.affected === 0) {
+      throw new BadRequestException('Order not found');
+    }
+    const order = await this.findOne(id);
+    return order;
   }
 }

@@ -21,14 +21,12 @@ export enum OrderStatus {
 export class Order extends BaseModel {
   @ManyToOne(() => User, (user) => user.orders, {
     onDelete: 'RESTRICT',
-    eager: true,
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => Branch, (branch) => branch.orders, {
     onDelete: 'RESTRICT',
-    eager: true,
   })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
@@ -50,7 +48,6 @@ export class Order extends BaseModel {
 export class OrderDetail extends UUIDModel {
   @ManyToOne(() => Order, (order) => order.details, {
     onDelete: 'RESTRICT',
-    eager: true,
   })
   @JoinColumn({ name: 'order_id' })
   order: Order;
