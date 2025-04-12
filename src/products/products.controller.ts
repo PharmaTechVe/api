@@ -19,7 +19,7 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductPresentationDTO } from './dto/product.dto';
+import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { CreateProductDTO } from './dto/product.dto';
 import { Product } from './entities/product.entity';
@@ -28,8 +28,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Pagination } from 'src/utils/pagination.decorator';
+
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
@@ -79,18 +78,28 @@ export class ProductsController {
     },
   })
   async getProducts(
-    @Pagination() pagination: PaginationQueryDTO,
-    @Query('q') searchText?: string,
+    @Query() pagination: ProductQueryDTO,
   ): Promise<{ data: ProductPresentationDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.productsServices.getProducts(
+    const {
       page,
       limit,
-      searchText,
+      q,
+      categoryId,
+      branchId,
+      manufacturerId,
+      presentationId,
+    } = pagination;
+    const { products, total } = await this.productsServices.getProducts(
+      page,
+      limit,
+      q,
+      categoryId,
+      manufacturerId,
+      branchId,
+      presentationId,
     );
-    const total = await this.productsServices.countProducts(searchText);
 
-    return { data, total };
+    return { data: products, total };
   }
 
   @Post()
