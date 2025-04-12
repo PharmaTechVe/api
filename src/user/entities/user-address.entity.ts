@@ -4,7 +4,7 @@ import { City } from 'src/city/entities/city.entity';
 import { BaseModel } from 'src/utils/entity';
 
 @Entity('user_address')
-export class UserAdress extends BaseModel {
+export class UserAddress extends BaseModel {
   @ManyToOne(() => User, (user) => user.adresses)
   @JoinColumn({ name: 'user_id' })
   user: User;

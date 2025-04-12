@@ -5,6 +5,7 @@ import { BaseModel } from 'src/utils/entity';
 import { Lot } from './lot.entity';
 import { Promo } from '../../discount/entities/promo.entity';
 import { Inventory } from 'src/inventory/entities/inventory.entity';
+import { OrderDetail } from 'src/order/entities/order.entity';
 @Entity('product_presentation')
 export class ProductPresentation extends BaseModel {
   @ManyToOne(() => Product, (product) => product.presentations)
@@ -29,4 +30,10 @@ export class ProductPresentation extends BaseModel {
 
   @OneToMany(() => Inventory, (inventory) => inventory.productPresentation)
   inventories: Inventory[];
+
+  @OneToMany(
+    () => OrderDetail,
+    (orderDetail) => orderDetail.productPresentation,
+  )
+  orders: OrderDetail[];
 }

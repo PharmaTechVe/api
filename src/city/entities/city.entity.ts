@@ -2,7 +2,7 @@ import { Branch } from 'src/branch/entities/branch.entity';
 import { State } from 'src/state/entities/state.entity';
 import { UUIDModel } from 'src/utils/entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
-import { UserAdress } from 'src/user/entities/user-address.entity';
+import { UserAddress } from 'src/user/entities/user-address.entity';
 
 @Entity('city')
 export class City extends UUIDModel {
@@ -16,6 +16,6 @@ export class City extends UUIDModel {
   @OneToMany(() => Branch, (branch) => branch.city)
   branches: Branch[];
 
-  @OneToMany(() => UserAdress, (userAdress) => userAdress.city)
-  adresses: UserAdress[];
+  @OneToMany(() => UserAddress, (userAdress) => userAdress.city)
+  adresses: UserAddress[];
 }
