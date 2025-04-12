@@ -25,6 +25,6 @@ export class PaymentInformation extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ type: 'enum', enum: PaymentMethod })
+  @Column({ type: 'enum', enum: PaymentMethod, name: 'payment_method' })
   paymentMethod: PaymentMethod;
 }
