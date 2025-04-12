@@ -61,6 +61,39 @@ export class ProductsController {
       'Search text to filter by name, generic_name or manufacturer.name',
     type: String,
   })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: 'Filter by category ID',
+    type: String,
+    example:
+      '123e4567-e89b-12d3-a456-426614174000,123e4567-e89b-12d3-a456-426614174001',
+  })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'manufacturerId',
+    required: false,
+    description: 'Filter by manufacturer ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'presentationId',
+    required: false,
+    description: 'Filter by presentation ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'rangePrice',
+    required: false,
+    description: 'Filter by price range',
+    type: String,
+    example: '100,200',
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -88,6 +121,7 @@ export class ProductsController {
       branchId,
       manufacturerId,
       presentationId,
+      priceRange,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
       page,
@@ -97,6 +131,7 @@ export class ProductsController {
       manufacturerId,
       branchId,
       presentationId,
+      priceRange,
     );
 
     return { data: products, total };

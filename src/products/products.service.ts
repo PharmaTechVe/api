@@ -68,6 +68,7 @@ export class ProductsService {
     manufacturerIds?: string[],
     branchIds?: string[],
     presentationIds?: string[],
+    priceRange?: number[],
   ): Promise<{ products: ProductPresentation[]; total: number }> {
     let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
@@ -106,6 +107,13 @@ export class ProductsService {
     if (presentationIds && presentationIds.length > 0) {
       query.andWhere('presentation.id IN (:...presentationIds)', {
         presentationIds,
+      });
+    }
+    console.log('priceRange', priceRange);
+    if (priceRange && priceRange.length === 2) {
+      query.andWhere('price BETWEEN :min AND :max', {
+        min: priceRange[0],
+        max: priceRange[1],
       });
     }
 
