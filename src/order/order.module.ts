@@ -16,6 +16,10 @@ import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
 import { Promo } from 'src/discount/entities/promo.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import {
+  OrderDelivery,
+  OrderDetailDelivery,
+} from './entities/order_delivery.entity';
 
 @Module({
   imports: [
@@ -28,6 +32,8 @@ import { AuthModule } from 'src/auth/auth.module';
       State,
       Country,
       Promo,
+      OrderDelivery,
+      OrderDetailDelivery,
     ]),
     AuthModule,
   ],
