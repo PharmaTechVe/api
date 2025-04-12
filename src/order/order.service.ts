@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CreateOrderDTO } from './dto/order';
 import { User, UserRole } from 'src/user/entities/user.entity';
@@ -9,6 +13,7 @@ import { Order, OrderDetail, OrderType } from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { OrderDelivery } from './entities/order_delivery.entity';
+import { UpdateDeliveryDTO } from './dto/update-order-delivery.dto';
 
 @Injectable()
 export class OrderService {
@@ -113,7 +118,6 @@ export class OrderService {
       .leftJoinAndSelect('delivery.employee', 'employee')
       .where('delivery.deletedAt IS NULL');
 
-    // Si el usuario autenticado no es admin, filtra por su id en employee.
     if (user.role !== UserRole.ADMIN) {
       query.andWhere('employee.id = :userId', { userId: user.id });
     } else if (filters?.employeeId) {
@@ -173,5 +177,49 @@ export class OrderService {
     }
 
     return await query.getCount();
+  }
+
+  async getDelivery(deliveryId: string): Promise<OrderDelivery> {
+    const delivery = await this.orderDeliveryRepository.findOne({
+      where: { id: deliveryId },
+      relations: [
+        'order',
+        'order.user',
+        'adress',
+        'adress.city',
+        'adress.city.state',
+        'adress.city.state.country',
+        'employee',
+        'branch',
+      ],
+    });
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found.');
+    }
+    return delivery;
+  }
+
+  async updateDelivery(
+    user: User,
+    deliveryId: string,
+    updateData: UpdateDeliveryDTO,
+  ): Promise<OrderDelivery> {
+    const delivery = await this.orderDeliveryRepository.findOne({
+      where: { id: deliveryId },
+      relations: ['employee', 'order'],
+    });
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found.');
+    }
+    if (updateData.reject) {
+      if (delivery.employee && delivery.employee.id !== user.id) {
+        throw new NotFoundException(
+          'You are not authorized to reject this delivery.',
+        );
+      }
+    } else if (updateData.deliveryStatus) {
+      delivery.deliveryStatus = updateData.deliveryStatus;
+    }
+    return await this.orderDeliveryRepository.save(delivery);
   }
 }
