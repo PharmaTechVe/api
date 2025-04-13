@@ -1,19 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsNotEmpty,
+} from 'class-validator';
 
 export class NotificationDTO {
-  @ApiProperty({ description: 'Mensaje de la notificación' })
+  @ApiProperty({ description: 'Notification message' })
+  @IsNotEmpty()
+  @IsString()
   message: string;
 
   @ApiProperty({
-    description: 'Indica si la notificación ha sido leída',
+    description: 'Indicates if the notification has been read',
     default: false,
   })
+  @IsNotEmpty()
+  @IsBoolean()
   isRead: boolean;
 
   @ApiProperty({
-    description: 'Identificador de la orden asociada a la notificación',
+    description: 'Identifier of the order associated with the notification',
     required: false,
     nullable: true,
   })
+  @IsOptional()
+  @IsUUID()
   orderId?: string;
 }

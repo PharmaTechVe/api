@@ -123,13 +123,12 @@ export class OrderService {
     }
     return order;
   }
-
   async update(id: string, status: OrderStatus) {
-    const result = await this.orderRepository.update(id, { status });
-    if (result.affected === 0) {
+    const order = await this.findOne(id);
+    if (!order) {
       throw new BadRequestException('Order not found');
     }
-    const order = await this.findOne(id);
-    return order;
+    order.status = status;
+    return await this.orderRepository.save(order);
   }
 }

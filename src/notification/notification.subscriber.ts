@@ -1,43 +1,42 @@
-// src/notification/notification.subscriber.ts
 import {
-  EventSubscriber,
   EntitySubscriberInterface,
+  EventSubscriber,
   UpdateEvent,
 } from 'typeorm';
 import { Order } from 'src/order/entities/order.entity';
 import { Notification } from './entities/notification.entity';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 
 @EventSubscriber()
-@Injectable()
 export class NotificationSubscriber
   implements EntitySubscriberInterface<Order>
 {
-  constructor(
-    @InjectRepository(Notification)
-    private readonly notificationRepository: Repository<Notification>,
-  ) {}
-
   listenTo() {
     return Order;
   }
 
-  async afterUpdate(event: UpdateEvent<Order>): Promise<void> {
-    if (!event.entity) {
-      return;
+  async afterUpdate(event: UpdateEvent<Order>) {
+    const updatedOrder = event.entity as Order | undefined;
+    console.log('Updated Order:', updatedOrder);
+    if (!updatedOrder) return;
+
+    const message = `The order ${updatedOrder.id} has been updated to ${updatedOrder.status}`;
+    const notificationRepository = event.manager.getRepository(Notification);
+
+    let notification = await notificationRepository.findOne({
+      where: { order: { id: updatedOrder.id } },
+    });
+
+    if (notification) {
+      notification.message = message;
+      notification.isRead = false;
+    } else {
+      notification = notificationRepository.create({
+        order: { id: updatedOrder.id } as Order,
+        message,
+        isRead: false,
+      });
     }
 
-    const order = Object.assign(new Order(), event.entity);
-
-    const notification = new Notification();
-    notification.order = order;
-    notification.message = `La orden ha sido actualizada: Nuevo estado ${order.status}`;
-    notification.isRead = false;
-
-    await this.notificationRepository.save(notification);
-
-    console.log('Notification created for order ID:', order.id);
+    await notificationRepository.save(notification);
   }
 }

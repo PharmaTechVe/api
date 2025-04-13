@@ -1,5 +1,4 @@
-// src/notification/notification.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from './entities/notification.entity';
@@ -11,34 +10,37 @@ export class NotificationService {
     private readonly notificationRepository: Repository<Notification>,
   ) {}
 
-  async findAll(): Promise<Notification[]> {
-    return await this.notificationRepository.find();
+  async getAllNotifications() {
+    return await this.notificationRepository.find({ relations: ['order'] });
   }
-
-  async findByUser(userId: string): Promise<Notification[]> {
-    return this.notificationRepository
+  async getUserNotifications(userId: string) {
+    return await this.notificationRepository
       .createQueryBuilder('notification')
-      .leftJoinAndSelect('notification.order', 'order')
+      .innerJoinAndSelect('notification.order', 'order')
       .where('order.user.id = :userId', { userId })
+      .orderBy('notification.createdAt', 'DESC')
       .getMany();
   }
-
-  async markAsRead(orderId: string): Promise<void> {
-    const notifications = await this.notificationRepository
-      .createQueryBuilder('notification')
-      .leftJoin('notification.order', 'order')
-      .where('order.id = :orderId', { orderId })
-      .getMany();
-
-    if (!notifications.length) {
-      throw new NotFoundException(
-        `No se encontraron notificaciones para la orden ${orderId}`,
-      );
+  async markAsReadAsAdmin(orderId: string): Promise<void> {
+    const notification = await this.notificationRepository.findOne({
+      where: { order: { id: orderId } },
+      relations: ['order', 'order.user'],
+    });
+    if (!notification) {
+      throw new ForbiddenException('Notification not found');
     }
-
-    for (const notification of notifications) {
-      notification.isRead = true;
-      await this.notificationRepository.save(notification);
+    notification.isRead = true;
+    await this.notificationRepository.save(notification);
+  }
+  async markAsReadAsCustomer(orderId: string, userId: string): Promise<void> {
+    const notification = await this.notificationRepository.findOne({
+      where: { order: { id: orderId, user: { id: userId } } },
+      relations: ['order'],
+    });
+    if (!notification) {
+      throw new ForbiddenException('Notification not found or no access');
     }
+    notification.isRead = true;
+    await this.notificationRepository.save(notification);
   }
 }
