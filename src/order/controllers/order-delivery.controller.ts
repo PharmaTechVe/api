@@ -52,9 +52,9 @@ export class OrderDeliveryController {
     example: 10,
   })
   @ApiQuery({
-    name: 'deliveryStatus',
+    name: 'status',
     required: false,
-    description: 'Filter by delivery status',
+    description: 'status',
     type: String,
   })
   @ApiQuery({
