@@ -54,17 +54,9 @@ export class ProductsService {
       }),
     );
   }
-  async countProducts(searchQuery?: string): Promise<number> {
-    let query = this.productPresentationRepository
-      .createQueryBuilder('product_presentation')
-      .leftJoin('product_presentation.product', 'product')
-      .leftJoin('product.manufacturer', 'manufacturer')
-      .where('product_presentation.deleted_at IS NULL')
-      .andWhere('product.deleted_at IS NULL')
-      .andWhere('manufacturer.deleted_at IS NULL');
-
-    query = this.applySearchQuery(query, searchQuery);
-
+  async countProducts(
+    query: SelectQueryBuilder<ProductPresentation>,
+  ): Promise<number> {
     return query.getCount();
   }
 
@@ -72,7 +64,12 @@ export class ProductsService {
     page: number,
     limit: number,
     searchQuery?: string,
-  ): Promise<ProductPresentation[]> {
+    categoryIds?: string[],
+    manufacturerIds?: string[],
+    branchIds?: string[],
+    presentationIds?: string[],
+    priceRange?: number[],
+  ): Promise<{ products: ProductPresentation[]; total: number }> {
     let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
       .leftJoinAndSelect('product_presentation.product', 'product')
@@ -80,6 +77,7 @@ export class ProductsService {
       .leftJoinAndSelect('product.manufacturer', 'manufacturer')
       .innerJoinAndSelect('product.categories', 'categories')
       .leftJoinAndSelect('product_presentation.presentation', 'presentation')
+      .leftJoin('product_presentation.inventories', 'inventories')
       .where('product_presentation.deleted_at IS NULL')
       .andWhere('product.deleted_at IS NULL')
       .andWhere('manufacturer.deleted_at IS NULL')
@@ -88,12 +86,45 @@ export class ProductsService {
 
     query = this.applySearchQuery(query, searchQuery);
 
+    if (categoryIds && categoryIds.length > 0) {
+      query.andWhere('categories.id IN (:...categoryIds)', {
+        categoryIds,
+      });
+    }
+
+    if (manufacturerIds && manufacturerIds.length > 0) {
+      query.andWhere('manufacturer.id IN (:...manufacturerIds)', {
+        manufacturerIds,
+      });
+    }
+
+    if (branchIds && branchIds.length > 0) {
+      query.andWhere('inventories.branch_id IN (:...branchIds)', {
+        branchIds,
+      });
+    }
+
+    if (presentationIds && presentationIds.length > 0) {
+      query.andWhere('presentation.id IN (:...presentationIds)', {
+        presentationIds,
+      });
+    }
+    console.log('priceRange', priceRange);
+    if (priceRange && priceRange.length === 2) {
+      query.andWhere('price BETWEEN :min AND :max', {
+        min: priceRange[0],
+        max: priceRange[1],
+      });
+    }
+
+    const total = await this.countProducts(query);
+
     const products = await query
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
 
-    return products;
+    return { products, total };
   }
 
   async findOne(id: string): Promise<Product> {
