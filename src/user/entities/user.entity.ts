@@ -13,6 +13,10 @@ import { Profile } from './profile.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { UserAddress } from './user-address.entity';
 import { Order } from 'src/order/entities/order.entity';
+import {
+  OrderDelivery,
+  OrderDetailDelivery,
+} from 'src/order/entities/order_delivery.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -70,4 +74,13 @@ export class User extends BaseModel {
 
   @OneToMany(() => Order, (order) => order.user)
   orders: Order[];
+
+  @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.employee)
+  orderDeliveries: OrderDelivery[];
+
+  @OneToMany(
+    () => OrderDetailDelivery,
+    (orderDelivery) => orderDelivery.employee,
+  )
+  orderDetailDeliveries: OrderDetailDelivery[];
 }

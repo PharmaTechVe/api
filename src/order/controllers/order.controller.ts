@@ -13,14 +13,14 @@ import {
   ParseUUIDPipe,
   Patch,
 } from '@nestjs/common';
-import { OrderService } from './order.service';
+import { OrderService } from '../order.service';
 import {
   CreateOrderDTO,
   OrderQueryDTO,
   ResponseOrderDetailedDTO,
   ResponseOrderDTO,
   UpdateOrderStatusDTO,
-} from './dto/order';
+} from '../dto/order';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import {
   ApiBearerAuth,
@@ -31,7 +31,7 @@ import {
 } from '@nestjs/swagger';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { OrderStatus, OrderType } from './entities/order.entity';
+import { OrderStatus, OrderType } from '../entities/order.entity';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { RolesGuard } from 'src/auth/roles.guard';

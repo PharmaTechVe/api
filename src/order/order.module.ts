@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { OrderController } from './order.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order, OrderDetail } from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
@@ -16,6 +15,12 @@ import { CountryService } from 'src/country/country.service';
 import { Country } from 'src/country/entities/country.entity';
 import { Promo } from 'src/discount/entities/promo.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import {
+  OrderDelivery,
+  OrderDetailDelivery,
+} from './entities/order_delivery.entity';
+import { OrderDeliveryController } from './controllers/order-delivery.controller';
+import { OrderController } from './controllers/order.controller';
 
 @Module({
   imports: [
@@ -28,10 +33,12 @@ import { AuthModule } from 'src/auth/auth.module';
       State,
       Country,
       Promo,
+      OrderDelivery,
+      OrderDetailDelivery,
     ]),
     AuthModule,
   ],
-  controllers: [OrderController],
+  controllers: [OrderController, OrderDeliveryController],
   providers: [
     OrderService,
     BranchService,

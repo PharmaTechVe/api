@@ -304,7 +304,12 @@ export class UserService {
       ...updateData,
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
     });
-    return updatedAddress;
+
+    const addressWithRelations = await this.getAddress(
+      userId,
+      updatedAddress.id,
+    );
+    return addressWithRelations;
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {

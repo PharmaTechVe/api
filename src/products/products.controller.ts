@@ -19,7 +19,7 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductPresentationDTO } from './dto/product.dto';
+import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { CreateProductDTO } from './dto/product.dto';
 import { Product } from './entities/product.entity';
@@ -28,8 +28,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Pagination } from 'src/utils/pagination.decorator';
+
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
@@ -62,6 +61,39 @@ export class ProductsController {
       'Search text to filter by name, generic_name or manufacturer.name',
     type: String,
   })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: 'Filter by category ID',
+    type: String,
+    example:
+      '123e4567-e89b-12d3-a456-426614174000,123e4567-e89b-12d3-a456-426614174001',
+  })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'manufacturerId',
+    required: false,
+    description: 'Filter by manufacturer ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'presentationId',
+    required: false,
+    description: 'Filter by presentation ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'rangePrice',
+    required: false,
+    description: 'Filter by price range',
+    type: String,
+    example: '100,200',
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -79,18 +111,30 @@ export class ProductsController {
     },
   })
   async getProducts(
-    @Pagination() pagination: PaginationQueryDTO,
-    @Query('q') searchText?: string,
+    @Query() pagination: ProductQueryDTO,
   ): Promise<{ data: ProductPresentationDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.productsServices.getProducts(
+    const {
       page,
       limit,
-      searchText,
+      q,
+      categoryId,
+      branchId,
+      manufacturerId,
+      presentationId,
+      priceRange,
+    } = pagination;
+    const { products, total } = await this.productsServices.getProducts(
+      page,
+      limit,
+      q,
+      categoryId,
+      manufacturerId,
+      branchId,
+      presentationId,
+      priceRange,
     );
-    const total = await this.productsServices.countProducts(searchText);
 
-    return { data, total };
+    return { data: products, total };
   }
 
   @Post()

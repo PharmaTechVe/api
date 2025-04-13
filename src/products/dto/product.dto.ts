@@ -11,6 +11,8 @@ import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Transform } from 'class-transformer';
 
 export class CreateProductPresentationDTO {
   @ApiProperty()
@@ -117,4 +119,52 @@ export class ProductPresentationDTO extends BaseDTO {
 
   @ApiProperty({ type: ProductDTO })
   product: ProductDTO;
+}
+
+export class ProductQueryDTO extends PaginationQueryDTO {
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
+  manufacturerId: string[];
+
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
+  categoryId: string[];
+
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
+  branchId: string[];
+
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
+  presentationId: string[];
+
+  @IsOptional()
+  @Transform(({ value }: { value: string }) =>
+    value ? value.split(',').map(Number) : [],
+  )
+  @IsInt({ each: true })
+  priceRange: number[];
+
+  constructor(
+    page: number,
+    limit: number,
+    q?: string,
+    manufacturerId?: string[],
+    categoryId?: string[],
+    branchId?: string[],
+    presentationId?: string[],
+    priceRange?: number[],
+  ) {
+    super(page, limit);
+    this.q = q ? q : '';
+    this.manufacturerId = manufacturerId ? manufacturerId : [];
+    this.categoryId = categoryId ? categoryId : [];
+    this.branchId = branchId ? branchId : [];
+    this.presentationId = presentationId ? presentationId : [];
+    this.priceRange = priceRange ? priceRange : [];
+  }
 }
