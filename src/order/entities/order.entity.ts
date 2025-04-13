@@ -3,6 +3,7 @@ import { ProductPresentation } from 'src/products/entities/product-presentation.
 import { User } from 'src/user/entities/user.entity';
 import { BaseModel, UUIDModel } from 'src/utils/entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { OrderDelivery, OrderDetailDelivery } from './order_delivery.entity';
 
 export enum OrderType {
   PICKUP = 'pickup',
@@ -42,6 +43,9 @@ export class Order extends BaseModel {
 
   @OneToMany(() => OrderDetail, (orderDetail) => orderDetail.order)
   details: OrderDetail[];
+
+  @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.order)
+  orderDeliveries: OrderDelivery[];
 }
 
 @Entity()
@@ -64,4 +68,10 @@ export class OrderDetail extends UUIDModel {
 
   @Column({ type: 'int', name: 'subtotal' })
   subtotal: number;
+
+  @OneToMany(
+    () => OrderDetailDelivery,
+    (orderDeliveryDetail) => orderDeliveryDetail.orderDetail,
+  )
+  orderDetailDeliveries: OrderDetailDelivery[];
 }

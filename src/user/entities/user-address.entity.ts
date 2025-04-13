@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from './user.entity';
 import { City } from 'src/city/entities/city.entity';
 import { BaseModel } from 'src/utils/entity';
+import { OrderDelivery } from 'src/order/entities/order_delivery.entity';
 
 @Entity('user_address')
 export class UserAddress extends BaseModel {
@@ -40,4 +41,7 @@ export class UserAddress extends BaseModel {
     nullable: true,
   })
   referencePoint?: string;
+
+  @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.adress)
+  orderDeliveries: OrderDelivery[];
 }
