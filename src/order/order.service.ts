@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateOrderDTO } from './dto/order';
-import { User } from 'src/user/entities/user.entity';
+import { User, UserRole } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -16,6 +16,8 @@ import {
 } from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
+import { OrderDelivery } from './entities/order_delivery.entity';
+import { UpdateDeliveryDTO } from './dto/update-order-delivery.dto';
 
 @Injectable()
 export class OrderService {
@@ -26,6 +28,8 @@ export class OrderService {
     private orderDetailRepository: Repository<OrderDetail>,
     private productPresentationService: ProductPresentationService,
     private branchService: BranchService,
+    @InjectRepository(OrderDelivery)
+    private orderDeliveryRepository: Repository<OrderDelivery>,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -131,5 +135,127 @@ export class OrderService {
     }
     const order = await this.findOne(id);
     return order;
+  }
+
+  async findAllOD(
+    user: User,
+    page: number,
+    pageSize: number,
+    filters?: {
+      deliveryStatus?: string;
+      branchId?: string;
+      employeeId?: string;
+    },
+  ): Promise<OrderDelivery[]> {
+    const query = this.orderDeliveryRepository
+      .createQueryBuilder('delivery')
+      .leftJoinAndSelect('delivery.order', 'order')
+      .leftJoinAndSelect('delivery.branch', 'branch')
+      .leftJoinAndSelect('delivery.employee', 'employee')
+      .where('delivery.deletedAt IS NULL');
+
+    if (user.role !== UserRole.ADMIN) {
+      query.andWhere('employee.id = :userId', { userId: user.id });
+    } else if (filters?.employeeId) {
+      query.andWhere('employee.id = :employeeId', {
+        employeeId: filters.employeeId,
+      });
+    }
+
+    if (filters?.deliveryStatus) {
+      query.andWhere('delivery.deliveryStatus = :deliveryStatus', {
+        deliveryStatus: filters.deliveryStatus,
+      });
+    }
+
+    if (filters?.branchId) {
+      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
+    }
+
+    const delivery = query
+      .orderBy('delivery.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+
+    return await delivery.getMany();
+  }
+
+  async countDeliveries(
+    user: User,
+    filters?: {
+      deliveryStatus?: string;
+      branchId?: string;
+      employeeId?: string;
+    },
+  ): Promise<number> {
+    const query = this.orderDeliveryRepository
+      .createQueryBuilder('delivery')
+      .leftJoin('delivery.branch', 'branch')
+      .leftJoin('delivery.employee', 'employee')
+      .where('delivery.deletedAt IS NULL');
+
+    if (user.role !== UserRole.ADMIN) {
+      query.andWhere('employee.id = :userId', { userId: user.id });
+    } else if (filters?.employeeId) {
+      query.andWhere('employee.id = :employeeId', {
+        employeeId: filters.employeeId,
+      });
+    }
+
+    if (filters?.deliveryStatus) {
+      query.andWhere('delivery.deliveryStatus = :deliveryStatus', {
+        deliveryStatus: filters.deliveryStatus,
+      });
+    }
+
+    if (filters?.branchId) {
+      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
+    }
+
+    return await query.getCount();
+  }
+
+  async getDelivery(deliveryId: string): Promise<OrderDelivery> {
+    const delivery = await this.orderDeliveryRepository.findOne({
+      where: { id: deliveryId },
+      relations: [
+        'order',
+        'order.user',
+        'adress',
+        'adress.city',
+        'adress.city.state',
+        'adress.city.state.country',
+        'employee',
+        'branch',
+      ],
+    });
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found.');
+    }
+    return delivery;
+  }
+
+  async updateDelivery(
+    user: User,
+    deliveryId: string,
+    updateData: UpdateDeliveryDTO,
+  ): Promise<OrderDelivery> {
+    const delivery = await this.orderDeliveryRepository.findOne({
+      where: { id: deliveryId },
+      relations: ['employee', 'order'],
+    });
+    if (!delivery) {
+      throw new NotFoundException('Delivery not found.');
+    }
+    if (updateData.reject) {
+      if (delivery.employee && delivery.employee.id !== user.id) {
+        throw new NotFoundException(
+          'You are not authorized to reject this delivery.',
+        );
+      }
+    } else if (updateData.deliveryStatus) {
+      delivery.deliveryStatus = updateData.deliveryStatus;
+    }
+    return await this.orderDeliveryRepository.save(delivery);
   }
 }
