@@ -1,5 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsDateString,
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsUUID,
+} from 'class-validator';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 
 export class OrderDeliveryDTO {
   @ApiProperty({ description: 'Unique identifier of the delivery' })
@@ -48,4 +55,32 @@ export class OrderDeliveryDTO {
   additionalInformation?: string;
   @ApiProperty({ description: 'Reference point for delivery', nullable: true })
   referencePoint?: string;
+}
+
+export class UpdateDeliveryDTO {
+  @ApiPropertyOptional({ description: 'New delivery status' })
+  @IsOptional()
+  @IsString()
+  deliveryStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'indicate the delivery is rejected (employee unassign)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  reject?: boolean;
+}
+
+export class OrderDeliveryQueryDTO extends PaginationQueryDTO {
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  employeeId?: string;
 }

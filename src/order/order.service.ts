@@ -17,7 +17,7 @@ import {
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { OrderDelivery } from './entities/order_delivery.entity';
-import { UpdateDeliveryDTO } from './dto/update-order-delivery.dto';
+import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 
 @Injectable()
 export class OrderService {
@@ -142,7 +142,7 @@ export class OrderService {
     page: number,
     pageSize: number,
     filters?: {
-      deliveryStatus?: string;
+      status?: string;
       branchId?: string;
       employeeId?: string;
     },
@@ -162,9 +162,9 @@ export class OrderService {
       });
     }
 
-    if (filters?.deliveryStatus) {
-      query.andWhere('delivery.deliveryStatus = :deliveryStatus', {
-        deliveryStatus: filters.deliveryStatus,
+    if (filters?.status) {
+      query.andWhere('delivery.deliveryStatus = :status', {
+        status: filters.status,
       });
     }
 
@@ -183,7 +183,7 @@ export class OrderService {
   async countDeliveries(
     user: User,
     filters?: {
-      deliveryStatus?: string;
+      status?: string;
       branchId?: string;
       employeeId?: string;
     },
@@ -202,9 +202,9 @@ export class OrderService {
       });
     }
 
-    if (filters?.deliveryStatus) {
-      query.andWhere('delivery.deliveryStatus = :deliveryStatus', {
-        deliveryStatus: filters.deliveryStatus,
+    if (filters?.status) {
+      query.andWhere('delivery.deliveryStatus = :status', {
+        status: filters.status,
       });
     }
 
