@@ -10,6 +10,7 @@ import {
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
+import { ImageDTO } from './product.dto';
 
 export class GenericProductDTO {
   @IsString()
@@ -58,4 +59,12 @@ export class ResponseGenericProductDTO extends IntersectionType(
     type: [CategoryResponseDTO],
   })
   categories: CategoryResponseDTO[];
+}
+
+export class ResponseOrderGenericProductDTO extends IntersectionType(
+  GenericProductDTO,
+  BaseDTO,
+) {
+  @ApiProperty({ type: ImageDTO })
+  images: ImageDTO[];
 }

@@ -6,7 +6,10 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { GenericProductDTO } from './generic-product.dto';
+import {
+  GenericProductDTO,
+  ResponseOrderGenericProductDTO,
+} from './generic-product.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { ResponsePromoDTO } from '../../discount/dto/promo.dto';
@@ -57,6 +60,20 @@ export class ResponseProductPresentationDetailDTO extends IntersectionType(
 ) {
   @ApiProperty()
   product: GenericProductDTO;
+
+  @ApiProperty({ type: ResponsePresentationDTO })
+  presentation: ResponsePresentationDTO;
+
+  @ApiProperty({ type: ResponsePromoDTO })
+  promo: ResponsePromoDTO;
+}
+
+export class ResponseOrderProductPresentationDetailDTO extends IntersectionType(
+  ProductPresentationDTO,
+  BaseDTO,
+) {
+  @ApiProperty({ type: ResponseOrderGenericProductDTO })
+  product: ResponseOrderGenericProductDTO;
 
   @ApiProperty({ type: ResponsePresentationDTO })
   presentation: ResponsePresentationDTO;
