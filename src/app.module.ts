@@ -16,6 +16,7 @@ import { BranchModule } from './branch/branch.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { DiscountModule } from './discount/discount.module';
 import { OrderModule } from './order/order.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { OrderModule } from './order/order.module';
     InventoryModule,
     DiscountModule,
     OrderModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
