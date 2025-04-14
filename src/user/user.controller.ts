@@ -31,12 +31,18 @@ import { User, UserRole } from './entities/user.entity';
 import { UserOrAdminGuard } from 'src/auth/user-or-admin.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
-import { UserListDTO, UserAdminDTO, UpdateUserDTO } from './dto/user.dto';
+import {
+  UserListDTO,
+  UserAdminDTO,
+  UpdateUserDTO,
+  UserMotoDTO,
+} from './dto/user.dto';
 import { PaginationDTO, UserQueryDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { Pagination } from 'src/utils/pagination.decorator';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
+import { UpdateUserMotoDTO } from './dto/update-user-moto.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -326,6 +332,23 @@ export class UserController {
   async createUser(@Body() createUserDto: UserAdminDTO): Promise<UserListDTO> {
     const user = await this.userService.createAdmin(createUserDto);
     return plainToInstance(UserListDTO, user, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Patch(':userId/moto')
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update motorcycle information for a user' })
+  @ApiResponse({ status: HttpStatus.OK, type: UserMotoDTO })
+  async updateUserMoto(
+    @Param('userId') userId: string,
+    @Body() updateMotoDto: UpdateUserMotoDTO,
+  ): Promise<UserMotoDTO> {
+    await this.userService.updateUserMoto(userId, updateMotoDto);
+
+    const user = await this.userService.findUserById(userId);
+    return plainToInstance(UserMotoDTO, user, {
       excludeExtraneousValues: true,
     });
   }

@@ -15,6 +15,7 @@ import {
   Matches,
   MaxLength,
   MinLength,
+  IsString,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
@@ -96,6 +97,40 @@ export class UserAdminDTO extends BaseUserDTO {
   @IsNotEmpty()
   @Expose()
   role: UserRole;
+
+  // Data use if it is a delivery
+
+  @ApiProperty({ description: 'Motorcycle brand', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  brand?: string;
+
+  @ApiProperty({ description: 'Motorcycle model', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  model?: string;
+
+  @ApiProperty({ description: 'Motorcycle color', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  color?: string;
+
+  @ApiProperty({ description: 'Motorcycle plate', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  plate?: string;
+
+  @ApiProperty({
+    description: 'URL of the motorcycle license',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl()
+  licenseUrl?: string;
 }
 
 class ProfileDTO {
@@ -114,6 +149,28 @@ class ProfileDTO {
   @ApiProperty({ description: 'gender of the user' })
   @Expose()
   gender: string;
+}
+
+export class UserMotoDTO {
+  @ApiProperty({ description: 'Motorcycle brand', nullable: true })
+  @Expose()
+  brand?: string;
+
+  @ApiProperty({ description: 'Motorcycle model', nullable: true })
+  @Expose()
+  model?: string;
+
+  @ApiProperty({ description: 'Motorcycle color', nullable: true })
+  @Expose()
+  color?: string;
+
+  @ApiProperty({ description: 'Motorcycle plate', nullable: true })
+  @Expose()
+  plate?: string;
+
+  @ApiProperty({ description: 'URL of motorcycle license', nullable: true })
+  @Expose()
+  licenseUrl?: string;
 }
 
 export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
@@ -160,6 +217,11 @@ export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
   @Expose()
   @Type(() => ProfileDTO)
   profile: ProfileDTO;
+
+  @ApiProperty({ description: 'userMoto object' })
+  @Expose()
+  @Type(() => UserMotoDTO)
+  userMoto: UserMotoDTO;
 }
 
 export class UpdateUserDTO extends PartialType(

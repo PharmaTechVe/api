@@ -13,6 +13,7 @@ import { Profile } from './profile.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { UserAddress } from './user-address.entity';
 import { Order } from 'src/order/entities/order.entity';
+import { UserMoto } from './user-moto.entity';
 import {
   OrderDelivery,
   OrderDetailDelivery,
@@ -83,4 +84,9 @@ export class User extends BaseModel {
     (orderDelivery) => orderDelivery.employee,
   )
   orderDetailDeliveries: OrderDetailDelivery[];
+
+  @OneToOne(() => UserMoto, (userMoto: UserMoto) => userMoto.user, {
+    eager: true,
+  })
+  userMoto: UserMoto;
 }
