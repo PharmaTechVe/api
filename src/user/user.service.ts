@@ -136,8 +136,6 @@ export class UserService {
     await this.profileRepository.save(profile);
 
     if (user.role === UserRole.DELIVERY) {
-      // Aquí puedes usar un DTO distinto o los mismos datos de userData si incluye propiedades adicionales para la moto, o recibirlos por otro lado.
-      // Por ejemplo, supongamos que userData tiene opcionalmente brand, model, color, plate y licenseUrl.
       const userMoto = new UserMoto();
       userMoto.user = userCreated;
       userMoto.brand = user.brand || '';
@@ -145,7 +143,6 @@ export class UserService {
       userMoto.color = user.color || '';
       userMoto.plate = user.plate || '';
       userMoto.licenseUrl = user.licenseUrl || '';
-      // Necesitas inyectar el repositorio de UserMoto en el constructor y guardarlo.
       await this.UserMotoRepository.save(userMoto);
     }
 
