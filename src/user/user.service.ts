@@ -14,6 +14,8 @@ import { OTPType } from 'src/user/entities/user-otp.entity';
 import { UserAddress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
+import { UserMoto } from './entities/user-moto.entity';
+import { UpdateUserMotoDTO } from './dto/user-moto.dto';
 
 @Injectable()
 export class UserService {
@@ -26,6 +28,8 @@ export class UserService {
     private userOTPRepository: Repository<UserOTP>,
     @InjectRepository(UserAddress)
     private UserAddressRepository: Repository<UserAddress>,
+    @InjectRepository(UserMoto)
+    private UserMotoRepository: Repository<UserMoto>,
     private configService: ConfigService,
   ) {}
 
@@ -130,6 +134,18 @@ export class UserService {
     }
     profile.birthDate = new Date(user.birthDate);
     await this.profileRepository.save(profile);
+
+    if (user.role === UserRole.DELIVERY) {
+      const userMoto = new UserMoto();
+      userMoto.user = userCreated;
+      userMoto.brand = user.brand || '';
+      userMoto.model = user.model || '';
+      userMoto.color = user.color || '';
+      userMoto.plate = user.plate || '';
+      userMoto.licenseUrl = user.licenseUrl || '';
+      await this.UserMotoRepository.save(userMoto);
+    }
+
     return userCreated;
   }
 
@@ -325,5 +341,19 @@ export class UserService {
     const profile = await this.findProfileByUserId(id);
     const updatedprofile = this.profileRepository.merge(profile, updateUserDto);
     return await this.profileRepository.save(updatedprofile);
+  }
+
+  async updateUserMoto(
+    userId: string,
+    updateMotoDto: UpdateUserMotoDTO,
+  ): Promise<UserMoto> {
+    const userMoto = await this.UserMotoRepository.findOne({
+      where: { user: { id: userId } },
+    });
+    if (!userMoto) {
+      throw new NotFoundException('User moto not found');
+    }
+    const updatedMoto = this.UserMotoRepository.merge(userMoto, updateMotoDto);
+    return await this.UserMotoRepository.save(updatedMoto);
   }
 }
