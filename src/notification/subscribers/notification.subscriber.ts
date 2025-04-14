@@ -4,7 +4,7 @@ import {
   UpdateEvent,
 } from 'typeorm';
 import { Order } from 'src/order/entities/order.entity';
-import { Notification } from './entities/notification.entity';
+import { Notification } from '../entities/notification.entity';
 
 @EventSubscriber()
 export class NotificationSubscriber

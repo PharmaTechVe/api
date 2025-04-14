@@ -9,7 +9,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
 } from '@nestjs/common';
-import { NotificationService } from './notification.service';
+import { NotificationService } from '../services/notification.service';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
