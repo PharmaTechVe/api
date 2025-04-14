@@ -11,6 +11,6 @@ export class Notification extends BaseModel {
   @Column({ type: 'text' })
   message: string;
 
-  @Column({ type: 'boolean', default: false })
+  @Column({ name: 'is_read', type: 'boolean', default: false })
   isRead: boolean;
 }

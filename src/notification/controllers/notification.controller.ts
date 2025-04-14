@@ -46,10 +46,6 @@ export class NotificationController {
     @Param('orderId', ParseUUIDPipe) orderId: string,
     @Req() req: CustomRequest,
   ): Promise<void> {
-    if (req.user.role === UserRole.ADMIN) {
-      await this.notificationService.markAsReadAsAdmin(orderId);
-    } else {
-      await this.notificationService.markAsReadAsCustomer(orderId, req.user.id);
-    }
+    await this.notificationService.markAsReadAsCustomer(orderId, req.user.id);
   }
 }

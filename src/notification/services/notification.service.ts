@@ -21,17 +21,7 @@ export class NotificationService {
       .orderBy('notification.createdAt', 'DESC')
       .getMany();
   }
-  async markAsReadAsAdmin(orderId: string): Promise<void> {
-    const notification = await this.notificationRepository.findOne({
-      where: { order: { id: orderId } },
-      relations: ['order', 'order.user'],
-    });
-    if (!notification) {
-      throw new ForbiddenException('Notification not found');
-    }
-    notification.isRead = true;
-    await this.notificationRepository.save(notification);
-  }
+
   async markAsReadAsCustomer(orderId: string, userId: string): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { order: { id: orderId, user: { id: userId } } },
