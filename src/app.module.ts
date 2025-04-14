@@ -17,6 +17,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { DiscountModule } from './discount/discount.module';
 import { PaymentModule } from './payments/payment.module';
 import { OrderModule } from './order/order.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { OrderModule } from './order/order.module';
     DiscountModule,
     PaymentModule,
     OrderModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],
