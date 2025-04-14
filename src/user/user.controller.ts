@@ -42,7 +42,7 @@ import { plainToInstance } from 'class-transformer';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { Pagination } from 'src/utils/pagination.decorator';
 import { CreateUserAddressDTO, UserAddressDTO } from './dto/user-address.dto';
-import { UpdateUserMotoDTO } from './dto/update-user-moto.dto';
+import { UpdateUserMotoDTO } from './dto/user-moto.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -337,6 +337,7 @@ export class UserController {
   }
 
   @Patch(':userId/moto')
+  @UseGuards(AuthGuard, UserOrAdminGuard)
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update motorcycle information for a user' })

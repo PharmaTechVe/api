@@ -15,7 +15,7 @@ import { UserAddress } from './entities/user-address.entity';
 import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 import { UserMoto } from './entities/user-moto.entity';
-import { UpdateUserMotoDTO } from './dto/update-user-moto.dto';
+import { UpdateUserMotoDTO } from './dto/user-moto.dto';
 
 @Injectable()
 export class UserService {
