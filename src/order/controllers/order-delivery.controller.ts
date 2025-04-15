@@ -28,6 +28,7 @@ import {
   UpdateDeliveryDTO,
 } from '../dto/order-delivery.dto';
 import { User } from 'src/user/entities/user.entity';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('delivery')
 export class OrderDeliveryController {
@@ -124,7 +125,7 @@ export class OrderDeliveryController {
   ): Promise<OrderDeliveryDTO> {
     const delivery = await this.orderService.getDelivery(deliveryId);
 
-    return {
+    return plainToInstance(OrderDeliveryDTO, {
       id: delivery.id,
       orderId: delivery.order.id,
       deliveryStatus: delivery.deliveryStatus,
@@ -140,7 +141,7 @@ export class OrderDeliveryController {
       zipCode: delivery.adress.zipCode,
       additionalInformation: delivery.adress.additionalInformation,
       referencePoint: delivery.adress.referencePoint,
-    };
+    });
   }
 
   @Patch('/:deliveryId')
@@ -161,13 +162,13 @@ export class OrderDeliveryController {
       updateDeliveryDto,
     );
 
-    return {
+    return plainToInstance(OrderDeliveryDTO, {
       id: updatedDelivery.id,
       orderId: updatedDelivery.order.id,
       deliveryStatus: updatedDelivery.deliveryStatus,
       estimatedTime: updatedDelivery.estimatedTime,
       branchId: updatedDelivery.branch ? updatedDelivery.branch.id : null,
       employeeId: updatedDelivery.employee ? updatedDelivery.employee.id : null,
-    };
+    });
   }
 }
