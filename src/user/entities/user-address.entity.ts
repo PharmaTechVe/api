@@ -42,6 +42,6 @@ export class UserAddress extends BaseModel {
   })
   referencePoint?: string;
 
-  @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.adress)
+  @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.address)
   orderDeliveries: OrderDelivery[];
 }
