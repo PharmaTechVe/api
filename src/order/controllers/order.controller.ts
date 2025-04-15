@@ -49,8 +49,12 @@ export class OrderController {
     summary: 'Create a new order',
     description: 'Creates a new order for the authenticated user.',
   })
-  create(@Req() req: CustomRequest, @Body() createOrderDTO: CreateOrderDTO) {
-    return this.orderService.create(req.user, createOrderDTO);
+  async create(
+    @Req() req: CustomRequest,
+    @Body() createOrderDTO: CreateOrderDTO,
+  ) {
+    const order = await this.orderService.create(req.user, createOrderDTO);
+    return order;
   }
 
   @HttpCode(HttpStatus.OK)
