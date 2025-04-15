@@ -225,7 +225,7 @@ export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
 }
 
 export class UpdateUserDTO extends PartialType(
-  OmitType(BaseUserDTO, ['documentId']),
+  OmitType(BaseUserDTO, ['documentId', 'email']),
 ) {
   @IsOptional()
   @IsEnum(UserRole)
