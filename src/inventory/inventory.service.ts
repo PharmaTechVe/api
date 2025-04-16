@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateInventoryDTO, UpdateInventoryDTO } from './dto/inventory.dto';
+import {
+  CreateInventoryDTO,
+  UpdateInventoryDTO,
+  BulkUpdateInventoryDTO,
+} from './dto/inventory.dto';
 import { Inventory } from './entities/inventory.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { BranchService } from 'src/branch/branch.service';
+import { In } from 'typeorm';
 
 @Injectable()
 export class InventoryService {
@@ -87,5 +92,66 @@ export class InventoryService {
       throw new NotFoundException(`Inventory #${id} not found`);
     }
     return true;
+  }
+  private getProductPresentationIds(
+    bulkUpdateDto: BulkUpdateInventoryDTO,
+  ): string[] {
+    return bulkUpdateDto.inventories.map((item) => item.productPresentationId);
+  }
+  private async findInventories(
+    branchId: string,
+    productPresentationIds: string[],
+  ): Promise<Inventory[]> {
+    return this.inventoryRepository.find({
+      where: {
+        branch: { id: branchId },
+        productPresentation: { id: In(productPresentationIds) },
+      },
+      relations: ['branch', 'productPresentation'],
+    });
+  }
+  private buildInventoryMap(
+    inventories: Inventory[],
+  ): Record<string, Inventory> {
+    return inventories.reduce(
+      (map, inv) => {
+        map[inv.productPresentation.id] = inv;
+        return map;
+      },
+      {} as Record<string, Inventory>,
+    );
+  }
+  private async applyBulkUpdate(
+    branchId: string,
+    bulkUpdateDto: BulkUpdateInventoryDTO,
+    inventoryMap: Record<string, Inventory>,
+  ): Promise<Inventory[]> {
+    const updatedInventories: Inventory[] = [];
+
+    for (const item of bulkUpdateDto.inventories) {
+      const inventory = inventoryMap[item.productPresentationId];
+      if (!inventory) {
+        throw new NotFoundException(
+          `Inventory not found for productPresentation ${item.productPresentationId} in branch ${branchId}`,
+        );
+      }
+      inventory.stockQuantity = item.quantity;
+      const updated = await this.inventoryRepository.save(inventory);
+      updatedInventories.push(updated);
+    }
+    return updatedInventories;
+  }
+  async updateBulkByBranch(
+    branchId: string,
+    bulkUpdateDto: BulkUpdateInventoryDTO,
+  ): Promise<Inventory[]> {
+    const productPresentationIds =
+      this.getProductPresentationIds(bulkUpdateDto);
+    const inventories = await this.findInventories(
+      branchId,
+      productPresentationIds,
+    );
+    const inventoryMap = this.buildInventoryMap(inventories);
+    return await this.applyBulkUpdate(branchId, bulkUpdateDto, inventoryMap);
   }
 }

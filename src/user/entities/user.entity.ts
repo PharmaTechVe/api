@@ -63,7 +63,7 @@ export class User extends BaseModel {
   @OneToOne('UserOTP', (userOTP: UserOTP) => userOTP.user, { eager: true })
   otp: UserOTP;
 
-  @ManyToOne(() => Branch, (branch) => branch.users)
+  @ManyToOne(() => Branch, (branch) => branch.users, { eager: true })
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;
 
