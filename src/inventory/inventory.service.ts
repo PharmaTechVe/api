@@ -126,32 +126,24 @@ export class InventoryService {
     bulkUpdateDto: BulkUpdateInventoryDTO,
     inventoryMap: Record<string, Inventory>,
   ): Promise<Inventory[]> {
-    const updatedInventories: Inventory[] = [];
+    const toUpdate = bulkUpdateDto.inventories
+      .filter((item) => !!inventoryMap[item.productPresentationId])
+      .map((item) => {
+        const inv = inventoryMap[item.productPresentationId];
+        inv.stockQuantity = item.quantity;
+        return inv;
+      });
 
-    for (const item of bulkUpdateDto.inventories) {
-      const inventory = inventoryMap[item.productPresentationId];
-      if (!inventory) {
-        throw new NotFoundException(
-          `Inventory not found for productPresentation ${item.productPresentationId} in branch ${branchId}`,
-        );
-      }
-      inventory.stockQuantity = item.quantity;
-      const updated = await this.inventoryRepository.save(inventory);
-      updatedInventories.push(updated);
-    }
-    return updatedInventories;
+    return this.inventoryRepository.save(toUpdate);
   }
+
   async updateBulkByBranch(
     branchId: string,
     bulkUpdateDto: BulkUpdateInventoryDTO,
   ): Promise<Inventory[]> {
-    const productPresentationIds =
-      this.getProductPresentationIds(bulkUpdateDto);
-    const inventories = await this.findInventories(
-      branchId,
-      productPresentationIds,
-    );
+    const ids = this.getProductPresentationIds(bulkUpdateDto);
+    const inventories = await this.findInventories(branchId, ids);
     const inventoryMap = this.buildInventoryMap(inventories);
-    return await this.applyBulkUpdate(branchId, bulkUpdateDto, inventoryMap);
+    return this.applyBulkUpdate(branchId, bulkUpdateDto, inventoryMap);
   }
 }
