@@ -125,22 +125,8 @@ export class OrderDeliveryController {
   ): Promise<OrderDeliveryDTO> {
     const delivery = await this.orderService.getDelivery(deliveryId);
 
-    return plainToInstance(OrderDeliveryDTO, {
-      id: delivery.id,
-      orderId: delivery.order.id,
-      deliveryStatus: delivery.deliveryStatus,
-      estimatedTime: delivery.estimatedTime,
-      branchId: delivery.branch ? delivery.branch.id : null,
-      employeeId: delivery.employee ? delivery.employee.id : null,
-      // Data of user:
-      userName:
-        delivery.order.user.firstName + ' ' + delivery.order.user.lastName,
-      userPhone: delivery.order.user.phoneNumber,
-      // data of the address:
-      address: delivery.adress.adress,
-      zipCode: delivery.adress.zipCode,
-      additionalInformation: delivery.adress.additionalInformation,
-      referencePoint: delivery.adress.referencePoint,
+    return plainToInstance(OrderDeliveryDTO, delivery, {
+      excludeExtraneousValues: true,
     });
   }
 
@@ -162,13 +148,8 @@ export class OrderDeliveryController {
       updateDeliveryDto,
     );
 
-    return plainToInstance(OrderDeliveryDTO, {
-      id: updatedDelivery.id,
-      orderId: updatedDelivery.order.id,
-      deliveryStatus: updatedDelivery.deliveryStatus,
-      estimatedTime: updatedDelivery.estimatedTime,
-      branchId: updatedDelivery.branch ? updatedDelivery.branch.id : null,
-      employeeId: updatedDelivery.employee ? updatedDelivery.employee.id : null,
+    return plainToInstance(OrderDeliveryDTO, updatedDelivery, {
+      excludeExtraneousValues: true,
     });
   }
 }

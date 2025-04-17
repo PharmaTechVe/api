@@ -246,15 +246,11 @@ export class OrderService {
     if (!delivery) {
       throw new NotFoundException('Delivery not found.');
     }
-    if (updateData.reject) {
-      if (delivery.employee && delivery.employee.id !== user.id) {
-        throw new NotFoundException(
-          'You are not authorized to reject this delivery.',
-        );
-      }
-    } else if (updateData.deliveryStatus) {
-      delivery.deliveryStatus = updateData.deliveryStatus;
-    }
-    return await this.orderDeliveryRepository.save(delivery);
+
+    const updateDelivery = this.orderDeliveryRepository.merge(
+      delivery,
+      updateData,
+    );
+    return await this.orderDeliveryRepository.save(updateDelivery);
   }
 }
