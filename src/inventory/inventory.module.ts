@@ -13,6 +13,7 @@ import { CountryService } from 'src/country/country.service';
 import { State } from 'src/state/entities/state.entity';
 import { Country } from 'src/country/entities/country.entity';
 import { AuthModule } from 'src/auth/auth.module';
+import { InventorySubscriber } from '../inventory/subscribers/inventory.subscriber';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { AuthModule } from 'src/auth/auth.module';
     CityService,
     StateService,
     CountryService,
+    InventorySubscriber,
   ],
 })
 export class InventoryModule {}

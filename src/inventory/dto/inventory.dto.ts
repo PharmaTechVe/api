@@ -1,8 +1,17 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsUUID,
+  Min,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Type } from 'class-transformer';
 
 export class InventoryDTO {
   @ApiProperty({ description: 'The stock quantity of the inventory' })
@@ -54,4 +63,31 @@ export class ResponseInventoryDTO extends IntersectionType(
     description: 'The product presentation of the product in the inventory',
   })
   productPresentation: ProductPresentationDTO;
+}
+
+export class BulkUpdateInventoryItemDTO {
+  @ApiProperty({
+    description: 'The product presentation id of the inventory',
+    example: 'uuid',
+  })
+  @IsNotEmpty()
+  @IsUUID()
+  productPresentationId: string;
+
+  @ApiProperty({ description: 'Quantity to update the stock', example: 10 })
+  @IsNumber()
+  @IsNotEmpty()
+  quantity: number;
+}
+
+export class BulkUpdateInventoryDTO {
+  @ApiProperty({
+    description: 'List of inventory update items',
+    type: [BulkUpdateInventoryItemDTO],
+    example: [{ productPresentationId: 'uuid', quantity: 10 }],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BulkUpdateInventoryItemDTO)
+  inventories: BulkUpdateInventoryItemDTO[];
 }
