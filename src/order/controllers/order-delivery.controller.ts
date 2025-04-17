@@ -136,10 +136,10 @@ export class OrderDeliveryController {
         delivery.order.user.firstName + ' ' + delivery.order.user.lastName,
       userPhone: delivery.order.user.phoneNumber,
       // data of the address:
-      address: delivery.adress.adress,
-      zipCode: delivery.adress.zipCode,
-      additionalInformation: delivery.adress.additionalInformation,
-      referencePoint: delivery.adress.referencePoint,
+      address: delivery.address.adress,
+      zipCode: delivery.address.zipCode,
+      additionalInformation: delivery.address.additionalInformation,
+      referencePoint: delivery.address.referencePoint,
     };
   }
 
