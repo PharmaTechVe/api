@@ -6,6 +6,17 @@ import { User } from 'src/user/entities/user.entity';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { Order, OrderDetail } from './order.entity';
 
+export enum OrderDeliveryStatus {
+  PAYMENT_PENDING = 'payment_pending',
+  PAYMENT_VALIDATED = 'payment_validated',
+  TO_ASSIGN = 'to_assign',
+  ASSIGNED = 'assigned',
+  WAITING_CONFIRMATION = 'waiting_confirmation',
+  PICKED_UP = 'picked_up',
+  IN_ROUTE = 'in_route',
+  DELIVERED = 'delivered',
+}
+
 @Entity('order_delivery')
 export class OrderDelivery extends BaseModel {
   @ManyToOne(() => Order, (order) => order.orderDeliveries)
@@ -25,7 +36,12 @@ export class OrderDelivery extends BaseModel {
   @Column({ type: 'timestamp with time zone', name: 'estimated_time' })
   estimatedTime: Date;
 
-  @Column({ type: 'varchar', name: 'delivery_status' })
+  @Column({
+    type: 'enum',
+    enum: OrderDeliveryStatus,
+    default: OrderDeliveryStatus.TO_ASSIGN,
+    name: 'delivery_status',
+  })
   deliveryStatus: string;
 
   @ManyToOne(() => Branch, (branch) => branch.orderDeliveries)
