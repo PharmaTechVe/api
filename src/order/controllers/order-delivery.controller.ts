@@ -28,10 +28,12 @@ import {
   UpdateDeliveryDTO,
 } from '../dto/order-delivery.dto';
 import { User } from 'src/user/entities/user.entity';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('delivery')
 export class OrderDeliveryController {
   constructor(private readonly orderService: OrderService) {}
+
   @Get()
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -101,14 +103,11 @@ export class OrderDeliveryController {
       employeeId,
     });
 
-    const results: OrderDeliveryDTO[] = data.map((delivery) => ({
-      id: delivery.id,
-      orderId: delivery.order.id,
-      deliveryStatus: delivery.deliveryStatus,
-      estimatedTime: delivery.estimatedTime,
-      branchId: delivery.branch ? delivery.branch.id : null,
-      employeeId: delivery.employee ? delivery.employee.id : null,
-    }));
+    const results = data.map((delivery) =>
+      plainToInstance(OrderDeliveryDTO, delivery, {
+        excludeExtraneousValues: true,
+      }),
+    );
 
     return { data: results, total };
   }
@@ -124,23 +123,9 @@ export class OrderDeliveryController {
   ): Promise<OrderDeliveryDTO> {
     const delivery = await this.orderService.getDelivery(deliveryId);
 
-    return {
-      id: delivery.id,
-      orderId: delivery.order.id,
-      deliveryStatus: delivery.deliveryStatus,
-      estimatedTime: delivery.estimatedTime,
-      branchId: delivery.branch ? delivery.branch.id : null,
-      employeeId: delivery.employee ? delivery.employee.id : null,
-      // Data of user:
-      userName:
-        delivery.order.user.firstName + ' ' + delivery.order.user.lastName,
-      userPhone: delivery.order.user.phoneNumber,
-      // data of the address:
-      address: delivery.address.adress,
-      zipCode: delivery.address.zipCode,
-      additionalInformation: delivery.address.additionalInformation,
-      referencePoint: delivery.address.referencePoint,
-    };
+    return plainToInstance(OrderDeliveryDTO, delivery, {
+      excludeExtraneousValues: true,
+    });
   }
 
   @Patch('/:deliveryId')
@@ -161,13 +146,8 @@ export class OrderDeliveryController {
       updateDeliveryDto,
     );
 
-    return {
-      id: updatedDelivery.id,
-      orderId: updatedDelivery.order.id,
-      deliveryStatus: updatedDelivery.deliveryStatus,
-      estimatedTime: updatedDelivery.estimatedTime,
-      branchId: updatedDelivery.branch ? updatedDelivery.branch.id : null,
-      employeeId: updatedDelivery.employee ? updatedDelivery.employee.id : null,
-    };
+    return plainToInstance(OrderDeliveryDTO, updatedDelivery, {
+      excludeExtraneousValues: true,
+    });
   }
 }

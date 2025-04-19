@@ -178,8 +178,13 @@ export class OrderService {
     const query = this.orderDeliveryRepository
       .createQueryBuilder('delivery')
       .leftJoinAndSelect('delivery.order', 'order')
+      .leftJoinAndSelect('order.user', 'orderUser')
+      .leftJoinAndSelect('delivery.adress', 'adress')
       .leftJoinAndSelect('delivery.branch', 'branch')
       .leftJoinAndSelect('delivery.employee', 'employee')
+      .leftJoinAndSelect('adress.city', 'city')
+      .leftJoinAndSelect('city.state', 'state')
+      .leftJoinAndSelect('state.country', 'country')
       .where('delivery.deletedAt IS NULL');
 
     if (user.role !== UserRole.ADMIN) {
@@ -270,20 +275,25 @@ export class OrderService {
   ): Promise<OrderDelivery> {
     const delivery = await this.orderDeliveryRepository.findOne({
       where: { id: deliveryId },
-      relations: ['employee', 'order'],
+      relations: [
+        'order',
+        'order.user',
+        'adress',
+        'adress.city',
+        'adress.city.state',
+        'adress.city.state.country',
+        'employee',
+        'branch',
+      ],
     });
     if (!delivery) {
       throw new NotFoundException('Delivery not found.');
     }
-    if (updateData.reject) {
-      if (delivery.employee && delivery.employee.id !== user.id) {
-        throw new NotFoundException(
-          'You are not authorized to reject this delivery.',
-        );
-      }
-    } else if (updateData.deliveryStatus) {
-      delivery.deliveryStatus = updateData.deliveryStatus;
-    }
-    return await this.orderDeliveryRepository.save(delivery);
+
+    const updateDelivery = this.orderDeliveryRepository.merge(
+      delivery,
+      updateData,
+    );
+    return await this.orderDeliveryRepository.save(updateDelivery);
   }
 }
