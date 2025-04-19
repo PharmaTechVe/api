@@ -56,10 +56,7 @@ export class PresentationController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @UseInterceptors(PaginationInterceptor)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'List all presentations' })
   @ApiQuery({
     name: 'page',

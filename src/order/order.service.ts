@@ -16,7 +16,10 @@ import {
 } from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
-import { OrderDelivery } from './entities/order_delivery.entity';
+import {
+  OrderDelivery,
+  OrderDeliveryStatus,
+} from './entities/order_delivery.entity';
 import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
@@ -106,7 +109,7 @@ export class OrderService {
         branch,
         address: userAddress,
         estimatedTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
-        deliveryStatus: 'pending',
+        deliveryStatus: OrderDeliveryStatus.TO_ASSIGN,
       });
       await this.orderDeliveryRepository.save(delivery);
     }

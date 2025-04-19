@@ -13,7 +13,8 @@ export enum OrderType {
 export enum OrderStatus {
   REQUESTED = 'requested',
   APPROVED = 'approved',
-  READY = 'ready',
+  READY_FOR_PICKUP = 'ready_for_pickup',
+  IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
   CANCELED = 'canceled',
 }

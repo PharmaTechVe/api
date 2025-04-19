@@ -13,8 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductPresentationService } from '../services/product-presentation.service';
-import { CreateProductPresentationDTO } from '../dto/product.dto';
-import { ProductsService } from '../products.service';
+import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { PresentationService } from '../services/presentation.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -26,12 +25,13 @@ import {
   ResponseProductPresentationDTO,
   UpdateProductPresentationDTO,
 } from '../dto/product-presentation.dto';
+import { GenericProductService } from '../services/generic-product.service';
 
 @Controller('/product/:id/presentation')
 export class ProductPresentationController {
   constructor(
     private productPresentationService: ProductPresentationService,
-    private readonly productService: ProductsService,
+    private readonly genericProductService: GenericProductService,
     private readonly presentationService: PresentationService,
   ) {}
 
@@ -63,7 +63,7 @@ export class ProductPresentationController {
     @Param('id') productId: string,
     @Body() createProductPresentationDto: CreateProductPresentationDTO,
   ): Promise<ResponseProductPresentationDTO> {
-    const product = await this.productService.findOne(productId);
+    const product = await this.genericProductService.findOne(productId);
     const presentation = await this.presentationService.findOne(
       createProductPresentationDto.presentationId,
     );

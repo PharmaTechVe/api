@@ -57,10 +57,7 @@ export class ManufacturerController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @UseInterceptors(PaginationInterceptor)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'List all manufacturers' })
   @ApiQuery({
     name: 'page',

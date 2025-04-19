@@ -1,6 +1,6 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from '../entities/product-presentation.entity';
-import { CreateProductPresentationDTO } from '../dto/product.dto';
+import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { Product } from '../entities/product.entity';
 import { Presentation } from '../entities/presentation.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';

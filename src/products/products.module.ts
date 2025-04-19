@@ -21,6 +21,7 @@ import { GenericProductService } from './services/generic-product.service';
 import { ProductPresentationController } from './controllers/product-presentation.controller';
 import { ProductImageController } from './controllers/product-image.controller';
 import { DiscountModule } from '../discount/discount.module';
+import { ProductImageService } from './services/product-image.service';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { DiscountModule } from '../discount/discount.module';
     CountryService,
     GenericProductService,
     ProductPresentationService,
+    ProductImageService,
   ],
 })
 export class ProductsModule {}
