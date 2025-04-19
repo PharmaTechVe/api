@@ -21,22 +21,20 @@ export class ProductPresentationDTO {
   price: number;
 }
 
-export class CreateProductPresentationDTO extends ProductPresentationDTO {
+export class CreateProductPresentationDTO {
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The ID of the associated product' })
-  productId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The ID of the associated presentation' })
   presentationId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  price: number;
 
   @IsString()
   @IsUUID()
   @IsOptional()
   @ApiProperty({ description: 'The ID of the associated promo' })
-  promoId?: string | null;
+  promoId?: string;
 }
 
 export class UpdateProductPresentationDTO extends PartialType(
