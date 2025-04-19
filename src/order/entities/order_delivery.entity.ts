@@ -14,7 +14,7 @@ export class OrderDelivery extends BaseModel {
 
   @ManyToOne(() => UserAddress, (adress) => adress.orderDeliveries)
   @JoinColumn({ name: 'address_id' })
-  adress: UserAddress;
+  address: UserAddress;
 
   @ManyToOne(() => User, (employee) => employee.orderDeliveries, {
     nullable: true,

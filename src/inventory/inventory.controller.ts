@@ -18,11 +18,13 @@ import {
   UpdateInventoryDTO,
   ResponseInventoryDTO,
   InventoryQueryDTO,
+  BulkUpdateInventoryDTO,
 } from './dto/inventory.dto';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
+import { BranchId } from 'src/auth/branch-id.decorator';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -161,5 +163,26 @@ export class InventoryController {
   })
   async remove(@Param('id') id: string): Promise<void> {
     await this.inventoryService.remove(id);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.BRANCH_ADMIN)
+  @Post('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk update inventory for branch admin' })
+  @ApiResponse({
+    description: 'Bulk update successful',
+    status: HttpStatus.OK,
+    isArray: true,
+    type: ResponseInventoryDTO,
+  })
+  async bulkUpdateInventory(
+    @Body() bulkUpdateDto: BulkUpdateInventoryDTO,
+    @BranchId() branchId: string,
+  ): Promise<ResponseInventoryDTO[]> {
+    return await this.inventoryService.updateBulkByBranch(
+      branchId,
+      bulkUpdateDto,
+    );
   }
 }

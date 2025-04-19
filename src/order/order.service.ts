@@ -18,6 +18,8 @@ import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { OrderDelivery } from './entities/order_delivery.entity';
 import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
+import { UserAddress } from 'src/user/entities/user-address.entity';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class OrderService {
@@ -30,10 +32,12 @@ export class OrderService {
     private branchService: BranchService,
     @InjectRepository(OrderDelivery)
     private orderDeliveryRepository: Repository<OrderDelivery>,
+    private userService: UserService,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
     let branch: Branch;
+    let userAddress: UserAddress | undefined = undefined;
     if (createOrderDTO.type == OrderType.PICKUP) {
       if (!createOrderDTO.branchId) {
         throw new BadRequestException(
@@ -41,10 +45,21 @@ export class OrderService {
         );
       }
       branch = await this.branchService.findOne(createOrderDTO.branchId);
-    } else {
+    } else if (createOrderDTO.type == OrderType.DELIVERY) {
+      if (!createOrderDTO.userAddressId) {
+        throw new BadRequestException(
+          'User address ID is required for delivery orders',
+        );
+      }
       // TODO: Find the closest branch to the address
       const branches = await this.branchService.findAll(1, 10);
       branch = branches[0];
+      userAddress = await this.userService.getAddress(
+        user.id,
+        createOrderDTO.userAddressId,
+      );
+    } else {
+      throw new BadRequestException('Invalid order type');
     }
     const products = await this.productPresentationService.findByIds(
       createOrderDTO.products.map((product) => product.productPresentationId),
@@ -85,6 +100,16 @@ export class OrderService {
       });
     });
     await this.orderDetailRepository.save(orderDetails);
+    if (createOrderDTO.type == OrderType.DELIVERY && userAddress) {
+      const delivery = this.orderDeliveryRepository.create({
+        order,
+        branch,
+        address: userAddress,
+        estimatedTime: new Date(Date.now() + 60 * 60 * 1000), // 1 hour from now
+        deliveryStatus: 'pending',
+      });
+      await this.orderDeliveryRepository.save(delivery);
+    }
     return order;
   }
 
@@ -120,6 +145,10 @@ export class OrderService {
         'details.productPresentation.product',
         'details.productPresentation.product.images',
         'details.productPresentation.presentation',
+        'orderDeliveries',
+        'orderDeliveries.address',
+        'orderDeliveries.employee',
+        'orderDeliveries.branch',
       ],
     });
     if (!order) {
@@ -225,10 +254,10 @@ export class OrderService {
       relations: [
         'order',
         'order.user',
-        'adress',
-        'adress.city',
-        'adress.city.state',
-        'adress.city.state.country',
+        'address',
+        'address.city',
+        'address.city.state',
+        'address.city.state.country',
         'employee',
         'branch',
       ],
