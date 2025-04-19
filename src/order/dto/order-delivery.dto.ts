@@ -1,7 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
+import { BaseUserDTO } from 'src/user/dto/user.dto';
+import { UserAddressDTO } from 'src/user/dto/user-address.dto';
 
 export class OrderDeliveryDTO {
   @ApiProperty({ description: 'Unique identifier of the delivery' })
@@ -43,65 +45,56 @@ export class OrderDeliveryDTO {
   employeeId: string | null;
 
   // User contact information (extracted from the order)
-  @ApiProperty({ description: 'Full name of the user' })
+  @ApiProperty({ description: 'User contact info', type: BaseUserDTO })
   @Expose()
   @Transform(
     ({
       obj,
     }: {
-      obj: { order?: { user?: { firstName?: string; lastName?: string } } };
-    }) => {
-      const user = obj.order?.user;
-      if (user?.firstName && user?.lastName) {
-        return `${user.firstName} ${user.lastName}`;
-      }
-      return undefined;
-    },
+      obj: {
+        order: {
+          user: { firstName: string; lastName: string; phoneNumber?: string };
+        };
+      };
+    }) => ({
+      firstName: obj.order.user.firstName,
+      lastName: obj.order.user.lastName,
+      phoneNumber: obj.order.user.phoneNumber,
+    }),
+    { toClassOnly: true },
   )
-  userName?: string;
-
-  @ApiProperty({ description: 'Phone number of the user', nullable: true })
-  @Expose()
-  @Transform(
-    ({ obj }: { obj: { order?: { user?: { phoneNumber?: string } } } }) =>
-      obj.order?.user?.phoneNumber,
-  )
-  userPhone?: string;
+  @Type(() => BaseUserDTO)
+  user: BaseUserDTO;
 
   // Delivery address information
-  @ApiProperty({ description: 'Address street', nullable: true })
-  @Expose()
-  @Transform(
-    ({ obj }: { obj: { adress?: { adress?: string } } }) => obj.adress?.adress,
-  )
-  address?: string;
-
-  @ApiProperty({ description: 'Zip code', nullable: true })
-  @Expose()
-  @Transform(
-    ({ obj }: { obj: { adress?: { zipCode?: string } } }) =>
-      obj.adress?.zipCode,
-  )
-  zipCode?: string;
-
-  @ApiProperty({
-    description: 'Additional address information',
+  @ApiPropertyOptional({
+    description: 'Delivery address info',
+    type: UserAddressDTO,
     nullable: true,
   })
   @Expose()
   @Transform(
-    ({ obj }: { obj: { adress?: { additionalInformation?: string } } }) =>
-      obj.adress?.additionalInformation,
+    ({
+      obj,
+    }: {
+      obj: {
+        adress?: {
+          adress?: string;
+          zipCode?: string;
+          additionalInformation?: string;
+          referencePoint?: string;
+        };
+      };
+    }) => ({
+      adress: obj.adress?.adress,
+      zipCode: obj.adress?.zipCode,
+      additionalInformation: obj.adress?.additionalInformation,
+      referencePoint: obj.adress?.referencePoint,
+    }),
+    { toClassOnly: true },
   )
-  additionalInformation?: string;
-
-  @ApiProperty({ description: 'Reference point for delivery', nullable: true })
-  @Expose()
-  @Transform(
-    ({ obj }: { obj: { adress?: { referencePoint?: string } } }) =>
-      obj.adress?.referencePoint,
-  )
-  referencePoint?: string;
+  @Type(() => UserAddressDTO)
+  address?: UserAddressDTO;
 }
 
 export class UpdateDeliveryDTO {

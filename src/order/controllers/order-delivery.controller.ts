@@ -33,6 +33,7 @@ import { plainToInstance } from 'class-transformer';
 @Controller('delivery')
 export class OrderDeliveryController {
   constructor(private readonly orderService: OrderService) {}
+
   @Get()
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -102,14 +103,11 @@ export class OrderDeliveryController {
       employeeId,
     });
 
-    const results: OrderDeliveryDTO[] = data.map((delivery) => ({
-      id: delivery.id,
-      orderId: delivery.order.id,
-      deliveryStatus: delivery.deliveryStatus,
-      estimatedTime: delivery.estimatedTime,
-      branchId: delivery.branch ? delivery.branch.id : null,
-      employeeId: delivery.employee ? delivery.employee.id : null,
-    }));
+    const results = data.map((delivery) =>
+      plainToInstance(OrderDeliveryDTO, delivery, {
+        excludeExtraneousValues: true,
+      }),
+    );
 
     return { data: results, total };
   }

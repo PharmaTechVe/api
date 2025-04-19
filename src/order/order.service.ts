@@ -149,8 +149,13 @@ export class OrderService {
     const query = this.orderDeliveryRepository
       .createQueryBuilder('delivery')
       .leftJoinAndSelect('delivery.order', 'order')
+      .leftJoinAndSelect('order.user', 'orderUser')
+      .leftJoinAndSelect('delivery.adress', 'adress')
       .leftJoinAndSelect('delivery.branch', 'branch')
       .leftJoinAndSelect('delivery.employee', 'employee')
+      .leftJoinAndSelect('adress.city', 'city')
+      .leftJoinAndSelect('city.state', 'state')
+      .leftJoinAndSelect('state.country', 'country')
       .where('delivery.deletedAt IS NULL');
 
     if (user.role !== UserRole.ADMIN) {
@@ -241,7 +246,16 @@ export class OrderService {
   ): Promise<OrderDelivery> {
     const delivery = await this.orderDeliveryRepository.findOne({
       where: { id: deliveryId },
-      relations: ['employee', 'order'],
+      relations: [
+        'order',
+        'order.user',
+        'adress',
+        'adress.city',
+        'adress.city.state',
+        'adress.city.state.country',
+        'employee',
+        'branch',
+      ],
     });
     if (!delivery) {
       throw new NotFoundException('Delivery not found.');
