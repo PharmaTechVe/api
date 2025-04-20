@@ -22,6 +22,9 @@ import { ProductPresentationController } from './controllers/product-presentatio
 import { ProductImageController } from './controllers/product-image.controller';
 import { DiscountModule } from '../discount/discount.module';
 import { ProductImageService } from './services/product-image.service';
+import { ProductCategoryController } from './controllers/product-category.controller';
+import { ProductCategoryService } from './services/product-category.service';
+import { CategoryService } from 'src/category/category.service';
 
 @Module({
   imports: [
@@ -44,8 +47,10 @@ import { ProductImageService } from './services/product-image.service';
     GenericProductController,
     ProductPresentationController,
     ProductImageController,
+    ProductCategoryController,
   ],
   providers: [
+    CategoryService,
     ProductsService,
     PresentationService,
     ManufacturerService,
@@ -53,6 +58,7 @@ import { ProductImageService } from './services/product-image.service';
     GenericProductService,
     ProductPresentationService,
     ProductImageService,
+    ProductCategoryService,
   ],
 })
 export class ProductsModule {}

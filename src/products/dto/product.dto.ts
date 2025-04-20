@@ -1,11 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsUUID } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Transform } from 'class-transformer';
+
+export class AddCategoryDTO {
+  @IsString()
+  @IsUUID()
+  @ApiProperty({ description: 'Id of the category' })
+  categoryId: string;
+}
 
 export class ImageDTO extends BaseDTO {
   @ApiProperty()
