@@ -126,7 +126,7 @@ export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
 
   @Expose()
   @ApiProperty({
-    description: 'ID of the user who placed the order',
+    description: 'Branch information',
     type: ResponseBranchDTO,
   })
   @Type(() => ResponseBranchDTO)
