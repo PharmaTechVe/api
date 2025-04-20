@@ -142,16 +142,14 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: where,
       relations: [
+        'branch',
         'details',
         'details.productPresentation',
         'details.productPresentation.promo',
         'details.productPresentation.product',
         'details.productPresentation.product.images',
         'details.productPresentation.presentation',
-        'orderDeliveries',
-        'orderDeliveries.address',
         'orderDeliveries.employee',
-        'orderDeliveries.branch',
       ],
     });
     if (!order) {
