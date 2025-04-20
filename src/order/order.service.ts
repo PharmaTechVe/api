@@ -182,12 +182,12 @@ export class OrderService {
       .createQueryBuilder('delivery')
       .leftJoinAndSelect('delivery.order', 'order')
       .leftJoinAndSelect('order.user', 'orderUser')
-      .leftJoinAndSelect('delivery.adress', 'adress')
-      .leftJoinAndSelect('delivery.branch', 'branch')
-      .leftJoinAndSelect('delivery.employee', 'employee')
-      .leftJoinAndSelect('adress.city', 'city')
+      .leftJoinAndSelect('delivery.address', 'address')
+      .leftJoinAndSelect('address.city', 'city')
       .leftJoinAndSelect('city.state', 'state')
       .leftJoinAndSelect('state.country', 'country')
+      .leftJoinAndSelect('delivery.branch', 'branch')
+      .leftJoinAndSelect('delivery.employee', 'employee')
       .where('delivery.deletedAt IS NULL');
 
     if (user.role !== UserRole.ADMIN) {

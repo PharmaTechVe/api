@@ -78,18 +78,18 @@ export class OrderDeliveryDTO {
       obj,
     }: {
       obj: {
-        adress?: {
-          adress?: string;
+        address?: {
+          address?: string;
           zipCode?: string;
           additionalInformation?: string;
           referencePoint?: string;
         };
       };
     }) => ({
-      adress: obj.adress?.adress,
-      zipCode: obj.adress?.zipCode,
-      additionalInformation: obj.adress?.additionalInformation,
-      referencePoint: obj.adress?.referencePoint,
+      adress: obj.address?.address,
+      zipCode: obj.address?.zipCode,
+      additionalInformation: obj.address?.additionalInformation,
+      referencePoint: obj.address?.referencePoint,
     }),
     { toClassOnly: true },
   )
