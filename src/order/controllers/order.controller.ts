@@ -50,12 +50,20 @@ export class OrderController {
     summary: 'Create a new order',
     description: 'Creates a new order for the authenticated user.',
   })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Order created successfully',
+    type: ResponseOrderDTO,
+  })
   async create(
     @Req() req: CustomRequest,
     @Body() createOrderDTO: CreateOrderDTO,
   ) {
     const order = await this.orderService.create(req.user, createOrderDTO);
-    return order;
+    return plainToInstance(ResponseOrderDTO, order, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 
   @HttpCode(HttpStatus.OK)
@@ -144,7 +152,10 @@ export class OrderController {
       status,
     );
     return {
-      data: orders,
+      data: plainToInstance(ResponseOrderDTO, orders, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
       total,
     };
   }
