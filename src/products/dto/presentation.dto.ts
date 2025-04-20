@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsString } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 import { IntersectionType, PartialType } from '@nestjs/swagger';
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseDTO } from 'src/utils/dto/base.dto';
@@ -19,6 +19,7 @@ export class CreatePresentationDTO {
 
   @Expose()
   @IsInt()
+  @Min(0)
   @IsNotEmpty()
   @ApiProperty({ description: 'The quantity of the presentation' })
   quantity: number;

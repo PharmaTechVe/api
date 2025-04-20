@@ -1,8 +1,8 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   IsUUID,
 } from 'class-validator';
@@ -17,20 +17,16 @@ import { Expose, Type } from 'class-transformer';
 
 export class ProductPresentationDTO {
   @Expose()
-  @IsNumber()
+  @IsPositive()
   @IsNotEmpty()
   @ApiProperty({ description: 'The price of the product presentation.' })
   price: number;
 }
 
-export class CreateProductPresentationDTO {
+export class CreateProductPresentationDTO extends ProductPresentationDTO {
   @ApiProperty()
   @IsString()
   presentationId: string;
-
-  @ApiProperty()
-  @IsNumber()
-  price: number;
 
   @IsString()
   @IsUUID()
