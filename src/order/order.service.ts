@@ -84,6 +84,11 @@ export class OrderService {
         : product.price;
       return acc + price * product.quantity;
     }, 0);
+
+    if (productsWithQuantity.length == 0) {
+      throw new BadRequestException('No products found');
+    }
+
     const orderToCreate = this.orderRepository.create({
       user,
       branch,
