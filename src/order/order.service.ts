@@ -279,10 +279,10 @@ export class OrderService {
       relations: [
         'order',
         'order.user',
-        'adress',
-        'adress.city',
-        'adress.city.state',
-        'adress.city.state.country',
+        'address',
+        'address.city',
+        'address.city.state',
+        'address.city.state.country',
         'employee',
         'branch',
       ],
@@ -295,6 +295,18 @@ export class OrderService {
       delivery,
       updateData,
     );
+    if (updateData.employeeId) {
+      const employee = await this.userService.findUserById(
+        updateData.employeeId,
+      );
+      if (!employee) {
+        throw new NotFoundException('Employee not found.');
+      }
+      if (employee.role !== UserRole.DELIVERY) {
+        throw new BadRequestException('User is not an employee.');
+      }
+      updateDelivery.employee = employee;
+    }
     return await this.orderDeliveryRepository.save(updateDelivery);
   }
 }
