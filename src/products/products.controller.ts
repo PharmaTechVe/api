@@ -70,6 +70,12 @@ export class ProductsController {
     type: String,
   })
   @ApiQuery({
+    name: 'genericProductId',
+    required: false,
+    description: 'Filter by generic product ID',
+    type: String,
+  })
+  @ApiQuery({
     name: 'rangePrice',
     required: false,
     description: 'Filter by price range',
@@ -103,6 +109,7 @@ export class ProductsController {
       branchId,
       manufacturerId,
       presentationId,
+      genericProductId,
       priceRange,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
@@ -113,6 +120,7 @@ export class ProductsController {
       manufacturerId,
       branchId,
       presentationId,
+      genericProductId,
       priceRange,
     );
 

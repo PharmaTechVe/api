@@ -1,8 +1,8 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
 import {
   IsNotEmpty,
-  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
   IsUUID,
 } from 'class-validator';
@@ -13,22 +13,20 @@ import {
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { ResponsePromoDTO } from '../../discount/dto/promo.dto';
+import { Expose, Type } from 'class-transformer';
 
 export class ProductPresentationDTO {
-  @IsNumber()
+  @Expose()
+  @IsPositive()
   @IsNotEmpty()
   @ApiProperty({ description: 'The price of the product presentation.' })
   price: number;
 }
 
-export class CreateProductPresentationDTO {
+export class CreateProductPresentationDTO extends ProductPresentationDTO {
   @ApiProperty()
   @IsString()
   presentationId: string;
-
-  @ApiProperty()
-  @IsNumber()
-  price: number;
 
   @IsString()
   @IsUUID()
@@ -70,12 +68,18 @@ export class ResponseOrderProductPresentationDetailDTO extends IntersectionType(
   ProductPresentationDTO,
   BaseDTO,
 ) {
+  @Expose()
+  @Type(() => ResponseOrderGenericProductDTO)
   @ApiProperty({ type: ResponseOrderGenericProductDTO })
   product: ResponseOrderGenericProductDTO;
 
+  @Expose()
+  @Type(() => ResponsePresentationDTO)
   @ApiProperty({ type: ResponsePresentationDTO })
   presentation: ResponsePresentationDTO;
 
+  @Expose()
+  @Type(() => ResponsePromoDTO)
   @ApiProperty({ type: ResponsePromoDTO })
   promo: ResponsePromoDTO;
 }

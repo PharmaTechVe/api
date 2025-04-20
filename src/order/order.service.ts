@@ -84,6 +84,11 @@ export class OrderService {
         : product.price;
       return acc + price * product.quantity;
     }, 0);
+
+    if (productsWithQuantity.length == 0) {
+      throw new BadRequestException('No products found');
+    }
+
     const orderToCreate = this.orderRepository.create({
       user,
       branch,
@@ -142,16 +147,14 @@ export class OrderService {
     const order = await this.orderRepository.findOne({
       where: where,
       relations: [
+        'branch',
         'details',
         'details.productPresentation',
         'details.productPresentation.promo',
         'details.productPresentation.product',
         'details.productPresentation.product.images',
         'details.productPresentation.presentation',
-        'orderDeliveries',
-        'orderDeliveries.address',
         'orderDeliveries.employee',
-        'orderDeliveries.branch',
       ],
     });
     if (!order) {
@@ -281,10 +284,10 @@ export class OrderService {
       relations: [
         'order',
         'order.user',
-        'adress',
-        'adress.city',
-        'adress.city.state',
-        'adress.city.state.country',
+        'address',
+        'address.city',
+        'address.city.state',
+        'address.city.state.country',
         'employee',
         'branch',
       ],
@@ -297,6 +300,18 @@ export class OrderService {
       delivery,
       updateData,
     );
+    if (updateData.employeeId) {
+      const employee = await this.userService.findUserById(
+        updateData.employeeId,
+      );
+      if (!employee) {
+        throw new NotFoundException('Employee not found.');
+      }
+      if (employee.role !== UserRole.DELIVERY) {
+        throw new BadRequestException('User is not an employee.');
+      }
+      updateDelivery.employee = employee;
+    }
     return await this.orderDeliveryRepository.save(updateDelivery);
   }
 }

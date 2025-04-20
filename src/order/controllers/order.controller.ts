@@ -31,11 +31,12 @@ import {
 } from '@nestjs/swagger';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { OrderStatus, OrderType } from '../entities/order.entity';
+import { Order, OrderStatus, OrderType } from '../entities/order.entity';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserValidatedGuard } from 'src/auth/guards/user-validated.guard';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('order')
 export class OrderController {
@@ -49,12 +50,20 @@ export class OrderController {
     summary: 'Create a new order',
     description: 'Creates a new order for the authenticated user.',
   })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Order created successfully',
+    type: ResponseOrderDTO,
+  })
   async create(
     @Req() req: CustomRequest,
     @Body() createOrderDTO: CreateOrderDTO,
   ) {
     const order = await this.orderService.create(req.user, createOrderDTO);
-    return order;
+    return plainToInstance(ResponseOrderDTO, order, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 
   @HttpCode(HttpStatus.OK)
@@ -143,7 +152,10 @@ export class OrderController {
       status,
     );
     return {
-      data: orders,
+      data: plainToInstance(ResponseOrderDTO, orders, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
       total,
     };
   }
@@ -161,13 +173,16 @@ export class OrderController {
     @Req() req: CustomRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
   ) {
-    let order;
+    let order: Order;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       order = await this.orderService.findOne(id);
     } else {
       order = await this.orderService.findOne(id, req.user.id);
     }
-    return order;
+    return plainToInstance(ResponseOrderDetailedDTO, order, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 
   @Patch(':id')

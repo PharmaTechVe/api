@@ -5,7 +5,7 @@ import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class AddCategoryDTO {
   @IsString()
@@ -15,6 +15,7 @@ export class AddCategoryDTO {
 }
 
 export class ImageDTO extends BaseDTO {
+  @Expose()
   @ApiProperty()
   url: string;
 }
@@ -80,6 +81,11 @@ export class ProductQueryDTO extends PaginationQueryDTO {
   presentationId: string[];
 
   @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
+  genericProductId: string[];
+
+  @IsOptional()
   @Transform(({ value }: { value: string }) =>
     value ? value.split(',').map(Number) : [],
   )
@@ -94,6 +100,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     categoryId?: string[],
     branchId?: string[],
     presentationId?: string[],
+    genericProductId?: string[],
     priceRange?: number[],
   ) {
     super(page, limit);
@@ -102,6 +109,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     this.categoryId = categoryId ? categoryId : [];
     this.branchId = branchId ? branchId : [];
     this.presentationId = presentationId ? presentationId : [];
+    this.genericProductId = genericProductId ? genericProductId : [];
     this.priceRange = priceRange ? priceRange : [];
   }
 }
