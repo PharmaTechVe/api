@@ -12,10 +12,12 @@ import {
 } from 'class-validator';
 import { OrderStatus, OrderType } from '../entities/order.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
+import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
+import { OrderDeliveryEmployeeDTO } from './order-delivery.dto';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -80,38 +82,63 @@ export class CreateOrderDTO {
 }
 
 export class ResponseOrderDetailDTO {
+  @Expose()
   @ApiProperty({
     description: 'ID of the product presentation',
     type: ResponseOrderProductPresentationDetailDTO,
   })
+  @Type(() => ResponseOrderProductPresentationDetailDTO)
   productPresentation: ResponseOrderProductPresentationDetailDTO;
 
+  @Expose()
   @ApiProperty({ description: 'Quantity of products' })
   @IsInt()
   @IsPositive()
   quantity: number;
 
+  @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
 }
 
 export class ResponseOrderDTO extends BaseDTO {
+  @Expose()
   @ApiProperty({ description: 'Type of order (PICKUP or DELIVERY)' })
   type: OrderType;
 
+  @Expose()
   @ApiProperty({ description: 'Status of the order' })
   status: OrderStatus;
 
+  @Expose()
   @ApiProperty({ description: 'Total price of the order' })
   totalPrice: number;
 }
 
 export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
+  @Expose()
   @ApiProperty({
     description: 'Products in the order',
     type: [ResponseOrderDetailDTO],
   })
+  @Type(() => ResponseOrderDetailDTO)
   details: ResponseOrderDetailDTO[];
+
+  @Expose()
+  @ApiProperty({
+    description: 'ID of the user who placed the order',
+    type: ResponseBranchDTO,
+  })
+  @Type(() => ResponseBranchDTO)
+  branch?: ResponseBranchDTO;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Delivery information',
+    type: [OrderDeliveryEmployeeDTO],
+  })
+  @Type(() => OrderDeliveryEmployeeDTO)
+  orderDeliveries?: OrderDeliveryEmployeeDTO[];
 }
 
 export class OrderQueryDTO extends PaginationQueryDTO {

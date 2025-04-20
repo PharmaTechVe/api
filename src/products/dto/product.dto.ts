@@ -5,7 +5,7 @@ import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Transform } from 'class-transformer';
+import { Expose, Transform } from 'class-transformer';
 
 export class AddCategoryDTO {
   @IsString()
@@ -15,6 +15,7 @@ export class AddCategoryDTO {
 }
 
 export class ImageDTO extends BaseDTO {
+  @Expose()
   @ApiProperty()
   url: string;
 }

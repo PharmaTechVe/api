@@ -13,8 +13,10 @@ import {
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { ResponsePromoDTO } from '../../discount/dto/promo.dto';
+import { Expose, Type } from 'class-transformer';
 
 export class ProductPresentationDTO {
+  @Expose()
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty({ description: 'The price of the product presentation.' })
@@ -70,12 +72,18 @@ export class ResponseOrderProductPresentationDetailDTO extends IntersectionType(
   ProductPresentationDTO,
   BaseDTO,
 ) {
+  @Expose()
+  @Type(() => ResponseOrderGenericProductDTO)
   @ApiProperty({ type: ResponseOrderGenericProductDTO })
   product: ResponseOrderGenericProductDTO;
 
+  @Expose()
+  @Type(() => ResponsePresentationDTO)
   @ApiProperty({ type: ResponsePresentationDTO })
   presentation: ResponsePresentationDTO;
 
+  @Expose()
+  @Type(() => ResponsePromoDTO)
   @ApiProperty({ type: ResponsePromoDTO })
   promo: ResponsePromoDTO;
 }

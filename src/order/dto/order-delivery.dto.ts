@@ -1,30 +1,49 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiProperty,
+  ApiPropertyOptional,
+  IntersectionType,
+} from '@nestjs/swagger';
 import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Expose, Transform, Type } from 'class-transformer';
 import { BaseUserDTO } from 'src/user/dto/user.dto';
 import { UserAddressDTO } from 'src/user/dto/user-address.dto';
+import { OrderDeliveryStatus } from '../entities/order_delivery.entity';
+import { BaseDTO } from 'src/utils/dto/base.dto';
 
-export class OrderDeliveryDTO {
-  @ApiProperty({ description: 'Unique identifier of the delivery' })
+export class EmployeeDTO {
   @Expose()
-  id: string;
+  @ApiProperty({ description: 'First name of the employee' })
+  firstName: string;
 
-  @ApiProperty({ description: 'Id of the associated order' })
   @Expose()
-  @Transform(({ obj }: { obj: { order?: { id: string } } }) => obj.order?.id)
-  orderId: string;
+  @ApiProperty({ description: 'Last name of the employee' })
+  lastName: string;
 
-  @ApiProperty({
-    description: 'Delivery status (e.g., pending, delivered, etc.)',
-  })
   @Expose()
-  deliveryStatus: string;
+  @ApiProperty({ description: 'Phone number of the employee' })
+  phoneNumber: string;
+}
+
+class BaseOrderDeliveryDTO {
+  @Expose()
+  @ApiProperty({ description: 'Status of the order delivery' })
+  deliveryStatus: OrderDeliveryStatus;
 
   @ApiProperty({ description: 'Estimated time for delivery' })
   @IsDateString()
   @Expose()
   estimatedTime: Date;
+}
+
+export class OrderDeliveryDTO extends IntersectionType(
+  BaseDTO,
+  BaseOrderDeliveryDTO,
+) {
+  @ApiProperty({ description: 'Id of the associated order' })
+  @Expose()
+  @Transform(({ obj }: { obj: { order?: { id: string } } }) => obj.order?.id)
+  orderId: string;
 
   @ApiProperty({
     description: 'Id of the branch associated with the delivery',
@@ -79,14 +98,14 @@ export class OrderDeliveryDTO {
     }: {
       obj: {
         address?: {
-          address?: string;
+          adress?: string;
           zipCode?: string;
           additionalInformation?: string;
           referencePoint?: string;
         };
       };
     }) => ({
-      adress: obj.address?.address,
+      adress: obj.address?.adress,
       zipCode: obj.address?.zipCode,
       additionalInformation: obj.address?.additionalInformation,
       referencePoint: obj.address?.referencePoint,
@@ -122,4 +141,11 @@ export class OrderDeliveryQueryDTO extends PaginationQueryDTO {
   @IsOptional()
   @IsUUID()
   employeeId?: string;
+}
+
+export class OrderDeliveryEmployeeDTO extends BaseOrderDeliveryDTO {
+  @Expose()
+  @ApiProperty({ description: 'Delivery address info', type: EmployeeDTO })
+  @Type(() => EmployeeDTO)
+  employee: EmployeeDTO;
 }
