@@ -72,13 +72,21 @@ export class OrderDeliveryDTO extends IntersectionType(
     }: {
       obj: {
         order: {
-          user: { firstName: string; lastName: string; phoneNumber?: string };
+          user: {
+            firstName: string;
+            lastName: string;
+            phoneNumber?: string;
+            email?: string;
+            profile?: { profilePicture?: string };
+          };
         };
       };
     }) => ({
       firstName: obj.order.user.firstName,
       lastName: obj.order.user.lastName,
       phoneNumber: obj.order.user.phoneNumber,
+      email: obj.order.user.email,
+      profilePicture: obj.order.user.profile?.profilePicture,
     }),
     { toClassOnly: true },
   )
@@ -102,6 +110,8 @@ export class OrderDeliveryDTO extends IntersectionType(
           zipCode?: string;
           additionalInformation?: string;
           referencePoint?: string;
+          latitude?: number;
+          longitude?: number;
         };
       };
     }) => ({
@@ -109,6 +119,8 @@ export class OrderDeliveryDTO extends IntersectionType(
       zipCode: obj.address?.zipCode,
       additionalInformation: obj.address?.additionalInformation,
       referencePoint: obj.address?.referencePoint,
+      latitude: obj.address?.latitude,
+      longitude: obj.address?.longitude,
     }),
     { toClassOnly: true },
   )
