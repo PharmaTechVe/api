@@ -69,11 +69,11 @@ export class ProductsService {
   ): Promise<{ products: ProductPresentation[]; total: number }> {
     let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
-      .leftJoinAndSelect('product_presentation.product', 'product')
-      .leftJoinAndSelect('product.images', 'images')
-      .leftJoinAndSelect('product.manufacturer', 'manufacturer')
+      .innerJoinAndSelect('product_presentation.product', 'product')
+      .innerJoinAndSelect('product.images', 'images')
+      .innerJoinAndSelect('product.manufacturer', 'manufacturer')
       .innerJoinAndSelect('product.categories', 'categories')
-      .leftJoinAndSelect('product_presentation.presentation', 'presentation')
+      .innerJoinAndSelect('product_presentation.presentation', 'presentation')
       .leftJoin('product_presentation.inventories', 'inventories')
       .where('product_presentation.deleted_at IS NULL')
       .andWhere('product.deleted_at IS NULL')

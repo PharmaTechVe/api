@@ -82,7 +82,7 @@ export class OrderService {
       const price = product.promo
         ? product.price - (product.price * product.promo.discount) / 100
         : product.price;
-      return acc + price * product.quantity;
+      return acc + Math.round(price) * product.quantity;
     }, 0);
 
     if (productsWithQuantity.length == 0) {
@@ -93,7 +93,7 @@ export class OrderService {
       user,
       branch,
       type: createOrderDTO.type,
-      totalPrice,
+      totalPrice: totalPrice,
     });
     const order = await this.orderRepository.save(orderToCreate);
     const orderDetails = productsWithQuantity.map((product) => {
@@ -102,8 +102,9 @@ export class OrderService {
         productPresentation: product,
         quantity: product.quantity,
         subtotal: product.promo
-          ? (product.price - (product.price * product.promo.discount) / 100) *
-            product.quantity
+          ? Math.round(
+              product.price - (product.price * product.promo.discount) / 100,
+            ) * product.quantity
           : product.price * product.quantity,
       });
     });

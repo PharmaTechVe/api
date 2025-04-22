@@ -155,7 +155,10 @@ export class OrderDeliveryQueryDTO extends PaginationQueryDTO {
   employeeId?: string;
 }
 
-export class OrderDeliveryEmployeeDTO extends BaseOrderDeliveryDTO {
+export class OrderDeliveryEmployeeDTO extends IntersectionType(
+  BaseDTO,
+  BaseOrderDeliveryDTO,
+) {
   @Expose()
   @ApiProperty({ description: 'Delivery address info', type: EmployeeDTO })
   @Type(() => EmployeeDTO)
