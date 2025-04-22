@@ -185,6 +185,7 @@ export class OrderService {
       .createQueryBuilder('delivery')
       .leftJoinAndSelect('delivery.order', 'order')
       .leftJoinAndSelect('order.user', 'orderUser')
+      .leftJoinAndSelect('orderUser.profile', 'profile')
       .leftJoinAndSelect('delivery.address', 'address')
       .leftJoinAndSelect('address.city', 'city')
       .leftJoinAndSelect('city.state', 'state')
@@ -260,6 +261,7 @@ export class OrderService {
       relations: [
         'order',
         'order.user',
+        'order.user.profile',
         'address',
         'address.city',
         'address.city.state',
