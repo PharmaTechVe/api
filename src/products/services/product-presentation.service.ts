@@ -4,7 +4,7 @@ import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { Product } from '../entities/product.entity';
 import { Presentation } from '../entities/presentation.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { In, IsNull, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { PromoService } from '../../discount/services/promo.service';
 
@@ -55,7 +55,7 @@ export class ProductPresentationService {
     return this.repository.find({
       where: {
         product: { id: productId },
-        presentation: { deletedAt: IsNull() },
+        presentation: Not(IsNull()),
       },
       relations: ['presentation', 'promo'],
     });
