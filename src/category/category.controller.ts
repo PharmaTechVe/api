@@ -10,13 +10,9 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
-  Query,
-  Req,
-  DefaultValuePipe,
-  ParseIntPipe,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
-import { Request } from 'express';
 import {
   CategoryDTO,
   CategoryResponseDTO,
@@ -35,16 +31,14 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('category')
 @ApiExtraModels(PaginationDTO, CategoryResponseDTO)
 export class CategoryController {
-  constructor(
-    private readonly categoryService: CategoryService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -61,6 +55,7 @@ export class CategoryController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all categories' })
   @ApiQuery({
     name: 'page',
@@ -75,6 +70,13 @@ export class CategoryController {
     description: 'Number of items per page',
     type: Number,
     example: 10,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for category name',
+    type: String,
+    example: 'Antibiótico',
   })
   @ApiResponse({
     description: 'Successful retrieve categories',
@@ -94,15 +96,13 @@ export class CategoryController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<CategoryResponseDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.categoryService.countCategories();
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const categories = await this.categoryService.findAll(page, limit);
-    return { results: categories, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: CategoryResponseDTO[]; total: number }> {
+    const { page, limit, q } = pagination;
+    const data = await this.categoryService.findAll(page, limit, q);
+    const total = await this.categoryService.countCategories(q);
+
+    return { data, total };
   }
 
   @Get(':id')

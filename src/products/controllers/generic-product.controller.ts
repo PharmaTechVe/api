@@ -6,14 +6,12 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
-  Req,
   HttpCode,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { GenericProductService } from '../services/generic-product.service';
 import {
   CreateGenericProductDTO,
@@ -33,20 +31,17 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import {
+  GenericProductQueryDTO,
   PaginationDTO,
-  PaginationQueryDTO,
 } from 'src/utils/dto/pagination.dto';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-import { ConfigService } from '@nestjs/config';
 import { ApiTags } from '@nestjs/swagger';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @ApiTags('Generic Product')
 @Controller('product/generic')
 export class GenericProductController {
-  constructor(
-    private readonly genericProductService: GenericProductService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly genericProductService: GenericProductService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -65,6 +60,7 @@ export class GenericProductController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all generic products with pagination' })
   @ApiQuery({
     name: 'page',
@@ -79,6 +75,20 @@ export class GenericProductController {
     description: 'Number of items per page',
     type: Number,
     example: 10,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for Product name',
+    type: String,
+    example: 'Loratadina',
+  })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: 'Category ID to filter Generic Product by category',
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     description: 'Successful retrieval of generic products',
@@ -98,23 +108,17 @@ export class GenericProductController {
     },
   })
   async findAll(
-    @Query() query: PaginationQueryDTO,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponseGenericProductDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + req.path;
-    const { page, limit } = query;
-    const skip = query.calculateSkip();
-    const [results, count] = await this.genericProductService.findAll(
-      skip,
+    @Pagination() pagination: GenericProductQueryDTO,
+  ): Promise<{ data: ResponseGenericProductDTO[]; total: number }> {
+    const { page, limit, q, categoryId } = pagination;
+    const data = await this.genericProductService.findAll(
+      page,
       limit,
+      q,
+      categoryId,
     );
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return {
-      results,
-      count,
-      next,
-      previous,
-    };
+    const total = await this.genericProductService.countProducts(q, categoryId);
+    return { data, total };
   }
 
   @Get(':id')

@@ -7,11 +7,19 @@ import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Branch } from 'src/branch/entities/branch.entity';
-import { UserAdress } from './entities/user-address.entity';
+import { UserAddress } from './entities/user-address.entity';
+import { UserMoto } from './entities/user-moto.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserOTP, Profile, Branch, UserAdress]),
+    TypeOrmModule.forFeature([
+      User,
+      UserOTP,
+      Profile,
+      Branch,
+      UserAddress,
+      UserMoto,
+    ]),
     forwardRef(() => AuthModule),
   ],
   providers: [UserService],

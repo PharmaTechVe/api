@@ -1,4 +1,5 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsNotEmpty, IsUUID } from 'class-validator';
 import { StateDTO } from 'src/state/dto/state.dto';
 import { UUIDBaseDTO } from 'src/utils/dto/base.dto';
@@ -17,6 +18,7 @@ export class CreateCityDTO {
 export class UpdateCityDTO extends PartialType(CreateCityDTO) {}
 
 export class CityDTO extends UUIDBaseDTO {
+  @Expose()
   @ApiProperty({ description: 'The name of the city' })
   name: string;
 

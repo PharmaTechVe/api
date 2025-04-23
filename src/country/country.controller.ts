@@ -9,12 +9,8 @@ import {
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
-  Query,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { CountryService } from './country.service';
 import {
   CountryDTO,
@@ -34,16 +30,14 @@ import {
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('country')
 @ApiExtraModels(PaginationDTO, CountryResponseDTO)
 export class CountryController {
-  constructor(
-    private readonly countryService: CountryService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly countryService: CountryService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -62,6 +56,7 @@ export class CountryController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all countries' })
   @ApiQuery({
     name: 'page',
@@ -95,15 +90,12 @@ export class CountryController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<CountryResponseDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.countryService.countCountries();
-    const countries = await this.countryService.findAll(page, limit);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return { results: countries, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: CountryResponseDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.countryService.findAll(page, limit);
+    const total = await this.countryService.countCountries();
+    return { data, total };
   }
 
   @Get(':id')

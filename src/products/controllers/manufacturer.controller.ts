@@ -10,12 +10,8 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
-  ParseIntPipe,
-  Query,
-  DefaultValuePipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
@@ -35,15 +31,14 @@ import {
 import { ManufacturerService } from '../services/manufacturer.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
+import { Pagination } from 'src/utils/pagination.decorator';
+
 @Controller('manufacturer')
 @ApiExtraModels(PaginationDTO, ResponseManufacturerDTO)
 export class ManufacturerController {
-  constructor(
-    private readonly manufacturerService: ManufacturerService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly manufacturerService: ManufacturerService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -62,9 +57,7 @@ export class ManufacturerController {
   }
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
-  @ApiBearerAuth()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all manufacturers' })
   @ApiQuery({
     name: 'page',
@@ -98,15 +91,12 @@ export class ManufacturerController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponseManufacturerDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.manufacturerService.countManufacturers();
-    const manufacturers = await this.manufacturerService.findAll(page, limit);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    return { results: manufacturers, count, next, previous };
+    @Pagination() pagination: PaginationQueryDTO,
+  ): Promise<{ data: ResponseManufacturerDTO[]; total: number }> {
+    const { page, limit } = pagination;
+    const data = await this.manufacturerService.findAll(page, limit);
+    const total = await this.manufacturerService.countManufacturers();
+    return { data, total };
   }
 
   @Get(':id')

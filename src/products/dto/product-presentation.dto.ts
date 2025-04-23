@@ -1,26 +1,38 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { PresentationDTO } from './find-products.dto';
-import { GenericProductDTO } from './generic-product.dto';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import {
+  GenericProductDTO,
+  ResponseOrderGenericProductDTO,
+} from './generic-product.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
+import { ResponsePresentationDTO } from './presentation.dto';
+import { ResponsePromoDTO } from '../../discount/dto/promo.dto';
+import { Expose, Type } from 'class-transformer';
 
 export class ProductPresentationDTO {
-  @IsNumber()
+  @Expose()
+  @IsPositive()
   @IsNotEmpty()
   @ApiProperty({ description: 'The price of the product presentation.' })
   price: number;
 }
 
 export class CreateProductPresentationDTO extends ProductPresentationDTO {
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The ID of the associated product' })
-  productId: string;
+  presentationId: string;
 
   @IsString()
-  @IsNotEmpty()
-  @ApiProperty({ description: 'The ID of the associated presentation' })
-  presentationId: string;
+  @IsUUID()
+  @IsOptional()
+  @ApiProperty({ description: 'The ID of the associated promo' })
+  promoId?: string;
 }
 
 export class UpdateProductPresentationDTO extends PartialType(
@@ -31,8 +43,11 @@ export class ResponseProductPresentationDTO extends ProductPresentationDTO {
   @ApiProperty({ description: 'The ID of the product presentation' })
   id: string;
 
-  @ApiProperty({})
-  presentation: PresentationDTO;
+  @ApiProperty({ type: ResponsePresentationDTO })
+  presentation: ResponsePresentationDTO;
+
+  @ApiProperty({ type: ResponsePromoDTO })
+  promo: ResponsePromoDTO;
 }
 
 export class ResponseProductPresentationDetailDTO extends IntersectionType(
@@ -42,6 +57,29 @@ export class ResponseProductPresentationDetailDTO extends IntersectionType(
   @ApiProperty()
   product: GenericProductDTO;
 
-  @ApiProperty({ type: PresentationDTO })
-  presentation: PresentationDTO;
+  @ApiProperty({ type: ResponsePresentationDTO })
+  presentation: ResponsePresentationDTO;
+
+  @ApiProperty({ type: ResponsePromoDTO })
+  promo: ResponsePromoDTO;
+}
+
+export class ResponseOrderProductPresentationDetailDTO extends IntersectionType(
+  ProductPresentationDTO,
+  BaseDTO,
+) {
+  @Expose()
+  @Type(() => ResponseOrderGenericProductDTO)
+  @ApiProperty({ type: ResponseOrderGenericProductDTO })
+  product: ResponseOrderGenericProductDTO;
+
+  @Expose()
+  @Type(() => ResponsePresentationDTO)
+  @ApiProperty({ type: ResponsePresentationDTO })
+  presentation: ResponsePresentationDTO;
+
+  @Expose()
+  @Type(() => ResponsePromoDTO)
+  @ApiProperty({ type: ResponsePromoDTO })
+  promo: ResponsePromoDTO;
 }

@@ -6,16 +6,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserAdminDTO, UserDTO } from './dto/user.dto';
-import { User } from './entities/user.entity';
+import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
+import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
 import { OTPType } from 'src/user/entities/user-otp.entity';
-import { IsNull } from 'typeorm';
-import { UserAdress } from './entities/user-address.entity';
-import { CreateUserAddressDTO } from './dto/create-user-address.dto';
-import { UpdateUserDTO } from './dto/user-update.dto';
+import { UserAddress } from './entities/user-address.entity';
+import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
+import { UserMoto } from './entities/user-moto.entity';
+import { UpdateUserMotoDTO } from './dto/user-moto.dto';
 
 @Injectable()
 export class UserService {
@@ -26,8 +26,10 @@ export class UserService {
     private profileRepository: Repository<Profile>,
     @InjectRepository(UserOTP)
     private userOTPRepository: Repository<UserOTP>,
-    @InjectRepository(UserAdress)
-    private UserAdressRepository: Repository<UserAdress>,
+    @InjectRepository(UserAddress)
+    private UserAddressRepository: Repository<UserAddress>,
+    @InjectRepository(UserMoto)
+    private UserMotoRepository: Repository<UserMoto>,
     private configService: ConfigService,
   ) {}
 
@@ -132,6 +134,18 @@ export class UserService {
     }
     profile.birthDate = new Date(user.birthDate);
     await this.profileRepository.save(profile);
+
+    if (user.role === UserRole.DELIVERY) {
+      const userMoto = new UserMoto();
+      userMoto.user = userCreated;
+      userMoto.brand = user.brand || '';
+      userMoto.model = user.model || '';
+      userMoto.color = user.color || '';
+      userMoto.plate = user.plate || '';
+      userMoto.licenseUrl = user.licenseUrl || '';
+      await this.UserMotoRepository.save(userMoto);
+    }
+
     return userCreated;
   }
 
@@ -183,20 +197,52 @@ export class UserService {
     return user;
   }
 
-  async countActiveUsers(): Promise<number> {
-    return this.userRepository.count({
-      where: { deletedAt: IsNull() },
-    });
+  async countActiveUsers(q?: string, role?: UserRole): Promise<number> {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere(
+        '(user.firstName ILIKE :q OR user.lastName ILIKE :q OR user.documentId ILIKE :q)',
+        { q: `%${q}%` },
+      );
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    return qb.getCount();
   }
 
-  async getActiveUsers(page: number, limit: number): Promise<User[]> {
-    return this.userRepository.find({
-      where: { deletedAt: IsNull() },
-      relations: ['profile'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  async getActiveUsers(
+    page: number,
+    limit: number,
+    q?: string,
+    role?: UserRole,
+  ): Promise<User[]> {
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .where('user.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere(
+        '(user.firstName ILIKE :q OR user.lastName ILIKE :q OR user.documentId ILIKE :q)',
+        { q: `%${q}%` },
+      );
+    }
+
+    if (role) {
+      qb.andWhere('user.role = :role', { role });
+    }
+
+    qb.orderBy('user.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    return qb.getMany();
   }
 
   async deleteUser(userId: string): Promise<void> {
@@ -211,17 +257,17 @@ export class UserService {
   async createAddress(
     userId: string,
     addressData: CreateUserAddressDTO,
-  ): Promise<UserAdress> {
-    const newAddress = this.UserAdressRepository.create({
+  ): Promise<UserAddress> {
+    const newAddress = this.UserAddressRepository.create({
       ...addressData,
       user: { id: userId },
       city: { id: addressData.cityId },
     });
-    return await this.UserAdressRepository.save(newAddress);
+    return await this.UserAddressRepository.save(newAddress);
   }
 
-  async getAddress(userId: string, addressId: string): Promise<UserAdress> {
-    const address = await this.UserAdressRepository.findOne({
+  async getAddress(userId: string, addressId: string): Promise<UserAddress> {
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -231,8 +277,8 @@ export class UserService {
     return address;
   }
 
-  async getListAddresses(userId: string): Promise<UserAdress[]> {
-    const addresses = await this.UserAdressRepository.find({
+  async getListAddresses(userId: string): Promise<UserAddress[]> {
+    const addresses = await this.UserAddressRepository.find({
       where: { user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -243,14 +289,14 @@ export class UserService {
   }
 
   async deleteAddress(userId: string, addressId: string): Promise<void> {
-    const address = await this.UserAdressRepository.findOne({
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
     });
     if (!address) {
       throw new NotFoundException('Address not found.');
     }
 
-    const result = await this.UserAdressRepository.softDelete(address.id);
+    const result = await this.UserAddressRepository.softDelete(address.id);
     if (!result.affected) {
       throw new NotFoundException(`Address #${addressId} not found`);
     }
@@ -260,8 +306,8 @@ export class UserService {
     userId: string,
     addressId: string,
     updateData: Partial<CreateUserAddressDTO>,
-  ): Promise<UserAdress> {
-    const address = await this.UserAdressRepository.findOne({
+  ): Promise<UserAddress> {
+    const address = await this.UserAddressRepository.findOne({
       where: { id: addressId, user: { id: userId } },
       relations: ['city', 'city.state', 'city.state.country'],
     });
@@ -269,12 +315,17 @@ export class UserService {
       throw new NotFoundException('Address not found.');
     }
 
-    const updatedAddress = await this.UserAdressRepository.save({
+    const updatedAddress = await this.UserAddressRepository.save({
       ...address,
       ...updateData,
       city: updateData.cityId ? { id: updateData.cityId } : address.city,
     });
-    return updatedAddress;
+
+    const addressWithRelations = await this.getAddress(
+      userId,
+      updatedAddress.id,
+    );
+    return addressWithRelations;
   }
 
   async updateUser(id: string, updateUserDto: UpdateUserDTO): Promise<User> {
@@ -290,5 +341,19 @@ export class UserService {
     const profile = await this.findProfileByUserId(id);
     const updatedprofile = this.profileRepository.merge(profile, updateUserDto);
     return await this.profileRepository.save(updatedprofile);
+  }
+
+  async updateUserMoto(
+    userId: string,
+    updateMotoDto: UpdateUserMotoDTO,
+  ): Promise<UserMoto> {
+    const userMoto = await this.UserMotoRepository.findOne({
+      where: { user: { id: userId } },
+    });
+    if (!userMoto) {
+      throw new NotFoundException('User moto not found');
+    }
+    const updatedMoto = this.UserMotoRepository.merge(userMoto, updateMotoDto);
+    return await this.UserMotoRepository.save(updatedMoto);
   }
 }

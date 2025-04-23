@@ -1,23 +1,25 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from '../entities/product-presentation.entity';
-import { CreateProductPresentationDTO } from '../dto/create-product.dto';
+import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { Product } from '../entities/product.entity';
 import { Presentation } from '../entities/presentation.entity';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
+import { PromoService } from '../../discount/services/promo.service';
 
 @Injectable()
 export class ProductPresentationService {
   constructor(
     @InjectRepository(ProductPresentation)
     private readonly repository: Repository<ProductPresentation>,
+    private readonly promoService: PromoService,
   ) {}
 
   async findOne(id: string): Promise<ProductPresentation> {
     const productPresentation = await this.repository.findOne({
       where: { id, deletedAt: IsNull() },
-      relations: ['product', 'presentation'],
+      relations: ['product', 'presentation', 'promo'],
     });
 
     if (!productPresentation) {
@@ -39,7 +41,7 @@ export class ProductPresentationService {
         presentation: { id: presentationId },
         deletedAt: IsNull(),
       },
-      relations: ['product', 'presentation'],
+      relations: ['product', 'presentation', 'promo'],
     });
 
     if (!productPresentation) {
@@ -51,8 +53,11 @@ export class ProductPresentationService {
 
   async findByProductId(productId: string): Promise<ProductPresentation[]> {
     return this.repository.find({
-      where: { product: { id: productId } },
-      relations: ['presentation'],
+      where: {
+        product: { id: productId },
+        presentation: Not(IsNull()),
+      },
+      relations: ['presentation', 'promo'],
     });
   }
 
@@ -66,7 +71,11 @@ export class ProductPresentationService {
       presentation,
       price: createProductPresentationDto.price,
     });
-
+    if (createProductPresentationDto.promoId) {
+      newProductPresentation.promo = await this.promoService.findOne(
+        createProductPresentationDto.promoId,
+      );
+    }
     return this.repository.save(newProductPresentation);
   }
 
@@ -79,7 +88,7 @@ export class ProductPresentationService {
         product: { id: productId },
         presentation: { id: presentationId },
       },
-      relations: ['product', 'presentation'],
+      relations: ['product', 'presentation', 'promo'],
     });
   }
 
@@ -93,13 +102,16 @@ export class ProductPresentationService {
       presentationId,
     );
 
-    console.log(productPresentation);
-
     const updatedProductPresentation = {
       ...productPresentation,
       ...updateProductPresentationDto,
     };
 
+    if (updateProductPresentationDto.promoId) {
+      updatedProductPresentation.promo = await this.promoService.findOne(
+        updateProductPresentationDto.promoId,
+      );
+    }
     return await this.repository.save(updatedProductPresentation);
   }
 
@@ -112,5 +124,15 @@ export class ProductPresentationService {
       deletedAt: new Date(),
     });
     return deleted.affected === 1;
+  }
+
+  async findByIds(ids: string[]): Promise<ProductPresentation[]> {
+    return await this.repository.find({
+      where: {
+        id: In(ids),
+        deletedAt: IsNull(),
+      },
+      relations: ['product', 'presentation', 'promo', 'inventories'],
+    });
   }
 }

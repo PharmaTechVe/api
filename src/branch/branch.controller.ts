@@ -10,13 +10,9 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   HttpCode,
-  Query,
-  DefaultValuePipe,
-  ParseIntPipe,
-  Req,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BranchService } from './branch.service';
-import { Request } from 'express';
 import {
   CreateBranchDTO,
   UpdateBranchDTO,
@@ -34,17 +30,13 @@ import {
   getSchemaPath,
 } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
-import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
-
+import { BranchQueryDTO, PaginationDTO } from 'src/utils/dto/pagination.dto';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { Pagination } from 'src/utils/pagination.decorator';
 @Controller('branch')
 @ApiExtraModels(PaginationDTO, ResponseBranchDTO)
 export class BranchController {
-  constructor(
-    private readonly branchService: BranchService,
-    private configService: ConfigService,
-  ) {}
+  constructor(private readonly branchService: BranchService) {}
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
@@ -63,6 +55,7 @@ export class BranchController {
   }
 
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all branches or filter by city ID' })
   @ApiQuery({
     name: 'page',
@@ -77,6 +70,20 @@ export class BranchController {
     description: 'Number of items per page',
     type: Number,
     example: 10,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search term for branch name',
+    type: String,
+    example: 'main',
+  })
+  @ApiQuery({
+    name: 'stateId',
+    required: false,
+    description: "State ID to filter branches by city's state",
+    type: String,
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @ApiResponse({
     description: 'Successful retrieval of branches',
@@ -96,15 +103,12 @@ export class BranchController {
     },
   })
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-  ): Promise<PaginationDTO<ResponseBranchDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.branchService.countBranches();
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const branches = await this.branchService.findAll(page, limit);
-    return { results: branches, count, next, previous };
+    @Pagination() pagination: BranchQueryDTO,
+  ): Promise<{ data: ResponseBranchDTO[]; total: number }> {
+    const { page, limit, q, stateId } = pagination;
+    const data = await this.branchService.findAll(page, limit, q, stateId);
+    const total = await this.branchService.countBranches(q, stateId);
+    return { data, total };
   }
 
   @Get(':id')

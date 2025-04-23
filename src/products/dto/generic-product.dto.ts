@@ -9,24 +9,30 @@ import {
 } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
-import { CategoryDTO } from './find-products.dto';
+import { CategoryResponseDTO } from 'src/category/dto/category.dto';
+import { ImageDTO } from './product.dto';
+import { Expose, Type } from 'class-transformer';
 
 export class GenericProductDTO {
+  @Expose()
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: 'Name of the product' })
   name: string;
 
+  @Expose()
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ description: 'Name of the main compose' })
   genericName: string;
 
+  @Expose()
   @IsString()
   @IsOptional()
   @ApiProperty({ description: 'Description of the product' })
   description?: string;
 
+  @Expose()
   @IsInt()
   @IsNotEmpty()
   @Min(1)
@@ -55,7 +61,17 @@ export class ResponseGenericProductDTO extends IntersectionType(
 
   @ApiProperty({
     description: 'List of categories of the product',
-    type: [CategoryDTO],
+    type: [CategoryResponseDTO],
   })
-  categories: CategoryDTO[];
+  categories: CategoryResponseDTO[];
+}
+
+export class ResponseOrderGenericProductDTO extends IntersectionType(
+  GenericProductDTO,
+  BaseDTO,
+) {
+  @Expose()
+  @ApiProperty({ type: ImageDTO })
+  @Type(() => ImageDTO)
+  images: ImageDTO[];
 }

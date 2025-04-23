@@ -14,6 +14,10 @@ import { StateModule } from './state/state.module';
 import { CityModule } from './city/city.module';
 import { BranchModule } from './branch/branch.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { DiscountModule } from './discount/discount.module';
+import { PaymentModule } from './payments/payment.module';
+import { OrderModule } from './order/order.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -51,6 +55,10 @@ import { InventoryModule } from './inventory/inventory.module';
     CityModule,
     BranchModule,
     InventoryModule,
+    DiscountModule,
+    PaymentModule,
+    OrderModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

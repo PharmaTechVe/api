@@ -24,14 +24,49 @@ export class GenericProductService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(skip: number, limit: number): Promise<[Product[], number]> {
-    return await this.productRepository.findAndCount({
-      skip: skip,
-      take: limit,
-      where: { deletedAt: IsNull() },
-      order: { createdAt: 'DESC' },
-      relations: ['manufacturer', 'categories'],
-    });
+  async countProducts(q?: string, categoryId?: string): Promise<number> {
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoin('product.categories', 'categories')
+      .where('product.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere('product.name ILIKE :q', { q: `%${q}%` });
+    }
+
+    if (categoryId) {
+      qb.andWhere('categories.id = :categoryId', { categoryId });
+    }
+
+    return qb.getCount();
+  }
+
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+    categoryId?: string,
+  ): Promise<Product[]> {
+    const qb = this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.manufacturer', 'manufacturer')
+      .leftJoinAndSelect('manufacturer.country', 'country')
+      .leftJoinAndSelect('product.categories', 'categories')
+      .where('product.deletedAt IS NULL');
+
+    if (q) {
+      qb.andWhere('product.name ILIKE :q', { q: `%${q}%` });
+    }
+
+    if (categoryId) {
+      qb.andWhere('categories.id = :categoryId', { categoryId });
+    }
+
+    qb.orderBy('product.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+
+    return qb.getMany();
   }
 
   async findOne(id: string): Promise<Product> {

@@ -12,18 +12,24 @@ import {
   Post,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { ProductsService } from '../products.service';
-import { UpdateProductImageDto } from '../dto/update-product-image.dto';
 import { ProductImage } from '../entities/product-image.entity';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { CreateProductImageDto } from '../dto/create-product-image.dto';
+import {
+  CreateProductImageDTO,
+  UpdateProductImageDTO,
+} from '../dto/product-image.dto';
+import { ProductImageService } from '../services/product-image.service';
+import { GenericProductService } from '../services/generic-product.service';
 
 @Controller('product/:productId/image')
 export class ProductImageController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly genericProductService: GenericProductService,
+    private readonly productImageService: ProductImageService,
+  ) {}
 
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -32,11 +38,8 @@ export class ProductImageController {
   async getProductImages(
     @Param('productId') productId: string,
   ): Promise<ProductImage[]> {
-    const product = await this.productsService.findOne(productId);
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-    return product.images;
+    const images = await this.productImageService.findByProductId(productId);
+    return images;
   }
 
   @HttpCode(HttpStatus.CREATED)
@@ -48,13 +51,13 @@ export class ProductImageController {
   @ApiResponse({ status: HttpStatus.CREATED })
   async createProductImage(
     @Param('productId') productId: string,
-    @Body() createProductImageDto: CreateProductImageDto,
+    @Body() createProductImageDto: CreateProductImageDTO,
   ): Promise<void> {
-    const product = await this.productsService.findOne(productId);
+    const product = await this.genericProductService.findOne(productId);
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    await this.productsService.createProductImage(product, [
+    await this.productImageService.createProductImage(product, [
       createProductImageDto.url,
     ]);
   }
@@ -69,7 +72,7 @@ export class ProductImageController {
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
   ): Promise<ProductImage> {
-    const image = await this.productsService.findProductImage(
+    const image = await this.productImageService.findProductImage(
       productId,
       imageId,
     );
@@ -89,9 +92,9 @@ export class ProductImageController {
   async updateProductImage(
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
-    @Body() updateProductImageDto: UpdateProductImageDto,
+    @Body() updateProductImageDto: UpdateProductImageDTO,
   ): Promise<ProductImage> {
-    const image = await this.productsService.findProductImage(
+    const image = await this.productImageService.findProductImage(
       productId,
       imageId,
     );
@@ -99,7 +102,7 @@ export class ProductImageController {
       throw new NotFoundException('Product image not found');
     }
     image.url = updateProductImageDto.url ?? image.url;
-    return await this.productsService.updateProductImage(image);
+    return await this.productImageService.updateProductImage(image);
   }
 
   @Delete(':imageId')
@@ -114,13 +117,13 @@ export class ProductImageController {
     @Param('productId') productId: string,
     @Param('imageId') imageId: string,
   ): Promise<void> {
-    const image = await this.productsService.findProductImage(
+    const image = await this.productImageService.findProductImage(
       productId,
       imageId,
     );
     if (!image) {
       throw new NotFoundException('Product image not found');
     }
-    await this.productsService.deleteProductImage(image);
+    await this.productImageService.deleteProductImage(image);
   }
 }

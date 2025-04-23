@@ -1,47 +1,22 @@
-import {
-  Body,
-  Controller,
-  DefaultValuePipe,
-  Get,
-  ParseIntPipe,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
   ApiExtraModels,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
-  ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { ProductPresentationDTO } from './dto/find-products.dto';
-import { Request } from 'express';
-import { ConfigService } from '@nestjs/config';
-import { getPaginationUrl } from 'src/utils/pagination-urls';
+import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
-import { CreateProductDTO } from './dto/create-product.dto';
-import { Product } from './entities/product.entity';
-import { Roles } from 'src/auth/roles.decorador';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { UserRole } from 'src/user/entities/user.entity';
+import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
-  constructor(
-    private productsServices: ProductsService,
-    private configService: ConfigService,
-  ) {}
-
+  constructor(private productsServices: ProductsService) {}
   @Get()
+  @UseInterceptors(PaginationInterceptor)
   @ApiOperation({
     summary: 'List all available products',
     description:
@@ -68,6 +43,45 @@ export class ProductsController {
       'Search text to filter by name, generic_name or manufacturer.name',
     type: String,
   })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    description: 'Filter by category ID',
+    type: String,
+    example:
+      '123e4567-e89b-12d3-a456-426614174000,123e4567-e89b-12d3-a456-426614174001',
+  })
+  @ApiQuery({
+    name: 'branchId',
+    required: false,
+    description: 'Filter by branch ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'manufacturerId',
+    required: false,
+    description: 'Filter by manufacturer ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'presentationId',
+    required: false,
+    description: 'Filter by presentation ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'genericProductId',
+    required: false,
+    description: 'Filter by generic product ID',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'rangePrice',
+    required: false,
+    description: 'Filter by price range',
+    type: String,
+    example: '100,200',
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -85,80 +99,31 @@ export class ProductsController {
     },
   })
   async getProducts(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Req() req: Request,
-    @Query('q') searchText?: string,
-  ): Promise<PaginationDTO<ProductPresentationDTO>> {
-    const baseUrl = this.configService.get<string>('API_URL') + `${req.path}`;
-    const count = await this.productsServices.countProducts(searchText);
-    const { next, previous } = getPaginationUrl(baseUrl, page, limit, count);
-    const products = await this.productsServices.getProducts(
+    @Query() pagination: ProductQueryDTO,
+  ): Promise<{ data: ProductPresentationDTO[]; total: number }> {
+    const {
       page,
       limit,
-      searchText,
-    );
-    return { results: products, count, next, previous };
-  }
-
-  @Post()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
-  @ApiBearerAuth()
-  @ApiOperation({
-    summary: 'Create a new product',
-    description: 'Only ADMIN and BRANCH_ADMIN can create a product.',
-  })
-  @ApiBody({ type: CreateProductDTO })
-  @ApiCreatedResponse({
-    description: 'Product successfully created.',
-    type: Product,
-  })
-  @ApiUnauthorizedResponse({ description: 'User is not authorized.' })
-  async createProduct(
-    @Body() createProductDto: CreateProductDTO,
-  ): Promise<Product> {
-    const manufacturer = await this.productsServices.findManufacturer(
-      createProductDto.manufacturer,
+      q,
+      categoryId,
+      branchId,
+      manufacturerId,
+      presentationId,
+      genericProductId,
+      priceRange,
+    } = pagination;
+    const { products, total } = await this.productsServices.getProducts(
+      page,
+      limit,
+      q,
+      categoryId,
+      manufacturerId,
+      branchId,
+      presentationId,
+      genericProductId,
+      priceRange,
     );
 
-    const newProduct = await this.productsServices.createProduct(
-      createProductDto,
-      manufacturer,
-    );
-
-    if (createProductDto.imageUrls && createProductDto.imageUrls.length) {
-      await this.productsServices.createProductImage(
-        newProduct,
-        createProductDto.imageUrls,
-      );
-    }
-
-    if (createProductDto.categoryIds && createProductDto.categoryIds.length) {
-      const categories = await this.productsServices.findCategories(
-        createProductDto.categoryIds,
-      );
-
-      await this.productsServices.addCategoriesToProduct(
-        newProduct,
-        categories,
-      );
-    }
-
-    if (
-      createProductDto.presentations &&
-      createProductDto.presentations.length
-    ) {
-      const ids = createProductDto.presentations.map((p) => p.presentationId);
-      const presentations = await this.productsServices.findPresentations(ids);
-
-      await this.productsServices.addPresentationsToProduct(
-        newProduct,
-        presentations,
-        createProductDto.presentations,
-      );
-    }
-
-    return newProduct;
+    return { data: products, total };
   }
 }
