@@ -17,9 +17,6 @@ export class UserAddress extends BaseModel {
   @Column({ type: 'character varying', name: 'adress' })
   adress: string;
 
-  @Column({ type: 'character varying', name: 'zip_code', nullable: true })
-  zipCode: string;
-
   @Column({ type: 'float', name: 'latitude', nullable: true })
   latitude: number;
 

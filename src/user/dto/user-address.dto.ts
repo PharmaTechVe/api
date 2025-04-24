@@ -7,11 +7,6 @@ export class CreateUserAddressDTO {
   @IsString()
   adress: string;
 
-  @ApiProperty({ description: 'Zip or postal code', required: false })
-  @IsOptional()
-  @IsString()
-  zipCode?: string;
-
   @ApiProperty({ description: 'Latitude of the address', required: false })
   @IsOptional()
   @IsNumber()
