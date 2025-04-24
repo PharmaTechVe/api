@@ -79,7 +79,8 @@ export class ProductsService {
       .andWhere('product.deleted_at IS NULL')
       .andWhere('manufacturer.deleted_at IS NULL')
       .andWhere('images.deleted_at IS NULL')
-      .andWhere('presentation.deleted_at IS NULL');
+      .andWhere('presentation.deleted_at IS NULL')
+      .andWhere('product_presentation.is_visible = true');
 
     query = this.applySearchQuery(query, searchQuery);
 
