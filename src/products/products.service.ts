@@ -120,6 +120,8 @@ export class ProductsService {
       });
     }
 
+    query.orderBy('product.priority', 'ASC');
+
     const total = await this.countProducts(query);
 
     const products = await query
