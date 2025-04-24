@@ -27,6 +27,9 @@ export class PromoService {
       where: { deletedAt: IsNull() },
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 

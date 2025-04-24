@@ -120,7 +120,10 @@ export class ProductsService {
       });
     }
 
-    query.orderBy('product.priority', 'ASC');
+    query.orderBy({
+      'product.priority': 'ASC',
+      'product.createdAt': 'DESC',
+    });
 
     const total = await this.countProducts(query);
 

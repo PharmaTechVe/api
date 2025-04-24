@@ -23,6 +23,9 @@ export class CouponService {
     return await this.couponRepository.find({
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
