@@ -66,6 +66,7 @@ export class ProductsService {
     presentationIds?: string[],
     genericProductIds?: string[],
     priceRange?: number[],
+    isVisible?: boolean,
   ): Promise<{ products: ProductPresentation[]; total: number }> {
     let query = this.productPresentationRepository
       .createQueryBuilder('product_presentation')
@@ -79,8 +80,7 @@ export class ProductsService {
       .andWhere('product.deleted_at IS NULL')
       .andWhere('manufacturer.deleted_at IS NULL')
       .andWhere('images.deleted_at IS NULL')
-      .andWhere('presentation.deleted_at IS NULL')
-      .andWhere('product_presentation.is_visible = true');
+      .andWhere('presentation.deleted_at IS NULL');
 
     query = this.applySearchQuery(query, searchQuery);
 
@@ -119,6 +119,14 @@ export class ProductsService {
         min: priceRange[0],
         max: priceRange[1],
       });
+    }
+
+    if (typeof isVisible === 'boolean') {
+      query.andWhere('product_presentation.is_visible = :isVisible', {
+        isVisible,
+      });
+    } else {
+      query.andWhere('product_presentation.is_visible = true');
     }
 
     query.orderBy({

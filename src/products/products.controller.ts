@@ -111,6 +111,7 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
       page,
@@ -122,6 +123,7 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     );
 
     return { data: products, total };
