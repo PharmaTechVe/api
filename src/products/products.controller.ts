@@ -82,6 +82,13 @@ export class ProductsController {
     type: String,
     example: '100,200',
   })
+  @ApiQuery({
+    name: 'isVisible',
+    required: false,
+    description: 'Filter by product visibility',
+    type: Boolean,
+    example: true,
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {

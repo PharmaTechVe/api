@@ -58,6 +58,9 @@ export class ProductPresentationDTO extends BaseDTO {
   @ApiProperty()
   price: number;
 
+  @ApiProperty()
+  isVisible: boolean;
+
   @ApiProperty({ type: ResponsePresentationDTO })
   presentation: ResponsePresentationDTO;
 
