@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsNumber, IsString } from 'class-validator';
 
 export class CreateUserAddressDTO {
@@ -6,6 +7,10 @@ export class CreateUserAddressDTO {
   @IsNotEmpty()
   @IsString()
   adress: string;
+
+  @IsOptional()
+  @Exclude()
+  zipCode?: string;
 
   @ApiProperty({ description: 'Latitude of the address', required: false })
   @IsOptional()
