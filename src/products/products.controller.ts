@@ -10,6 +10,7 @@ import {
 import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
@@ -124,6 +125,12 @@ export class ProductsController {
       priceRange,
     );
 
-    return { data: products, total };
+    return {
+      data: plainToInstance(ProductPresentationDTO, products, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total,
+    };
   }
 }
