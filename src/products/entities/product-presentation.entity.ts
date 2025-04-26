@@ -47,6 +47,7 @@ export class ProductPresentation extends BaseModel {
   @VirtualColumn({
     query: (alias) =>
       `SELECT SUM(stock_quantity) FROM inventory WHERE product_presentation_id = ${alias}.id`,
+    type: 'int',
   })
   stock: number;
 }
