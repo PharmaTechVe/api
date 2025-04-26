@@ -1,33 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Product } from './entities/product.entity';
-import { Repository, Brackets, SelectQueryBuilder } from 'typeorm';
+import {
+  Repository,
+  Brackets,
+  SelectQueryBuilder,
+  Like,
+  In,
+  Between,
+} from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
-import { Manufacturer } from './entities/manufacturer.entity';
-import { ProductImage } from './entities/product-image.entity';
-import { Presentation } from './entities/presentation.entity';
-import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ProductsService {
   constructor(
     @InjectRepository(ProductPresentation)
     private productPresentationRepository: Repository<ProductPresentation>,
-
-    @InjectRepository(Presentation)
-    private PresentationRepository: Repository<Presentation>,
-
-    @InjectRepository(Product)
-    private productRepository: Repository<Product>,
-
-    @InjectRepository(Manufacturer)
-    private manufacturerRepository: Repository<Manufacturer>,
-
-    @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
-
-    @InjectRepository(ProductImage)
-    private productImageRepository: Repository<ProductImage>,
   ) {}
 
   private applySearchQuery(
@@ -56,7 +43,10 @@ export class ProductsService {
     return query.getCount();
   }
 
-  async getProducts(
+  /**
+   *  @deprecated use getProducts instead
+   */
+  async getProductsOld(
     page: number,
     limit: number,
     searchQuery?: string,
@@ -126,6 +116,100 @@ export class ProductsService {
       .skip((page - 1) * limit)
       .take(limit)
       .getMany();
+
+    return { products, total };
+  }
+
+  async getProducts(
+    page: number,
+    limit: number,
+    searchQuery?: string,
+    categoryIds?: string[],
+    manufacturerIds?: string[],
+    branchIds?: string[],
+    presentationIds?: string[],
+    genericProductIds?: string[],
+    priceRange?: number[],
+  ) {
+    let where = {};
+    if (searchQuery) {
+      where = {
+        product: [
+          {
+            name: Like(`%${searchQuery}%`),
+            genericName: Like(`%${searchQuery}%`),
+          },
+        ],
+      };
+    }
+    if (categoryIds && categoryIds.length > 0) {
+      where = {
+        ...where,
+        product: {
+          categories: {
+            id: In(categoryIds),
+          },
+        },
+      };
+    }
+    if (manufacturerIds && manufacturerIds.length > 0) {
+      where = {
+        ...where,
+        product: {
+          manufacturer: {
+            id: In(manufacturerIds),
+          },
+        },
+      };
+    }
+    if (branchIds && branchIds.length > 0) {
+      where = {
+        ...where,
+        inventories: {
+          branch: {
+            id: In(branchIds),
+          },
+        },
+      };
+    }
+    if (presentationIds && presentationIds.length > 0) {
+      where = {
+        ...where,
+        presentation: {
+          id: In(presentationIds),
+        },
+      };
+    }
+    if (genericProductIds && genericProductIds.length > 0) {
+      where = {
+        ...where,
+        product: {
+          id: In(genericProductIds),
+        },
+      };
+    }
+    if (priceRange && priceRange.length === 2) {
+      where = {
+        ...where,
+        price: Between(priceRange[0], priceRange[1]),
+      };
+    }
+    const [products, total] =
+      await this.productPresentationRepository.findAndCount({
+        join: {
+          alias: 'product_presentation',
+          innerJoinAndSelect: {
+            product: 'product_presentation.product',
+            images: 'product.images',
+            manufacturer: 'product.manufacturer',
+            categories: 'product.categories',
+            presentation: 'product_presentation.presentation',
+          },
+        },
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
     return { products, total };
   }
