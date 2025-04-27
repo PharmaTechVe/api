@@ -3,10 +3,15 @@ import { ProductPresentation } from '../entities/product-presentation.entity';
 import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { Product } from '../entities/product.entity';
 import { Presentation } from '../entities/presentation.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { In, IsNull, Not, Repository } from 'typeorm';
 import { UpdateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { PromoService } from '../../discount/services/promo.service';
+import { Inventory } from '../../inventory/entities/inventory.entity';
 
 @Injectable()
 export class ProductPresentationService {
@@ -14,6 +19,8 @@ export class ProductPresentationService {
     @InjectRepository(ProductPresentation)
     private readonly repository: Repository<ProductPresentation>,
     private readonly promoService: PromoService,
+    @InjectRepository(Inventory)
+    private readonly inventoryRepository: Repository<Inventory>,
   ) {}
 
   async findOne(id: string): Promise<ProductPresentation> {
@@ -134,5 +141,34 @@ export class ProductPresentationService {
       },
       relations: ['product', 'presentation', 'promo', 'inventories'],
     });
+  }
+  async getTotalInventory(presentationId: string): Promise<number> {
+    const rawResult = await this.inventoryRepository
+      .createQueryBuilder('inv')
+      .select('SUM(inv.stock_quantity)', 'sum')
+      .where('inv.product_presentation_id = :id', { id: presentationId })
+      .getRawOne<{ sum: string }>();
+    const total = rawResult?.sum ?? '0';
+    return Number(total);
+  }
+
+  async decrementInventory(
+    presentationId: string,
+    branchId: string,
+    amount: number,
+  ): Promise<void> {
+    const inv = await this.inventoryRepository.findOne({
+      where: {
+        productPresentation: { id: presentationId },
+        branch: { id: branchId },
+      },
+    });
+    if (!inv || inv.stockQuantity < amount) {
+      throw new BadRequestException(
+        'Insufficient branch inventory to approve order',
+      );
+    }
+    inv.stockQuantity -= amount;
+    await this.inventoryRepository.save(inv);
   }
 }

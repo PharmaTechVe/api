@@ -36,5 +36,6 @@ import { InventorySubscriber } from '../inventory/subscribers/inventory.subscrib
     CountryService,
     InventorySubscriber,
   ],
+  exports: [InventoryService, TypeOrmModule],
 })
 export class InventoryModule {}

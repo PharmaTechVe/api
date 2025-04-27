@@ -23,6 +23,7 @@ import {
 import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
+import { CouponService } from 'src/discount/services/coupon.service';
 
 @Injectable()
 export class OrderService {
@@ -36,6 +37,7 @@ export class OrderService {
     @InjectRepository(OrderDelivery)
     private orderDeliveryRepository: Repository<OrderDelivery>,
     private userService: UserService,
+    private couponService: CouponService,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -78,7 +80,17 @@ export class OrderService {
       ...product,
       quantity: productsById[product.id],
     }));
-    const totalPrice = productsWithQuantity.reduce((acc, product) => {
+    for (const item of productsWithQuantity) {
+      const available = await this.productPresentationService.getTotalInventory(
+        item.id,
+      );
+      if (item.quantity > available) {
+        throw new BadRequestException(
+          `Insufficient inventory for productPresentation ${item.id}`,
+        );
+      }
+    }
+    let totalPrice = productsWithQuantity.reduce((acc, product) => {
       const price = product.promo
         ? product.price - (product.price * product.promo.discount) / 100
         : product.price;
@@ -88,7 +100,12 @@ export class OrderService {
     if (productsWithQuantity.length == 0) {
       throw new BadRequestException('No products found');
     }
-
+    if (createOrderDTO.couponCode) {
+      totalPrice = await this.validateAndApplyCoupon(
+        createOrderDTO.couponCode,
+        totalPrice,
+      );
+    }
     const orderToCreate = this.orderRepository.create({
       user,
       branch,
@@ -121,7 +138,30 @@ export class OrderService {
     }
     return order;
   }
+  private async validateAndApplyCoupon(
+    couponCode: string,
+    totalPrice: number,
+  ): Promise<number> {
+    const coupon = await this.couponService.findOne(couponCode);
 
+    if (coupon.expirationDate.getTime() < Date.now()) {
+      throw new BadRequestException('Coupon expired');
+    }
+    if (totalPrice < coupon.minPurchase) {
+      throw new BadRequestException(
+        `Minimum purchase of ${coupon.minPurchase} required to use this coupon`,
+      );
+    }
+    if (coupon.maxUses <= 0) {
+      throw new BadRequestException('Coupon has no remaining uses');
+    }
+    const discountAmount = Math.round((totalPrice * coupon.discount) / 100);
+    const newTotal = totalPrice - discountAmount;
+    await this.couponService.update(coupon.code, {
+      maxUses: coupon.maxUses - 1,
+    });
+    return newTotal;
+  }
   async findAll(
     page: number,
     pageSize: number,
@@ -163,11 +203,21 @@ export class OrderService {
     }
     return order;
   }
-  async update(id: string, status: OrderStatus) {
+  async update(id: string, status: OrderStatus): Promise<Order> {
     const order = await this.findOne(id);
-    if (!order) {
-      throw new BadRequestException('Order not found');
+    if (order.status === OrderStatus.COMPLETED) {
+      throw new BadRequestException('A COMPLETED order cannot be modified');
     }
+    if (status === OrderStatus.APPROVED) {
+      for (const detail of order.details) {
+        await this.productPresentationService.decrementInventory(
+          detail.productPresentation.id,
+          order.branch.id,
+          detail.quantity,
+        );
+      }
+    }
+
     order.status = status;
     return await this.orderRepository.save(order);
   }

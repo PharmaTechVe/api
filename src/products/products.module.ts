@@ -26,6 +26,7 @@ import { ProductCategoryController } from './controllers/product-category.contro
 import { ProductCategoryService } from './services/product-category.service';
 import { CategoryService } from 'src/category/category.service';
 import { RecommendationService } from 'src/recommendation/recommendation.service';
+import { InventoryModule } from 'src/inventory/inventory.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { RecommendationService } from 'src/recommendation/recommendation.service
     ]),
     AuthModule,
     forwardRef(() => DiscountModule),
+    forwardRef(() => InventoryModule),
   ],
   controllers: [
     ProductsController,
