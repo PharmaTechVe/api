@@ -1,4 +1,11 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
   ApiExtraModels,
@@ -11,11 +18,16 @@ import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { plainToInstance } from 'class-transformer';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
+import { RecommendationService } from 'src/recommendation/recommendation.service';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
-  constructor(private productsServices: ProductsService) {}
+  constructor(
+    private productsServices: ProductsService,
+    private recommendationService: RecommendationService,
+  ) {}
   @Get()
   @UseInterceptors(PaginationInterceptor)
   @ApiOperation({
@@ -131,6 +143,30 @@ export class ProductsController {
         enableImplicitConversion: true,
       }),
       total,
+    };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('recommendations')
+  async getProductRecommendations(@Req() req: CustomRequest) {
+    const userId = req.user.id;
+    const recommendations = await this.recommendationService.recommend(userId);
+    const products = await this.productsServices.getProducts(
+      1,
+      10,
+      undefined,
+      [],
+      [],
+      [],
+      [],
+      recommendations,
+    );
+    return {
+      data: plainToInstance(ProductPresentationDTO, products.products, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total: products.total,
     };
   }
 }

@@ -25,6 +25,7 @@ import { ProductImageService } from './services/product-image.service';
 import { ProductCategoryController } from './controllers/product-category.controller';
 import { ProductCategoryService } from './services/product-category.service';
 import { CategoryService } from 'src/category/category.service';
+import { RecommendationService } from 'src/recommendation/recommendation.service';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { CategoryService } from 'src/category/category.service';
     ProductPresentationService,
     ProductImageService,
     ProductCategoryService,
+    RecommendationService,
   ],
 })
 export class ProductsModule {}
