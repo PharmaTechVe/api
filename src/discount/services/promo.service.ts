@@ -22,12 +22,26 @@ export class PromoService {
     });
   }
 
-  async findAll(page: number, pageSize: number): Promise<Promo[]> {
-    return await this.promoRepository.find({
-      where: { deletedAt: IsNull() },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+    expiredBetween?: Date[],
+  ): Promise<Promo[]> {
+    const promos = this.promoRepository
+      .createQueryBuilder('promo')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
+    if (q) {
+      promos.where('promo.name ILIKE :name', { name: `%${q}%` });
+    }
+    if (expiredBetween && expiredBetween.length === 2) {
+      promos.andWhere('promo.expired_at BETWEEN :start AND :end', {
+        start: expiredBetween[0],
+        end: expiredBetween[1],
+      });
+    }
+    return await promos.getMany();
   }
 
   async findOne(id: string): Promise<Promo> {

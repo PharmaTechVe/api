@@ -11,6 +11,7 @@ import {
   HttpCode,
   ParseUUIDPipe,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -23,13 +24,16 @@ import {
   ApiResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { PromoDTO, UpdatePromoDTO, ResponsePromoDTO } from '../dto/promo.dto';
+import {
+  PromoDTO,
+  UpdatePromoDTO,
+  ResponsePromoDTO,
+  PromoQueryDTO,
+} from '../dto/promo.dto';
 import { PromoService } from '../services/promo.service';
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Pagination } from 'src/utils/pagination.decorator';
 
 @Controller('promo')
 @ApiExtraModels(PaginationDTO, ResponsePromoDTO)
@@ -67,6 +71,19 @@ export class PromoController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search text to filter by name',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'expirationBetween',
+    required: false,
+    description: 'Filter by expiration date range',
+    type: String,
+    example: '2023-01-01,2023-12-31',
+  })
   @ApiResponse({
     description: 'Successful retrieval of promos',
     status: HttpStatus.OK,
@@ -85,10 +102,15 @@ export class PromoController {
     },
   })
   async findAll(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Query() pagination: PromoQueryDTO,
   ): Promise<{ data: ResponsePromoDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.promoService.findAll(page, limit);
+    const { page, limit, q, expirationBetween } = pagination;
+    const data = await this.promoService.findAll(
+      page,
+      limit,
+      q,
+      expirationBetween,
+    );
     const total = await this.promoService.countPromos();
     return { data, total };
   }

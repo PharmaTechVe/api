@@ -10,12 +10,14 @@ import {
   HttpStatus,
   HttpCode,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { CouponService } from '../services/coupon.service';
 import {
   CouponDTO,
   UpdateCouponDTO,
   ResponseCouponDTO,
+  CouponQueryDTO,
 } from '../dto/coupon.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -31,9 +33,6 @@ import {
 import { UserRole } from 'src/user/entities/user.entity';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
-import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Pagination } from 'src/utils/pagination.decorator';
-
 @Controller('coupon')
 @ApiExtraModels(PaginationDTO, ResponseCouponDTO)
 @ApiBearerAuth()
@@ -72,6 +71,19 @@ export class CouponController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Search text to filter by code',
+    type: String,
+  })
+  @ApiQuery({
+    name: 'expirationBetween',
+    required: false,
+    description: 'Filter by expiration date range',
+    type: String,
+    example: '2023-01-01,2023-12-31',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Successful retrieval of coupons',
@@ -90,10 +102,15 @@ export class CouponController {
     },
   })
   async findAll(
-    @Pagination() pagination: PaginationQueryDTO,
+    @Query() pagination: CouponQueryDTO,
   ): Promise<{ data: ResponseCouponDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.couponService.findAll(page, limit);
+    const { page, limit, q, expirationBetween } = pagination;
+    const data = await this.couponService.findAll(
+      page,
+      limit,
+      q,
+      expirationBetween,
+    );
     const total = await this.couponService.countCoupon();
     return { data, total };
   }
