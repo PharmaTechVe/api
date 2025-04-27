@@ -147,6 +147,7 @@ export class ProductsController {
   }
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(PaginationInterceptor)
   @Get('recommendations')
   async getProductRecommendations(@Req() req: CustomRequest) {
     const userId = req.user.id;
