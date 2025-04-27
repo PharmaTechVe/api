@@ -72,6 +72,13 @@ export class PresentationController {
     type: Number,
     example: 10,
   })
+  @ApiQuery({
+    name: 'q',
+    required: false,
+    description: 'Filter presentations by name',
+    type: String,
+    example: 'presentation name',
+  })
   @ApiResponse({
     description: 'Successful retrieval of presentations',
     status: HttpStatus.OK,
