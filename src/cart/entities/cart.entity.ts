@@ -9,6 +9,6 @@ export class Cart extends BaseModel {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.cart)
+  @OneToMany(() => CartItem, (cartItem) => cartItem.cart, { cascade: true })
   items: CartItem[];
 }

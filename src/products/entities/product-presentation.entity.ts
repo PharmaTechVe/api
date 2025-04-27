@@ -6,6 +6,8 @@ import { Lot } from './lot.entity';
 import { Promo } from '../../discount/entities/promo.entity';
 import { Inventory } from 'src/inventory/entities/inventory.entity';
 import { OrderDetail } from 'src/order/entities/order.entity';
+import { CartItem } from 'src/cart/entities/cart-item.entity';
+
 @Entity('product_presentation')
 export class ProductPresentation extends BaseModel {
   @ManyToOne(() => Product, (product) => product.presentations)
@@ -36,4 +38,7 @@ export class ProductPresentation extends BaseModel {
     (orderDetail) => orderDetail.productPresentation,
   )
   orders: OrderDetail[];
+
+  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  cartItems: CartItem[];
 }

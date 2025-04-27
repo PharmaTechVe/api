@@ -12,7 +12,6 @@ import { ProductImage } from './product-image.entity';
 import { Category } from '../../category/entities/category.entity';
 import { ProductPresentation } from './product-presentation.entity';
 import { BaseModel } from 'src/utils/entity';
-import { CartItem } from 'src/cart/entities/cart-item.entity';
 
 @Entity('product')
 export class Product extends BaseModel {
@@ -54,7 +53,4 @@ export class Product extends BaseModel {
     (productPresentation) => productPresentation.product,
   )
   presentations: ProductPresentation[];
-
-  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
-  cartItems: CartItem[];
 }
