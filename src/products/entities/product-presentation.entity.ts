@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  VirtualColumn,
+} from 'typeorm';
 import { Product } from './product.entity';
 import { Presentation } from './presentation.entity';
 import { BaseModel } from 'src/utils/entity';
@@ -36,4 +43,11 @@ export class ProductPresentation extends BaseModel {
     (orderDetail) => orderDetail.productPresentation,
   )
   orders: OrderDetail[];
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT SUM(stock_quantity) FROM inventory WHERE product_presentation_id = ${alias}.id`,
+    type: 'int',
+  })
+  stock: number;
 }

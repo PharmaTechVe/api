@@ -1,14 +1,17 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
+import { Expose } from 'class-transformer';
 import { IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { CountryDTO } from 'src/country/dto/country.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 
 export class ManufacturerDTO {
+  @Expose()
   @ApiProperty({ description: 'The name of the manufacturer' })
   @IsNotEmpty()
   @IsString()
   name: string;
 
+  @Expose()
   @ApiProperty({
     description: 'The description of the manufacturer',
     required: false,
