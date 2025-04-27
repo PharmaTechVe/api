@@ -18,6 +18,7 @@ import { DiscountModule } from './discount/discount.module';
 import { PaymentModule } from './payments/payment.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { NotificationModule } from './notification/notification.module';
     PaymentModule,
     OrderModule,
     NotificationModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
