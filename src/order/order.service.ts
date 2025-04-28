@@ -24,6 +24,7 @@ import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
 import { CouponService } from 'src/discount/services/coupon.service';
+import { InventoryService } from 'src/inventory/inventory.service';
 
 @Injectable()
 export class OrderService {
@@ -37,6 +38,7 @@ export class OrderService {
     @InjectRepository(OrderDelivery)
     private orderDeliveryRepository: Repository<OrderDelivery>,
     private userService: UserService,
+    private readonly inventoryService: InventoryService,
     private couponService: CouponService,
   ) {}
 
@@ -80,10 +82,11 @@ export class OrderService {
       ...product,
       quantity: productsById[product.id],
     }));
+    const presentationIds = productsWithQuantity.map((p) => p.id);
+    const inventories =
+      await this.inventoryService.getBulkTotalInventory(presentationIds);
     for (const item of productsWithQuantity) {
-      const available = await this.productPresentationService.getTotalInventory(
-        item.id,
-      );
+      const available = inventories[item.id] ?? 0;
       if (item.quantity > available) {
         throw new BadRequestException(
           `Insufficient inventory for productPresentation ${item.id}`,
@@ -210,7 +213,7 @@ export class OrderService {
     }
     if (status === OrderStatus.APPROVED) {
       for (const detail of order.details) {
-        await this.productPresentationService.decrementInventory(
+        await this.inventoryService.decrementInventory(
           detail.productPresentation.id,
           order.branch.id,
           detail.quantity,
