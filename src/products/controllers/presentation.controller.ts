@@ -99,8 +99,8 @@ export class PresentationController {
   async findAll(
     @Pagination() pagination: PaginationQueryDTO,
   ): Promise<{ data: ResponsePresentationDTO[]; total: number }> {
-    const { page, limit } = pagination;
-    const data = await this.presentationService.findAll(page, limit);
+    const { page, limit, q } = pagination;
+    const data = await this.presentationService.findAll(page, limit, q);
     const total = await this.presentationService.countPresentations();
 
     return { data, total };
