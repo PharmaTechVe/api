@@ -137,7 +137,6 @@ export class ProductsService {
         product: [
           {
             name: Like(`%${searchQuery}%`),
-            genericName: Like(`%${searchQuery}%`),
           },
         ],
       };
