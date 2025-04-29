@@ -53,6 +53,15 @@ export class CreateOrderDTO {
   userAddressId?: string;
 
   @ApiProperty({
+    description: 'Código de cupón (opcional)',
+    example: 'SAVE10B',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
+
+  @ApiProperty({
     description: 'List of products in the order',
     type: [CreateOrderDetailDTO],
   })

@@ -11,7 +11,7 @@ import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Expose, Transform } from 'class-transformer';
+import { Expose, Transform, Type } from 'class-transformer';
 
 export class AddCategoryDTO {
   @IsString()
@@ -32,40 +32,60 @@ export class LotDTO extends BaseDTO {
 }
 
 export class ProductDTO extends BaseDTO {
+  @Expose()
   @ApiProperty()
   name: string;
 
+  @Expose()
   @ApiProperty()
   genericName: string;
 
+  @Expose()
   @ApiProperty()
   description: string;
 
+  @Expose()
   @ApiProperty()
   priority: number;
 
+  @Expose()
   @ApiProperty({ type: ResponseManufacturerDTO })
+  @Type(() => ResponseManufacturerDTO)
   manufacturer: ResponseManufacturerDTO;
 
+  @Expose()
   @ApiProperty({ type: ImageDTO })
+  @Type(() => ImageDTO)
   images: ImageDTO[];
 
+  @Expose()
   @ApiProperty({ type: [CategoryResponseDTO] })
+  @Type(() => CategoryResponseDTO)
   categories: CategoryResponseDTO[];
 }
 
 export class ProductPresentationDTO extends BaseDTO {
+  @Expose()
   @ApiProperty()
   price: number;
 
+  @Expose()
   @ApiProperty()
   isVisible: boolean;
 
+  @Expose()
   @ApiProperty({ type: ResponsePresentationDTO })
+  @Type(() => ResponsePresentationDTO)
   presentation: ResponsePresentationDTO;
 
+  @Expose()
   @ApiProperty({ type: ProductDTO })
+  @Type(() => ProductDTO)
   product: ProductDTO;
+
+  @Expose()
+  @ApiProperty({ description: 'Stock quantity in all branches' })
+  stock: number;
 }
 
 export class ProductQueryDTO extends PaginationQueryDTO {

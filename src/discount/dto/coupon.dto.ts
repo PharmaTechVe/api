@@ -1,4 +1,5 @@
 import { ApiProperty, PartialType, IntersectionType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -6,8 +7,10 @@ import {
   IsInt,
   Min,
   IsDateString,
+  IsOptional,
 } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
+import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 
 export class CouponDTO {
   @ApiProperty({
@@ -51,3 +54,22 @@ export class CouponDTO {
 export class UpdateCouponDTO extends PartialType(CouponDTO) {}
 
 export class ResponseCouponDTO extends IntersectionType(CouponDTO, BaseDTO) {}
+
+export class CouponQueryDTO extends PaginationQueryDTO {
+  @IsOptional()
+  @Transform(({ value }: { value: string }) =>
+    value ? value.split(',').map((value) => new Date(value)) : [],
+  )
+  expirationBetween: Date[];
+
+  constructor(
+    page: number,
+    limit: number,
+    q?: string,
+    expirationBetween?: Date[],
+  ) {
+    super(page, limit);
+    this.q = q ? q : '';
+    this.expirationBetween = expirationBetween ? expirationBetween : [];
+  }
+}

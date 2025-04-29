@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   CreateInventoryDTO,
   UpdateInventoryDTO,
@@ -136,7 +140,6 @@ export class InventoryService {
 
     return this.inventoryRepository.save(toUpdate);
   }
-
   async updateBulkByBranch(
     branchId: string,
     bulkUpdateDto: BulkUpdateInventoryDTO,
@@ -145,5 +148,43 @@ export class InventoryService {
     const inventories = await this.findInventories(branchId, ids);
     const inventoryMap = this.buildInventoryMap(inventories);
     return this.applyBulkUpdate(branchId, bulkUpdateDto, inventoryMap);
+  }
+  async getBulkTotalInventory(
+    presentationIds: string[],
+  ): Promise<Record<string, number>> {
+    const rows = await this.inventoryRepository
+      .createQueryBuilder('inv')
+      .select('inv.product_presentation_id', 'presentationId')
+      .addSelect('SUM(inv.stock_quantity)', 'totalStock')
+      .where('inv.product_presentation_id IN (:...ids)', {
+        ids: presentationIds,
+      })
+      .groupBy('inv.product_presentation_id')
+      .getRawMany<{ presentationId: string; totalStock: string }>();
+
+    const inventoryMap: Record<string, number> = {};
+    for (const { presentationId, totalStock } of rows) {
+      inventoryMap[presentationId] = Number(totalStock);
+    }
+    return inventoryMap;
+  }
+  async decrementInventory(
+    presentationId: string,
+    branchId: string,
+    amount: number,
+  ): Promise<void> {
+    const inv = await this.inventoryRepository.findOne({
+      where: {
+        productPresentation: { id: presentationId },
+        branch: { id: branchId },
+      },
+    });
+    if (!inv || inv.stockQuantity < amount) {
+      throw new BadRequestException(
+        'Insufficient branch inventory to approve order',
+      );
+    }
+    inv.stockQuantity -= amount;
+    await this.inventoryRepository.save(inv);
   }
 }
