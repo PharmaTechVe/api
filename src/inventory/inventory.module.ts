@@ -14,6 +14,8 @@ import { State } from 'src/state/entities/state.entity';
 import { Country } from 'src/country/entities/country.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { InventorySubscriber } from '../inventory/subscribers/inventory.subscriber';
+import { InventoryMovement } from './entities/inventory-movement.entity';
+import { InventoryMovementService } from './services/inventory-movement.service';
 
 @Module({
   imports: [
@@ -24,6 +26,7 @@ import { InventorySubscriber } from '../inventory/subscribers/inventory.subscrib
       City,
       State,
       Country,
+      InventoryMovement,
     ]),
     AuthModule,
   ],
@@ -35,7 +38,8 @@ import { InventorySubscriber } from '../inventory/subscribers/inventory.subscrib
     StateService,
     CountryService,
     InventorySubscriber,
+    InventoryMovementService,
   ],
-  exports: [InventoryService, TypeOrmModule],
+  exports: [InventoryService, TypeOrmModule, InventoryMovementService],
 })
 export class InventoryModule {}
