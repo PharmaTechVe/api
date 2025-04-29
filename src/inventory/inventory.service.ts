@@ -80,6 +80,24 @@ export class InventoryService {
     return inventory;
   }
 
+  async findByPresentationAndBranch(
+    productPresentationId: string,
+    branchId: string,
+  ): Promise<Inventory> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: {
+        productPresentation: { id: productPresentationId },
+        branch: { id: branchId },
+      },
+    });
+    if (!inventory) {
+      throw new NotFoundException(
+        `Inventory with product presentation #${productPresentationId} not found`,
+      );
+    }
+    return inventory;
+  }
+
   async update(
     id: string,
     updateInventoryDTO: UpdateInventoryDTO,
@@ -173,12 +191,10 @@ export class InventoryService {
     branchId: string,
     amount: number,
   ): Promise<void> {
-    const inv = await this.inventoryRepository.findOne({
-      where: {
-        productPresentation: { id: presentationId },
-        branch: { id: branchId },
-      },
-    });
+    const inv = await this.findByPresentationAndBranch(
+      presentationId,
+      branchId,
+    );
     if (!inv || inv.stockQuantity < amount) {
       throw new BadRequestException(
         'Insufficient branch inventory to approve order',
