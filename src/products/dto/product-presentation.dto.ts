@@ -1,5 +1,6 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsPositive,
@@ -21,6 +22,15 @@ export class ProductPresentationDTO {
   @IsNotEmpty()
   @ApiProperty({ description: 'The price of the product presentation.' })
   price: number;
+
+  @Expose()
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({
+    description: 'Indicates if the product presentation is visible.',
+    default: true,
+  })
+  isVisible: boolean;
 }
 
 export class CreateProductPresentationDTO extends ProductPresentationDTO {
