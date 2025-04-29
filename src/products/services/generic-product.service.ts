@@ -62,7 +62,8 @@ export class GenericProductService {
       qb.andWhere('categories.id = :categoryId', { categoryId });
     }
 
-    qb.orderBy('product.createdAt', 'DESC')
+    qb.orderBy('product.priority', 'ASC')
+      .addOrderBy('product.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize);
 

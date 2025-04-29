@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseManufacturerDTO } from './manufacturer.dto';
 import { CategoryResponseDTO } from 'src/category/dto/category.dto';
@@ -64,6 +70,10 @@ export class ProductPresentationDTO extends BaseDTO {
   price: number;
 
   @Expose()
+  @ApiProperty()
+  isVisible: boolean;
+
+  @Expose()
   @ApiProperty({ type: ResponsePresentationDTO })
   @Type(() => ResponsePresentationDTO)
   presentation: ResponsePresentationDTO;
@@ -111,6 +121,15 @@ export class ProductQueryDTO extends PaginationQueryDTO {
   @IsInt({ each: true })
   priceRange: number[];
 
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  @IsBoolean()
+  isVisible?: boolean;
+
   constructor(
     page: number,
     limit: number,
@@ -121,6 +140,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     presentationId?: string[],
     genericProductId?: string[],
     priceRange?: number[],
+    isVisible?: boolean,
   ) {
     super(page, limit);
     this.q = q ? q : '';
@@ -130,5 +150,6 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     this.presentationId = presentationId ? presentationId : [];
     this.genericProductId = genericProductId ? genericProductId : [];
     this.priceRange = priceRange ? priceRange : [];
+    this.isVisible = isVisible;
   }
 }

@@ -30,8 +30,10 @@ export class PromoService {
   ): Promise<Promo[]> {
     const promos = this.promoRepository
       .createQueryBuilder('promo')
+      .where('promo.deletedAt IS NULL')
       .skip((page - 1) * pageSize)
-      .take(pageSize);
+      .take(pageSize)
+      .orderBy('promo.createdAt', 'DESC');
     if (q) {
       promos.where('promo.name ILIKE :name', { name: `%${q}%` });
     }

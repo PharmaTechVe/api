@@ -28,7 +28,8 @@ export class CouponService {
     const coupons = this.couponRepository
       .createQueryBuilder('coupon')
       .skip((page - 1) * pageSize)
-      .take(pageSize);
+      .take(pageSize)
+      .orderBy('coupon.createdAt', 'DESC');
     if (q) {
       coupons.where('coupon.code ILIKE :code', { code: `%${q}%` });
     }

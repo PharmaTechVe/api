@@ -107,7 +107,6 @@ export class OrderDeliveryDTO extends IntersectionType(
       obj: {
         address?: {
           adress?: string;
-          zipCode?: string;
           additionalInformation?: string;
           referencePoint?: string;
           latitude?: number;
@@ -116,7 +115,6 @@ export class OrderDeliveryDTO extends IntersectionType(
       };
     }) => ({
       adress: obj.address?.adress,
-      zipCode: obj.address?.zipCode,
       additionalInformation: obj.address?.additionalInformation,
       referencePoint: obj.address?.referencePoint,
       latitude: obj.address?.latitude,

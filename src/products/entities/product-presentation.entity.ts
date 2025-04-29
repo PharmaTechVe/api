@@ -26,6 +26,9 @@ export class ProductPresentation extends BaseModel {
   @Column({ type: 'int', name: 'price' })
   price: number;
 
+  @Column({ type: 'boolean', default: true, name: 'is_visible' })
+  isVisible: boolean;
+
   @OneToMany(() => Lot, (lot) => lot.productPresentation)
   lot: Lot[];
 

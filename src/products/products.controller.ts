@@ -95,6 +95,13 @@ export class ProductsController {
     type: String,
     example: '100,200',
   })
+  @ApiQuery({
+    name: 'isVisible',
+    required: false,
+    description: 'Filter by product visibility',
+    type: Boolean,
+    example: true,
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -124,6 +131,7 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
       page,
@@ -135,6 +143,7 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     );
 
     return {

@@ -44,6 +44,9 @@ export class PresentationService {
       where,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
