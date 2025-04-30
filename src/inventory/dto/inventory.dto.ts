@@ -7,6 +7,7 @@ import {
   Min,
   IsArray,
   ValidateNested,
+  IsDateString,
 } from 'class-validator';
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
@@ -78,6 +79,14 @@ export class BulkUpdateInventoryItemDTO {
   @IsNumber()
   @IsNotEmpty()
   quantity: number;
+
+  @ApiProperty({
+    description: 'Product presentation expiration date',
+    example: '2025-12-31T23:59:59Z',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  expirationDate: Date;
 }
 
 export class BulkUpdateInventoryDTO {
