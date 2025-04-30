@@ -15,8 +15,10 @@ import { ProductPresentation } from 'src/products/entities/product-presentation.
 import { BranchService } from 'src/branch/branch.service';
 import { In } from 'typeorm';
 import { Lot } from 'src/products/entities/lot.entity';
-import { MovementType } from './entities/inventory-movement.entity';
-import { InventoryMovementService } from './services/inventory-movement.service';
+import {
+  InventoryMovement,
+  MovementType,
+} from './entities/inventory-movement.entity';
 
 @Injectable()
 export class InventoryService {
@@ -29,7 +31,8 @@ export class InventoryService {
     @InjectRepository(Lot)
     private readonly lotRepository: Repository<Lot>,
 
-    private readonly inventoryMovementService: InventoryMovementService,
+    @InjectRepository(InventoryMovement)
+    private readonly inventoryMovementRepository: Repository<InventoryMovement>,
   ) {}
 
   async create(createInventoryDTO: CreateInventoryDTO): Promise<Inventory> {
@@ -155,33 +158,43 @@ export class InventoryService {
     bulkUpdateDto: BulkUpdateInventoryDTO,
     inventoryMap: Record<string, Inventory>,
   ): Promise<Inventory[]> {
-    const updatedInventories: Inventory[] = [];
+    const inventoriesToSave: Inventory[] = [];
+    const movementsToSave: InventoryMovement[] = [];
+    //const lotsToSave: Lot[] = [];
 
     for (const item of bulkUpdateDto.inventories) {
       const inventory = inventoryMap[item.productPresentationId];
       if (!inventory) continue;
 
       inventory.stockQuantity = item.quantity;
-      const updated = await this.inventoryRepository.save(inventory);
-      updatedInventories.push(updated);
+      inventoriesToSave.push(inventory);
 
-      await this.inventoryMovementService.createMovement(
-        updated,
-        item.quantity,
-        MovementType.IN,
-      );
+      const movement = this.inventoryMovementRepository.create({
+        inventory,
+        quantity: item.quantity,
+        type: MovementType.IN,
+      });
+      movementsToSave.push(movement);
 
-      if (item.expirationDate) {
-        const lot = this.lotRepository.create({
-          productPresentation: { id: item.productPresentationId },
-          branch: { id: branchId },
-          quantity: item.quantity,
-          expirationDate: new Date(item.expirationDate),
-        });
-
-        await this.lotRepository.save(lot);
-      }
+      // if (item.expirationDate) {
+      //   const lot = this.lotRepository.create({
+      //     productPresentation: { id: item.productPresentationId },
+      //     branch: { id: branchId },
+      //     quantity: item.quantity,
+      //     expirationDate: new Date(item.expirationDate),
+      //   });
+      //   lotsToSave.push(lot);
+      // }
     }
+
+    const updatedInventories =
+      await this.inventoryRepository.save(inventoriesToSave);
+    if (movementsToSave.length > 0) {
+      await this.inventoryMovementRepository.save(movementsToSave);
+    }
+    // if (lotsToSave.length > 0) {
+    //   await this.lotRepository.save(lotsToSave);
+    // }
 
     return updatedInventories;
   }
