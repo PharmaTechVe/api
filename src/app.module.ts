@@ -19,6 +19,7 @@ import { PaymentModule } from './payments/payment.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
     OrderModule,
     NotificationModule,
     RecommendationModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

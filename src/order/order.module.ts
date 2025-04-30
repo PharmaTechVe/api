@@ -54,5 +54,6 @@ import { InventoryModule } from 'src/inventory/inventory.module';
     PromoService,
     CouponService,
   ],
+  exports: [OrderService],
 })
 export class OrderModule {}
