@@ -12,6 +12,9 @@ export class Lot extends BaseModel {
   @JoinColumn({ name: 'product_presentation_id' })
   productPresentation: ProductPresentation;
 
+  @Column({ type: 'int', name: 'quantity' })
+  quantity: number;
+
   @ManyToOne(() => Branch)
   @JoinColumn({ name: 'branch_id' })
   branch: Branch;

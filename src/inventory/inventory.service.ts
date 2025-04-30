@@ -14,6 +14,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { In } from 'typeorm';
+import { Lot } from 'src/products/entities/lot.entity';
+import { MovementType } from './entities/inventory-movement.entity';
+import { InventoryMovementService } from './services/inventory-movement.service';
 
 @Injectable()
 export class InventoryService {
@@ -23,6 +26,10 @@ export class InventoryService {
     private readonly branchService: BranchService,
     @InjectRepository(ProductPresentation)
     private readonly productPresentationRepository: Repository<ProductPresentation>,
+    @InjectRepository(Lot)
+    private readonly lotRepository: Repository<Lot>,
+
+    private readonly inventoryMovementService: InventoryMovementService,
   ) {}
 
   async create(createInventoryDTO: CreateInventoryDTO): Promise<Inventory> {
@@ -148,16 +155,37 @@ export class InventoryService {
     bulkUpdateDto: BulkUpdateInventoryDTO,
     inventoryMap: Record<string, Inventory>,
   ): Promise<Inventory[]> {
-    const toUpdate = bulkUpdateDto.inventories
-      .filter((item) => !!inventoryMap[item.productPresentationId])
-      .map((item) => {
-        const inv = inventoryMap[item.productPresentationId];
-        inv.stockQuantity = item.quantity;
-        return inv;
-      });
+    const updatedInventories: Inventory[] = [];
 
-    return this.inventoryRepository.save(toUpdate);
+    for (const item of bulkUpdateDto.inventories) {
+      const inventory = inventoryMap[item.productPresentationId];
+      if (!inventory) continue;
+
+      inventory.stockQuantity = item.quantity;
+      const updated = await this.inventoryRepository.save(inventory);
+      updatedInventories.push(updated);
+
+      await this.inventoryMovementService.createMovement(
+        updated,
+        item.quantity,
+        MovementType.IN,
+      );
+
+      if (item.expirationDate) {
+        const lot = this.lotRepository.create({
+          productPresentation: { id: item.productPresentationId },
+          branch: { id: branchId },
+          quantity: item.quantity,
+          expirationDate: new Date(item.expirationDate),
+        });
+
+        await this.lotRepository.save(lot);
+      }
+    }
+
+    return updatedInventories;
   }
+
   async updateBulkByBranch(
     branchId: string,
     bulkUpdateDto: BulkUpdateInventoryDTO,

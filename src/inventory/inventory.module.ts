@@ -16,6 +16,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { InventorySubscriber } from '../inventory/subscribers/inventory.subscriber';
 import { InventoryMovement } from './entities/inventory-movement.entity';
 import { InventoryMovementService } from './services/inventory-movement.service';
+import { Lot } from 'src/products/entities/lot.entity';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { InventoryMovementService } from './services/inventory-movement.service'
       State,
       Country,
       InventoryMovement,
+      Lot,
     ]),
     AuthModule,
   ],

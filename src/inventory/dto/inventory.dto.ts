@@ -93,7 +93,13 @@ export class BulkUpdateInventoryDTO {
   @ApiProperty({
     description: 'List of inventory update items',
     type: [BulkUpdateInventoryItemDTO],
-    example: [{ productPresentationId: 'uuid', quantity: 10 }],
+    example: [
+      {
+        productPresentationId: 'uuid',
+        quantity: 10,
+        expirationDate: '2025-12-31T23:59:59Z',
+      },
+    ],
   })
   @IsArray()
   @ValidateNested({ each: true })
