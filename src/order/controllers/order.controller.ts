@@ -12,6 +12,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrderService } from '../order.service';
 import {
@@ -176,8 +177,19 @@ export class OrderController {
     let order: Order;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       order = await this.orderService.findOne(id);
+    } else if ([UserRole.DELIVERY].includes(req.user.role)) {
+      order = await this.orderService.findOne(id);
+      if (order.type !== OrderType.DELIVERY) {
+        throw new NotFoundException('Order not found');
+      }
+      if (order.orderDeliveries.length === 0) {
+        throw new NotFoundException('Order not found');
+      }
+      if (order.orderDeliveries[0].employee.id !== req.user.id) {
+        throw new NotFoundException('Order not found');
+      }
     } else {
-      order = await this.orderService.findOne(id, req.user.id);
+      order = await this.orderService.findOne(id);
     }
     return plainToInstance(ResponseOrderDetailedDTO, order, {
       excludeExtraneousValues: true,

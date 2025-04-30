@@ -87,12 +87,12 @@ export class ProductsService {
     if (typeof isVisible === 'boolean') {
       where = {
         ...where,
-        is_visible: isVisible,
+        isVisible: isVisible,
       };
     } else {
       where = {
         ...where,
-        is_visible: true,
+        isVisible: true,
       };
     }
     const [products, total] =
