@@ -383,4 +383,100 @@ export class OrderService {
     }
     return await this.orderDeliveryRepository.save(updateDelivery);
   }
+  async countOrdersCompleted(
+    status: OrderStatus,
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status = :status', { status })
+      .leftJoin('order.branch', 'branch');
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    return qb.getCount();
+  }
+  async countOpenOrders(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status NOT IN (:...closed)', {
+        closed: [OrderStatus.COMPLETED, OrderStatus.CANCELED],
+      })
+      .leftJoin('order.branch', 'branch');
+
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    return qb.getCount();
+  }
+  async sumTotalSales(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.total_price)', 'sum')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .leftJoin('order.branch', 'branch');
+
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    const raw = await qb.getRawOne<{ sum: string }>();
+    return Number(raw?.sum ?? '0');
+  }
+  async countOrdersByStatus(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<Record<OrderStatus, number>> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .select('order.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .leftJoin('order.branch', 'branch');
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    qb.groupBy('order.status');
+    const rows = await qb.getRawMany<{ status: OrderStatus; count: string }>();
+    return rows.reduce(
+      (acc, { status, count }) => {
+        acc[status] = Number(count);
+        return acc;
+      },
+      {} as Record<OrderStatus, number>,
+    );
+  }
 }

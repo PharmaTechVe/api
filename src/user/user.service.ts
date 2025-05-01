@@ -356,4 +356,17 @@ export class UserService {
     const updatedMoto = this.UserMotoRepository.merge(userMoto, updateMotoDto);
     return await this.UserMotoRepository.save(updatedMoto);
   }
+
+  async countNewUsers(startDate: Date, endDate: Date): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .where(`DATE(user.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      });
+
+    return qb.getCount();
+  }
 }
