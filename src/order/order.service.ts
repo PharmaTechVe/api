@@ -25,6 +25,8 @@ import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
 import { CouponService } from 'src/discount/services/coupon.service';
 import { InventoryService } from 'src/inventory/inventory.service';
+import { InventoryMovementService } from 'src/inventory/services/inventory-movement.service';
+import { MovementType } from 'src/inventory/entities/inventory-movement.entity';
 
 @Injectable()
 export class OrderService {
@@ -40,6 +42,8 @@ export class OrderService {
     private userService: UserService,
     private readonly inventoryService: InventoryService,
     private couponService: CouponService,
+
+    private readonly inventoryMovementService: InventoryMovementService,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -213,10 +217,19 @@ export class OrderService {
     }
     if (status === OrderStatus.APPROVED) {
       for (const detail of order.details) {
+        const inv = await this.inventoryService.findByPresentationAndBranch(
+          detail.productPresentation.id,
+          order.branch.id,
+        );
         await this.inventoryService.decrementInventory(
           detail.productPresentation.id,
           order.branch.id,
           detail.quantity,
+        );
+        await this.inventoryMovementService.createMovement(
+          inv,
+          detail.quantity,
+          MovementType.OUT,
         );
       }
     }
