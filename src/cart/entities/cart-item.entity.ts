@@ -14,8 +14,8 @@ export class CartItem extends UUIDModel {
     (productPresentation) => productPresentation.cartItems,
     { eager: true },
   )
-  @JoinColumn({ name: 'product_id' })
-  product: ProductPresentation;
+  @JoinColumn({ name: 'product_presentation_id' })
+  productPresentation: ProductPresentation;
 
   @Column({ type: 'int', name: 'quantity' })
   quantity: number;

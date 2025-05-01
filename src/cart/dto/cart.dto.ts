@@ -5,55 +5,44 @@ import {
   Min,
   ArrayNotEmpty,
   ValidateNested,
-  IsOptional,
 } from 'class-validator';
 import { Type, Expose, Transform } from 'class-transformer';
+import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
 
-export class CartItemDTO {
+export class BaseCartItemDTO {
+  @Expose()
+  @ApiProperty({ description: 'product presentation quantity', minimum: 1 })
+  @IsInt()
+  @Min(1)
+  quantity: number;
+}
+
+export class CreateCartItemDTO extends BaseCartItemDTO {
+  @Expose()
+  @Transform(({ obj }: { obj: { product: { id: string } } }) => obj.product.id)
+  @ApiProperty({ description: 'ID of the product presentation' })
+  @IsUUID()
+  productPresentationId: string;
+}
+
+export class CartItemDTO extends BaseCartItemDTO {
   @Expose()
   @ApiProperty({ description: 'ID of item in the cart' })
   @IsUUID()
   id: string;
 
   @Expose()
-  @Transform(({ obj }: { obj: { product: { id: string } } }) => obj.product.id)
-  @ApiProperty({ description: 'ID de la presentación del producto' })
-  @IsUUID()
-  productId: string;
-
-  @Expose()
-  @ApiProperty({ description: 'Cantidad del producto', minimum: 1 })
-  @IsInt()
-  @Min(1)
-  quantity: number;
-
-  @Expose()
-  @Transform(
-    ({ obj }: { obj: { product: { product: { name: string } } } }) =>
-      obj.product.product.name,
-  )
   @ApiProperty({
-    description: 'Nombre o descripción breve del producto',
-    required: false,
+    description: 'Product presentation',
+    type: ResponseOrderProductPresentationDetailDTO,
   })
-  @IsOptional()
-  name?: string;
-}
-
-export class CreateCartItemDTO {
-  @ApiProperty({ description: 'ID de la presentación del producto' })
-  @IsUUID()
-  productId: string;
-
-  @ApiProperty({ description: 'Cantidad del producto', minimum: 1 })
-  @IsInt()
-  @Min(1)
-  quantity: number;
+  @Type(() => ResponseOrderProductPresentationDetailDTO)
+  productPresentation: ResponseOrderProductPresentationDetailDTO;
 }
 
 export class CreateCartDTO {
   @ApiProperty({
-    description: 'Lista de ítems a agregar',
+    description: 'Items list',
     type: [CreateCartItemDTO],
   })
   @ArrayNotEmpty()
@@ -64,7 +53,7 @@ export class CreateCartDTO {
 
 export class UpdateCartDTO {
   @ApiProperty({
-    description: 'Lista actualizada de ítems',
+    description: 'Items list',
     type: [CreateCartItemDTO],
   })
   @ValidateNested({ each: true })
@@ -74,19 +63,13 @@ export class UpdateCartDTO {
 
 export class CartDTO {
   @Expose()
-  @ApiProperty({ description: 'ID del carrito' })
+  @ApiProperty({ description: 'ID of the cart' })
   @IsUUID()
   id: string;
 
   @Expose()
-  @Transform(({ obj }: { obj: { user: { id: string } } }) => obj.user.id)
-  @ApiProperty({ description: 'ID del usuario dueño del carrito' })
-  @IsUUID()
-  userId: string;
-
-  @Expose()
   @ApiProperty({
-    description: 'Ítems en el carrito',
+    description: 'Cart items',
     type: [CartItemDTO],
   })
   @Type(() => CartItemDTO)

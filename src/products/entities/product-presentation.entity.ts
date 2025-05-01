@@ -39,6 +39,6 @@ export class ProductPresentation extends BaseModel {
   )
   orders: OrderDetail[];
 
-  @OneToMany(() => CartItem, (cartItem) => cartItem.product)
+  @OneToMany(() => CartItem, (cartItem) => cartItem.productPresentation)
   cartItems: CartItem[];
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Cart } from './entities/cart.entity';
@@ -13,95 +17,97 @@ export class CartService {
     private cartRepository: Repository<Cart>,
     @InjectRepository(CartItem)
     private itemRepository: Repository<CartItem>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
   ) {}
 
-  async createCart(userPayload: User, dto: CreateCartDTO): Promise<Cart> {
-    const user = await this.userRepository.findOneBy({ id: userPayload.id });
-    if (!user) {
-      throw new NotFoundException(`User #${userPayload.id} not found`);
+  async getCartById(id: string): Promise<Cart> {
+    const cart = await this.cartRepository.findOne({
+      where: { id },
+      relations: [
+        'items',
+        'items.productPresentation',
+        'items.productPresentation.product',
+        'items.productPresentation.presentation',
+        'items.productPresentation.promo',
+        'items.productPresentation.product.images',
+      ],
+    });
+    if (!cart) {
+      throw new NotFoundException(`Cart with id #${id} not found`);
     }
+    return cart;
+  }
 
+  async getCartByUserId(userId: string): Promise<Cart> {
+    const cart = await this.cartRepository.findOne({
+      where: { user: { id: userId } },
+      relations: [
+        'items',
+        'items.productPresentation',
+        'items.productPresentation.product',
+        'items.productPresentation.presentation',
+        'items.productPresentation.promo',
+        'items.productPresentation.product.images',
+      ],
+    });
+    if (!cart) {
+      throw new NotFoundException(`Cart for user #${userId} not found`);
+    }
+    return cart;
+  }
+
+  async createCart(user: User, dto: CreateCartDTO): Promise<Cart> {
+    const cartExists = await this.cartRepository.exists({ where: { user } });
+    if (cartExists) {
+      throw new BadRequestException(`Cart for user #${user.id} already exists`);
+    }
     const cart = this.cartRepository.create({ user });
     cart.items = dto.items.map((i) =>
       this.itemRepository.create({
-        product: { id: i.productId } as { id: string },
+        productPresentation: { id: i.productPresentationId },
         quantity: i.quantity,
       }),
     );
     const saved = await this.cartRepository.save(cart);
-
-    return this.cartRepository.findOneOrFail({
-      where: { id: saved.id },
-      relations: [
-        'user',
-        'items',
-        'items.product',
-        'items.product.product', // for obtaining the name product
-      ],
-    });
+    return await this.getCartById(saved.id);
   }
 
-  async listCartItems(userPayload: User): Promise<CartItem[]> {
-    const user = await this.userRepository.findOneBy({ id: userPayload.id });
-    if (!user) {
-      throw new NotFoundException(`User #${userPayload.id} not found`);
-    }
-
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: user.id } },
-      order: { createdAt: 'DESC' },
-      relations: ['items', 'items.product', 'items.product.product'],
-    });
-
+  async listCartItems(user: User): Promise<CartItem[]> {
+    const cart = await this.getCartByUserId(user.id);
     return cart?.items ?? [];
   }
 
-  async updateCart(userPayload: User, dto: UpdateCartDTO): Promise<Cart> {
-    const user = await this.userRepository.findOneBy({ id: userPayload.id });
-    if (!user) {
-      throw new NotFoundException(`User #${userPayload.id} not found`);
-    }
-
-    const cart = await this.cartRepository.findOne({
-      where: { user: { id: user.id } },
-      relations: ['items'],
-    });
-    if (!cart)
-      throw new NotFoundException(`Cart for user #${user.id} not found`);
-
-    const incoming = new Map(dto.items.map((i) => [i.productId, i.quantity]));
+  async updateCart(user: User, dto: UpdateCartDTO): Promise<Cart> {
+    const cart = await this.getCartByUserId(user.id);
+    const incoming = new Map(
+      dto.items.map((i) => [i.productPresentationId, i.quantity]),
+    );
 
     for (const item of cart.items) {
-      if (!incoming.has(item.product.id)) {
+      if (!incoming.has(item.productPresentation.id)) {
         await this.itemRepository.delete(item.id);
       } else {
-        const qty = incoming.get(item.product.id)!;
+        const qty = incoming.get(item.productPresentation.id)!;
         if (qty <= 0) {
           await this.itemRepository.delete(item.id);
         } else if (qty !== item.quantity) {
           item.quantity = qty;
           await this.itemRepository.save(item);
         }
-        incoming.delete(item.product.id);
+        incoming.delete(item.productPresentation.id);
       }
     }
 
     for (const [productId, qty] of incoming.entries()) {
       if (qty > 0) {
         const newItem = this.itemRepository.create({
-          cart: { id: cart.id } as Cart,
-          product: { id: productId } as { id: string },
+          cart: { id: cart.id },
+          productPresentation: { id: productId },
           quantity: qty,
         });
         await this.itemRepository.save(newItem);
       }
     }
 
-    return this.cartRepository.findOneOrFail({
-      where: { id: cart.id },
-      relations: ['user', 'items', 'items.product', 'items.product.product'],
-    });
+    return await this.getCartById(cart.id);
   }
 }
