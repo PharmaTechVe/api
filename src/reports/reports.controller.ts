@@ -29,7 +29,7 @@ export class ReportsController {
     @Query('branchId') branchId?: string,
   ) {
     if (!start || !end) {
-      throw new BadRequestException('startDate y endDate son requeridos');
+      throw new BadRequestException('startDate and endDate are required');
     }
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -60,10 +60,41 @@ export class ReportsController {
     @Query('branchId') branchId?: string,
   ) {
     if (!start || !end) {
-      throw new BadRequestException('startDate y endDate son requeridos');
+      throw new BadRequestException('startDate and endDate are required');
     }
     const startDate = new Date(start);
     const endDate = new Date(end);
     return this.orderService.countOrdersByStatus(startDate, endDate, branchId);
+  }
+
+  @Get('sale')
+  async getSalesReport(
+    @Query('startDate') start: string,
+    @Query('endDate') end: string,
+    @Query('branchId') branchId?: string,
+  ) {
+    if (!start || !end) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const items = await this.orderService.getSalesReport(
+      startDate,
+      endDate,
+      branchId,
+    );
+    const totals = items.reduce(
+      (acc, { subtotal, discount, total }) => {
+        acc.subtotal += subtotal;
+        acc.discount += discount;
+        acc.total += total;
+        return acc;
+      },
+      { subtotal: 0, discount: 0, total: 0 },
+    );
+    return {
+      items,
+      totals,
+    };
   }
 }
