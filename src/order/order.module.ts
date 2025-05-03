@@ -24,6 +24,7 @@ import { OrderController } from './controllers/order.controller';
 import { Coupon } from 'src/discount/entities/coupon.entity';
 import { CouponService } from 'src/discount/services/coupon.service';
 import { InventoryModule } from 'src/inventory/inventory.module';
+import { OrderGateway } from './order.gateway';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { InventoryModule } from 'src/inventory/inventory.module';
     CountryService,
     PromoService,
     CouponService,
+    OrderGateway,
   ],
   exports: [OrderService],
 })
