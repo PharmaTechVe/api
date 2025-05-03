@@ -118,6 +118,10 @@ export class AuthService {
     if (!user) {
       throw new WsException('Unauthorized');
     }
-    console.log('user', user.email);
+    await this.userService.setWsId(user.email, client.id);
+  }
+
+  async disconnectUserWs(client: Socket) {
+    await this.userService.removeWsId(client.id);
   }
 }

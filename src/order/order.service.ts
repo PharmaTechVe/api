@@ -482,4 +482,15 @@ export class OrderService {
       {} as Record<OrderStatus, number>,
     );
   }
+
+  async getUserByOrderId(orderId: string): Promise<User> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order.user;
+  }
 }

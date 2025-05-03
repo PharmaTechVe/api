@@ -16,6 +16,7 @@ import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 import { UserMoto } from './entities/user-moto.entity';
 import { UpdateUserMotoDTO } from './dto/user-moto.dto';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class UserService {
@@ -368,5 +369,23 @@ export class UserService {
       });
 
     return qb.getCount();
+  }
+
+  async setWsId(email: string, wsId: string): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new WsException('User not found');
+    }
+    user.wsId = wsId;
+    await this.userRepository.save(user);
+  }
+
+  async removeWsId(wsId: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ wsId });
+    if (!user) {
+      throw new WsException('User not found');
+    }
+    user.wsId = undefined;
+    await this.userRepository.save(user);
   }
 }

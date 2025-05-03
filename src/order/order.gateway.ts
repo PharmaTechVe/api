@@ -3,6 +3,7 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -19,7 +20,7 @@ import { AuthService } from 'src/auth/auth.service';
     origin: '*',
   },
 })
-export class OrderGateway implements OnGatewayConnection {
+export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
   connections: Socket[] = [];
@@ -31,7 +32,10 @@ export class OrderGateway implements OnGatewayConnection {
 
   handleConnection(client: Socket) {
     this.authService.validateUserWs(client);
-    this.connections.push(client);
+  }
+
+  handleDisconnect(client: Socket) {
+    this.authService.disconnectUserWs(client);
   }
 
   @UsePipes(
@@ -46,7 +50,14 @@ export class OrderGateway implements OnGatewayConnection {
     @MessageBody() data: UpdateOrderStatusWsDTO,
   ) {
     this.orderService.update(data.id, data.status).then((order) => {
-      client.to(this.connections[1].id).emit('order', order);
+      if (!order) {
+        throw new WsException('Order not found');
+      }
+      this.orderService.getUserByOrderId(order.id).then((user) => {
+        if (user.wsId) {
+          client.to(user.wsId).emit('order', order);
+        }
+      });
     });
   }
 }
