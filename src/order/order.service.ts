@@ -213,9 +213,13 @@ export class OrderService {
   async update(id: string, status: OrderStatus): Promise<Order> {
     const order = await this.findOne(id);
     if (order.status === OrderStatus.COMPLETED) {
-      throw new BadRequestException('A COMPLETED order cannot be modified');
+      console.log('A COMPLETED order cannot be modified');
+      return order;
     }
-    if (status === OrderStatus.APPROVED) {
+    if (
+      status === OrderStatus.APPROVED &&
+      order.status !== OrderStatus.APPROVED
+    ) {
       for (const detail of order.details) {
         const inv = await this.inventoryService.findByPresentationAndBranch(
           detail.productPresentation.id,
@@ -479,6 +483,18 @@ export class OrderService {
       {} as Record<OrderStatus, number>,
     );
   }
+
+  async getUserByOrderId(orderId: string): Promise<User> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order.user;
+  }
+
   async getSalesReport(
     startDate: Date,
     endDate: Date,

@@ -180,3 +180,17 @@ export class UpdateOrderStatusDTO {
   @IsEnum(OrderStatus)
   status: OrderStatus;
 }
+
+export class UpdateOrderStatusWsDTO {
+  @ApiProperty({ description: 'ID of the order' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty({
+    description: 'New status of the order',
+    enum: OrderStatus,
+  })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}

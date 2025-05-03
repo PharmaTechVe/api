@@ -89,4 +89,7 @@ export class User extends BaseModel {
     eager: true,
   })
   userMoto: UserMoto;
+
+  @Column({ type: 'character varying', name: 'ws_id', nullable: true })
+  wsId: string | undefined;
 }

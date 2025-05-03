@@ -369,4 +369,22 @@ export class UserService {
 
     return qb.getCount();
   }
+
+  async setWsId(email: string, wsId: string): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      return;
+    }
+    user.wsId = wsId;
+    await this.userRepository.save(user);
+  }
+
+  async removeWsId(wsId: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ wsId });
+    if (!user) {
+      return;
+    }
+    user.wsId = undefined;
+    await this.userRepository.save(user);
+  }
 }
