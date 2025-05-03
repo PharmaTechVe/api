@@ -6,7 +6,7 @@ import {
   ArrayNotEmpty,
   ValidateNested,
 } from 'class-validator';
-import { Type, Expose, Transform } from 'class-transformer';
+import { Type, Expose } from 'class-transformer';
 import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
 
 export class BaseCartItemDTO {
@@ -19,7 +19,6 @@ export class BaseCartItemDTO {
 
 export class CreateCartItemDTO extends BaseCartItemDTO {
   @Expose()
-  @Transform(({ obj }: { obj: { product: { id: string } } }) => obj.product.id)
   @ApiProperty({ description: 'ID of the product presentation' })
   @IsUUID()
   productPresentationId: string;

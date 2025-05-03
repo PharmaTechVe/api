@@ -108,6 +108,12 @@ export class CartService {
       }
     }
 
-    return await this.getCartById(cart.id);
+    const updatedCart = await this.getCartById(cart.id);
+
+    if (updatedCart.items.length === 0) {
+      await this.cartRepository.delete(cart.id);
+    }
+
+    return updatedCart;
   }
 }
