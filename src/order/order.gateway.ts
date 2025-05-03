@@ -14,6 +14,9 @@ import { UpdateOrderStatusWsDTO } from './dto/order';
 import { OrderService } from './order.service';
 import { AuthGuardWs } from 'src/auth/auth.guard';
 import { AuthService } from 'src/auth/auth.service';
+import { RolesGuardWs } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorador';
+import { UserRole } from 'src/user/entities/user.entity';
 
 @WebSocketGateway({
   cors: {
@@ -43,7 +46,8 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
       exceptionFactory: (errors) => new WsException(errors),
     }),
   )
-  @UseGuards(AuthGuardWs)
+  @UseGuards(AuthGuardWs, RolesGuardWs)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @SubscribeMessage('updateOrder')
   update(
     @ConnectedSocket() client: Socket,
