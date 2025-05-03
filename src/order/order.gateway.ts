@@ -1,4 +1,4 @@
-import { UsePipes, ValidationPipe } from '@nestjs/common';
+import { UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -11,6 +11,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UpdateOrderStatusWsDTO } from './dto/order';
 import { OrderService } from './order.service';
+import { AuthGuardWs } from 'src/auth/auth.guard';
+import { AuthService } from 'src/auth/auth.service';
 
 @WebSocketGateway({
   cors: {
@@ -22,10 +24,13 @@ export class OrderGateway implements OnGatewayConnection {
   server: Server;
   connections: Socket[] = [];
 
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly orderService: OrderService,
+  ) {}
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.authService.validateUserWs(client);
     this.connections.push(client);
   }
 
@@ -34,6 +39,7 @@ export class OrderGateway implements OnGatewayConnection {
       exceptionFactory: (errors) => new WsException(errors),
     }),
   )
+  @UseGuards(AuthGuardWs)
   @SubscribeMessage('updateOrder')
   update(
     @ConnectedSocket() client: Socket,

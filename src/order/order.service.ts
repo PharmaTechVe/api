@@ -215,7 +215,10 @@ export class OrderService {
     if (order.status === OrderStatus.COMPLETED) {
       throw new BadRequestException('A COMPLETED order cannot be modified');
     }
-    if (status === OrderStatus.APPROVED) {
+    if (
+      status === OrderStatus.APPROVED &&
+      order.status !== OrderStatus.APPROVED
+    ) {
       for (const detail of order.details) {
         const inv = await this.inventoryService.findByPresentationAndBranch(
           detail.productPresentation.id,

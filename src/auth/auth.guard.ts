@@ -6,10 +6,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { Socket } from 'socket.io';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { JwtPayload } from './auth.type';
+import { WsException } from '@nestjs/websockets';
 
 export interface CustomRequest extends Request {
   user: User;
@@ -48,5 +50,37 @@ export class AuthGuard implements CanActivate {
   private extractTokenFromHeader(request: Request): string | undefined {
     const [type, token] = request.headers.authorization?.split(' ') ?? [];
     return type === 'Bearer' ? token : undefined;
+  }
+}
+
+@Injectable()
+export class AuthGuardWs implements CanActivate {
+  constructor(
+    private jwtService: JwtService,
+    private configService: ConfigService,
+    private userService: UserService,
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const client: Socket = context.switchToWs().getClient();
+    const token = client.handshake.headers['authorization']?.split(' ')[1];
+    if (!token) {
+      throw new WsException('Unauthorized');
+    }
+    let payload: JwtPayload;
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+    } catch {
+      throw new WsException('Unauthorized');
+    }
+    const user = await this.userService.findByEmail(payload.email);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    client.data.user = user;
+    return true;
   }
 }
