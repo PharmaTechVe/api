@@ -1,4 +1,9 @@
-import { UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  UseFilters,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -17,6 +22,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { RolesGuardWs } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
+import { WebsocketExceptionsFilter } from './ws.filters';
 
 @WebSocketGateway({
   cors: {
@@ -41,6 +47,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.authService.disconnectUserWs(client);
   }
 
+  @UseFilters(new WebsocketExceptionsFilter())
   @UsePipes(
     new ValidationPipe({
       exceptionFactory: (errors) => new WsException(errors),
@@ -55,7 +62,10 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     this.orderService.update(data.id, data.status).then((order) => {
       if (!order) {
-        throw new WsException('Order not found');
+        this.server.to(client.id).emit('error', {
+          message: 'Order not found',
+          data: { id: data.id },
+        });
       }
       this.orderService.getUserByOrderId(order.id).then((user) => {
         if (user.wsId) {

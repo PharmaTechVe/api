@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { JwtPayload } from './auth.type';
-import { WsException } from '@nestjs/websockets';
 
 export interface CustomRequest extends Request {
   user: User;
@@ -65,7 +64,8 @@ export class AuthGuardWs implements CanActivate {
     const client: Socket = context.switchToWs().getClient();
     const token = client.handshake.headers['authorization']?.split(' ')[1];
     if (!token) {
-      throw new WsException('Unauthorized');
+      client.disconnect();
+      return false;
     }
     let payload: JwtPayload;
     try {
@@ -73,7 +73,8 @@ export class AuthGuardWs implements CanActivate {
         secret: this.configService.get('JWT_SECRET'),
       });
     } catch {
-      throw new WsException('Unauthorized');
+      client.disconnect();
+      return false;
     }
     const user = await this.userService.findByEmail(payload.email);
     if (!user) {

@@ -10,7 +10,6 @@ import { ROLES_KEY } from 'src/auth/roles.decorador';
 import { Request } from 'express';
 import { Socket } from 'socket.io';
 import { User, UserRole } from 'src/user/entities/user.entity';
-import { WsException } from '@nestjs/websockets';
 
 interface RequestWithUser extends Request {
   user?: { role: UserRole };
@@ -68,13 +67,11 @@ export class RolesGuardWs implements CanActivate {
     const user: User = client.data.user as User;
 
     if (!user) {
-      throw new WsException('Access denied: No user found in request.');
+      return false;
     }
 
     if (!requiredRoles.includes(user.role)) {
-      throw new WsException(
-        `Access denied: You must have one of the following roles: ${requiredRoles.join(', ')}`,
-      );
+      return false;
     }
 
     return true;

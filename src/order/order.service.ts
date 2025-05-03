@@ -213,7 +213,8 @@ export class OrderService {
   async update(id: string, status: OrderStatus): Promise<Order> {
     const order = await this.findOne(id);
     if (order.status === OrderStatus.COMPLETED) {
-      throw new BadRequestException('A COMPLETED order cannot be modified');
+      console.log('A COMPLETED order cannot be modified');
+      return order;
     }
     if (
       status === OrderStatus.APPROVED &&

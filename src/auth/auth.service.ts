@@ -13,7 +13,6 @@ import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserRole } from 'src/user/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
-import { WsException } from '@nestjs/websockets';
 import { JwtPayload } from './auth.type';
 
 @Injectable()
@@ -104,7 +103,8 @@ export class AuthService {
   async validateUserWs(client: Socket) {
     const token = client.handshake.headers['authorization']?.split(' ')[1];
     if (!token) {
-      throw new WsException('Unauthorized');
+      client.disconnect();
+      return;
     }
     let payload: JwtPayload;
     try {
@@ -112,11 +112,13 @@ export class AuthService {
         secret: this.configService.get('JWT_SECRET'),
       });
     } catch {
-      throw new WsException('Unauthorized');
+      client.disconnect();
+      return;
     }
     const user = await this.userService.findByEmail(payload.email);
     if (!user) {
-      throw new WsException('Unauthorized');
+      client.disconnect();
+      return;
     }
     await this.userService.setWsId(user.email, client.id);
   }
