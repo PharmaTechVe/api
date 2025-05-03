@@ -494,4 +494,74 @@ export class OrderService {
     }
     return order.user;
   }
+
+  async getSalesReport(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<
+    Array<{
+      orderId: string;
+      user: string;
+      date: Date;
+      type: string;
+      quantity: number;
+      subtotal: number;
+      discount: number;
+      total: number;
+    }>
+  > {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('o')
+      .select('o.id', 'orderId')
+      .addSelect(`CONCAT(u.firstName, ' ', u.lastName)`, 'user')
+      .addSelect('o.createdAt', 'date')
+      .addSelect('o.type', 'type')
+      .addSelect('SUM(d.quantity)', 'quantity')
+      .addSelect('SUM(d.subtotal)', 'subtotal')
+      .addSelect('SUM(d.quantity * pp.price) - o.totalPrice', 'discount')
+      .addSelect('o.totalPrice', 'total')
+      .innerJoin('o.user', 'u')
+      .innerJoin('o.details', 'd')
+      .innerJoin('d.productPresentation', 'pp')
+      .where(`DATE(o.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('o.status = :status', { status: OrderStatus.COMPLETED });
+
+    if (branchId) {
+      qb.andWhere('o.branch_id = :branchId', { branchId });
+    }
+    qb.groupBy('o.id')
+      .addGroupBy('u.firstName')
+      .addGroupBy('u.lastName')
+      .addGroupBy('o.createdAt')
+      .addGroupBy('o.type')
+      .addGroupBy('o.totalPrice');
+
+    const raws = await qb.getRawMany<{
+      orderId: string;
+      user: string;
+      date: string;
+      type: string;
+      quantity: string;
+      subtotal: string;
+      discount: string;
+      total: string;
+    }>();
+
+    return raws.map((r) => ({
+      orderId: r.orderId,
+      user: r.user,
+      date: new Date(r.date),
+      type: r.type.toUpperCase(),
+      quantity: Number(r.quantity),
+      subtotal: Number(r.subtotal),
+      discount: Number(r.discount),
+      total: Number(r.total),
+    }));
+  }
 }
