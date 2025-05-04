@@ -22,7 +22,6 @@ import { CartModule } from './cart/cart.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ReportsModule } from './reports/reports.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
