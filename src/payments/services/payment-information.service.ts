@@ -26,6 +26,7 @@ export class PaymentInformationService {
   async findAll(paymentMethod: PaymentMethod): Promise<PaymentInformation[]> {
     return await this.paymentInfoRepository.find({
       where: { deletedAt: IsNull(), paymentMethod },
+      order: { createdAt: 'DESC' },
     });
   }
 

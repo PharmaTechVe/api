@@ -23,6 +23,10 @@ import {
 import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
+import { CouponService } from 'src/discount/services/coupon.service';
+import { InventoryService } from 'src/inventory/inventory.service';
+import { InventoryMovementService } from 'src/inventory/services/inventory-movement.service';
+import { MovementType } from 'src/inventory/entities/inventory-movement.entity';
 
 @Injectable()
 export class OrderService {
@@ -36,6 +40,10 @@ export class OrderService {
     @InjectRepository(OrderDelivery)
     private orderDeliveryRepository: Repository<OrderDelivery>,
     private userService: UserService,
+    private readonly inventoryService: InventoryService,
+    private couponService: CouponService,
+
+    private readonly inventoryMovementService: InventoryMovementService,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -78,7 +86,18 @@ export class OrderService {
       ...product,
       quantity: productsById[product.id],
     }));
-    const totalPrice = productsWithQuantity.reduce((acc, product) => {
+    const presentationIds = productsWithQuantity.map((p) => p.id);
+    const inventories =
+      await this.inventoryService.getBulkTotalInventory(presentationIds);
+    for (const item of productsWithQuantity) {
+      const available = inventories[item.id] ?? 0;
+      if (item.quantity > available) {
+        throw new BadRequestException(
+          `Insufficient inventory for productPresentation ${item.id}`,
+        );
+      }
+    }
+    let totalPrice = productsWithQuantity.reduce((acc, product) => {
       const price = product.promo
         ? product.price - (product.price * product.promo.discount) / 100
         : product.price;
@@ -88,7 +107,12 @@ export class OrderService {
     if (productsWithQuantity.length == 0) {
       throw new BadRequestException('No products found');
     }
-
+    if (createOrderDTO.couponCode) {
+      totalPrice = await this.validateAndApplyCoupon(
+        createOrderDTO.couponCode,
+        totalPrice,
+      );
+    }
     const orderToCreate = this.orderRepository.create({
       user,
       branch,
@@ -121,7 +145,30 @@ export class OrderService {
     }
     return order;
   }
+  private async validateAndApplyCoupon(
+    couponCode: string,
+    totalPrice: number,
+  ): Promise<number> {
+    const coupon = await this.couponService.findOne(couponCode);
 
+    if (coupon.expirationDate.getTime() < Date.now()) {
+      throw new BadRequestException('Coupon expired');
+    }
+    if (totalPrice < coupon.minPurchase) {
+      throw new BadRequestException(
+        `Minimum purchase of ${coupon.minPurchase} required to use this coupon`,
+      );
+    }
+    if (coupon.maxUses <= 0) {
+      throw new BadRequestException('Coupon has no remaining uses');
+    }
+    const discountAmount = Math.round((totalPrice * coupon.discount) / 100);
+    const newTotal = totalPrice - discountAmount;
+    await this.couponService.update(coupon.code, {
+      maxUses: coupon.maxUses - 1,
+    });
+    return newTotal;
+  }
   async findAll(
     page: number,
     pageSize: number,
@@ -163,11 +210,34 @@ export class OrderService {
     }
     return order;
   }
-  async update(id: string, status: OrderStatus) {
+  async update(id: string, status: OrderStatus): Promise<Order> {
     const order = await this.findOne(id);
-    if (!order) {
-      throw new BadRequestException('Order not found');
+    if (order.status === OrderStatus.COMPLETED) {
+      console.log('A COMPLETED order cannot be modified');
+      return order;
     }
+    if (
+      status === OrderStatus.APPROVED &&
+      order.status !== OrderStatus.APPROVED
+    ) {
+      for (const detail of order.details) {
+        const inv = await this.inventoryService.findByPresentationAndBranch(
+          detail.productPresentation.id,
+          order.branch.id,
+        );
+        await this.inventoryService.decrementInventory(
+          detail.productPresentation.id,
+          order.branch.id,
+          detail.quantity,
+        );
+        await this.inventoryMovementService.createMovement(
+          inv,
+          detail.quantity,
+          MovementType.OUT,
+        );
+      }
+    }
+
     order.status = status;
     return await this.orderRepository.save(order);
   }
@@ -316,5 +386,182 @@ export class OrderService {
       updateDelivery.employee = employee;
     }
     return await this.orderDeliveryRepository.save(updateDelivery);
+  }
+  async countOrdersCompleted(
+    status: OrderStatus,
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status = :status', { status })
+      .leftJoin('order.branch', 'branch');
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    return qb.getCount();
+  }
+  async countOpenOrders(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status NOT IN (:...closed)', {
+        closed: [OrderStatus.COMPLETED, OrderStatus.CANCELED],
+      })
+      .leftJoin('order.branch', 'branch');
+
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    return qb.getCount();
+  }
+  async sumTotalSales(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.total_price)', 'sum')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('order.status = :status', { status: OrderStatus.COMPLETED })
+      .leftJoin('order.branch', 'branch');
+
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    const raw = await qb.getRawOne<{ sum: string }>();
+    return Number(raw?.sum ?? '0');
+  }
+  async countOrdersByStatus(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<Record<OrderStatus, number>> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('order')
+      .select('order.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .where(`DATE(order.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .leftJoin('order.branch', 'branch');
+    if (branchId) {
+      qb.andWhere('branch.id = :branchId', { branchId });
+    }
+    qb.groupBy('order.status');
+    const rows = await qb.getRawMany<{ status: OrderStatus; count: string }>();
+    return rows.reduce(
+      (acc, { status, count }) => {
+        acc[status] = Number(count);
+        return acc;
+      },
+      {} as Record<OrderStatus, number>,
+    );
+  }
+
+  async getUserByOrderId(orderId: string): Promise<User> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+      relations: ['user'],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order.user;
+  }
+
+  async getSalesReport(
+    startDate: Date,
+    endDate: Date,
+    branchId?: string,
+  ): Promise<
+    Array<{
+      orderId: string;
+      user: string;
+      date: Date;
+      type: string;
+      quantity: number;
+      subtotal: number;
+      discount: number;
+      total: number;
+    }>
+  > {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.orderRepository
+      .createQueryBuilder('o')
+      .select('o.id', 'orderId')
+      .addSelect(`CONCAT(u.firstName, ' ', u.lastName)`, 'user')
+      .addSelect('o.createdAt', 'date')
+      .addSelect('o.type', 'type')
+      .addSelect('SUM(d.quantity)', 'quantity')
+      .addSelect('SUM(d.subtotal)', 'subtotal')
+      .addSelect('SUM(d.quantity * pp.price) - o.totalPrice', 'discount')
+      .addSelect('o.totalPrice', 'total')
+      .innerJoin('o.user', 'u')
+      .innerJoin('o.details', 'd')
+      .innerJoin('d.productPresentation', 'pp')
+      .where(`DATE(o.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      })
+      .andWhere('o.status = :status', { status: OrderStatus.COMPLETED });
+
+    if (branchId) {
+      qb.andWhere('o.branch_id = :branchId', { branchId });
+    }
+    qb.groupBy('o.id')
+      .addGroupBy('u.firstName')
+      .addGroupBy('u.lastName')
+      .addGroupBy('o.createdAt')
+      .addGroupBy('o.type')
+      .addGroupBy('o.totalPrice');
+
+    const raws = await qb.getRawMany<{
+      orderId: string;
+      user: string;
+      date: string;
+      type: string;
+      quantity: string;
+      subtotal: string;
+      discount: string;
+      total: string;
+    }>();
+
+    return raws.map((r) => ({
+      orderId: r.orderId,
+      user: r.user,
+      date: new Date(r.date),
+      type: r.type.toUpperCase(),
+      quantity: Number(r.quantity),
+      subtotal: Number(r.subtotal),
+      discount: Number(r.discount),
+      total: Number(r.total),
+    }));
   }
 }

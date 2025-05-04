@@ -93,4 +93,7 @@ export class User extends BaseModel {
 
   @OneToMany(() => Cart, (cart) => cart.user)
   carts: Cart[];
+
+  @Column({ type: 'character varying', name: 'ws_id', nullable: true })
+  wsId: string | undefined;
 }

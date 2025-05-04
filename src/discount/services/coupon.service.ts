@@ -19,11 +19,27 @@ export class CouponService {
   async countCoupon(): Promise<number> {
     return await this.couponRepository.count();
   }
-  async findAll(page: number, pageSize: number): Promise<Coupon[]> {
-    return await this.couponRepository.find({
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+    expirationBetween?: Date[],
+  ): Promise<Coupon[]> {
+    const coupons = this.couponRepository
+      .createQueryBuilder('coupon')
+      .skip((page - 1) * pageSize)
+      .take(pageSize)
+      .orderBy('coupon.createdAt', 'DESC');
+    if (q) {
+      coupons.where('coupon.code ILIKE :code', { code: `%${q}%` });
+    }
+    if (expirationBetween && expirationBetween.length === 2) {
+      coupons.andWhere('coupon.expiration_date BETWEEN :start AND :end', {
+        start: expirationBetween[0],
+        end: expirationBetween[1],
+      });
+    }
+    return await coupons.getMany();
   }
 
   async findOne(code: string): Promise<Coupon> {

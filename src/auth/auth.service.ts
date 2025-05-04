@@ -5,6 +5,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
+import { Socket } from 'socket.io';
 import { plainToInstance } from 'class-transformer';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO, LoginResponseDTO } from './dto/login.dto';
@@ -12,6 +13,7 @@ import { UserDTO } from 'src/user/dto/user.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserRole } from 'src/user/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { JwtPayload } from './auth.type';
 
 @Injectable()
 export class AuthService {
@@ -96,5 +98,32 @@ export class AuthService {
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return await bcrypt.compare(password, user.password);
+  }
+
+  async validateUserWs(client: Socket) {
+    const token = client.handshake.headers['authorization']?.split(' ')[1];
+    if (!token) {
+      client.disconnect();
+      return;
+    }
+    let payload: JwtPayload;
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+    } catch {
+      client.disconnect();
+      return;
+    }
+    const user = await this.userService.findByEmail(payload.email);
+    if (!user) {
+      client.disconnect();
+      return;
+    }
+    await this.userService.setWsId(user.email, client.id);
+  }
+
+  async disconnectUserWs(client: Socket) {
+    await this.userService.removeWsId(client.id);
   }
 }

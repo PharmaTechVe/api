@@ -1,4 +1,11 @@
-import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import {
   ApiExtraModels,
@@ -10,11 +17,17 @@ import {
 import { ProductPresentationDTO, ProductQueryDTO } from './dto/product.dto';
 import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
+import { plainToInstance } from 'class-transformer';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
+import { RecommendationService } from 'src/recommendation/recommendation.service';
 
 @Controller('product')
 @ApiExtraModels(PaginationDTO, ProductPresentationDTO)
 export class ProductsController {
-  constructor(private productsServices: ProductsService) {}
+  constructor(
+    private productsServices: ProductsService,
+    private recommendationService: RecommendationService,
+  ) {}
   @Get()
   @UseInterceptors(PaginationInterceptor)
   @ApiOperation({
@@ -82,6 +95,13 @@ export class ProductsController {
     type: String,
     example: '100,200',
   })
+  @ApiQuery({
+    name: 'isVisible',
+    required: false,
+    description: 'Filter by product visibility',
+    type: Boolean,
+    example: true,
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -111,6 +131,7 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
       page,
@@ -122,8 +143,40 @@ export class ProductsController {
       presentationId,
       genericProductId,
       priceRange,
+      isVisible,
     );
 
-    return { data: products, total };
+    return {
+      data: plainToInstance(ProductPresentationDTO, products, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total,
+    };
+  }
+
+  @UseGuards(AuthGuard)
+  @UseInterceptors(PaginationInterceptor)
+  @Get('recommendations')
+  async getProductRecommendations(@Req() req: CustomRequest) {
+    const userId = req.user.id;
+    const recommendations = await this.recommendationService.recommend(userId);
+    const products = await this.productsServices.getProducts(
+      1,
+      10,
+      undefined,
+      [],
+      [],
+      [],
+      [],
+      recommendations,
+    );
+    return {
+      data: plainToInstance(ProductPresentationDTO, products.products, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total: products.total,
+    };
   }
 }

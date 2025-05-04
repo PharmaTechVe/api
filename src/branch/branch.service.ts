@@ -61,7 +61,7 @@ export class BranchService {
     return qb
       .skip((page - 1) * limit)
       .take(limit)
-      .orderBy('branch.name', 'ASC')
+      .orderBy('branch.createdAt', 'DESC')
       .getMany();
   }
 

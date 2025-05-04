@@ -356,4 +356,35 @@ export class UserService {
     const updatedMoto = this.UserMotoRepository.merge(userMoto, updateMotoDto);
     return await this.UserMotoRepository.save(updatedMoto);
   }
+
+  async countNewUsers(startDate: Date, endDate: Date): Promise<number> {
+    const startStr = startDate.toISOString().slice(0, 10);
+    const endStr = endDate.toISOString().slice(0, 10);
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .where(`DATE(user.created_at) BETWEEN :start AND :end`, {
+        start: startStr,
+        end: endStr,
+      });
+
+    return qb.getCount();
+  }
+
+  async setWsId(email: string, wsId: string): Promise<void> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      return;
+    }
+    user.wsId = wsId;
+    await this.userRepository.save(user);
+  }
+
+  async removeWsId(wsId: string): Promise<void> {
+    const user = await this.userRepository.findOneBy({ wsId });
+    if (!user) {
+      return;
+    }
+    user.wsId = undefined;
+    await this.userRepository.save(user);
+  }
 }

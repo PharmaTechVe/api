@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  VirtualColumn,
+} from 'typeorm';
 import { Product } from './product.entity';
 import { Presentation } from './presentation.entity';
 import { BaseModel } from 'src/utils/entity';
@@ -21,6 +28,9 @@ export class ProductPresentation extends BaseModel {
   @Column({ type: 'int', name: 'price' })
   price: number;
 
+  @Column({ type: 'boolean', default: true, name: 'is_visible' })
+  isVisible: boolean;
+
   @OneToMany(() => Lot, (lot) => lot.productPresentation)
   lot: Lot[];
 
@@ -41,4 +51,11 @@ export class ProductPresentation extends BaseModel {
 
   @OneToMany(() => CartItem, (cartItem) => cartItem.productPresentation)
   cartItems: CartItem[];
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT SUM(stock_quantity) FROM inventory WHERE product_presentation_id = ${alias}.id`,
+    type: 'int',
+  })
+  stock: number;
 }

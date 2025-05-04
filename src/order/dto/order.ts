@@ -53,6 +53,15 @@ export class CreateOrderDTO {
   userAddressId?: string;
 
   @ApiProperty({
+    description: 'Código de cupón (opcional)',
+    example: 'SAVE10B',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
+
+  @ApiProperty({
     description: 'List of products in the order',
     type: [CreateOrderDetailDTO],
   })
@@ -164,6 +173,20 @@ export class OrderQueryDTO extends PaginationQueryDTO {
 }
 
 export class UpdateOrderStatusDTO {
+  @ApiProperty({
+    description: 'New status of the order',
+    enum: OrderStatus,
+  })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}
+
+export class UpdateOrderStatusWsDTO {
+  @ApiProperty({ description: 'ID of the order' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
   @ApiProperty({
     description: 'New status of the order',
     enum: OrderStatus,

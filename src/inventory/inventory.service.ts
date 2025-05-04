@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import {
   CreateInventoryDTO,
   UpdateInventoryDTO,
@@ -10,6 +14,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { In } from 'typeorm';
+import { Lot } from 'src/products/entities/lot.entity';
+import {
+  InventoryMovement,
+  MovementType,
+} from './entities/inventory-movement.entity';
 
 @Injectable()
 export class InventoryService {
@@ -19,6 +28,11 @@ export class InventoryService {
     private readonly branchService: BranchService,
     @InjectRepository(ProductPresentation)
     private readonly productPresentationRepository: Repository<ProductPresentation>,
+    @InjectRepository(Lot)
+    private readonly lotRepository: Repository<Lot>,
+
+    @InjectRepository(InventoryMovement)
+    private readonly inventoryMovementRepository: Repository<InventoryMovement>,
   ) {}
 
   async create(createInventoryDTO: CreateInventoryDTO): Promise<Inventory> {
@@ -76,6 +90,24 @@ export class InventoryService {
     return inventory;
   }
 
+  async findByPresentationAndBranch(
+    productPresentationId: string,
+    branchId: string,
+  ): Promise<Inventory> {
+    const inventory = await this.inventoryRepository.findOne({
+      where: {
+        productPresentation: { id: productPresentationId },
+        branch: { id: branchId },
+      },
+    });
+    if (!inventory) {
+      throw new NotFoundException(
+        `Inventory with product presentation #${productPresentationId} not found`,
+      );
+    }
+    return inventory;
+  }
+
   async update(
     id: string,
     updateInventoryDTO: UpdateInventoryDTO,
@@ -126,15 +158,45 @@ export class InventoryService {
     bulkUpdateDto: BulkUpdateInventoryDTO,
     inventoryMap: Record<string, Inventory>,
   ): Promise<Inventory[]> {
-    const toUpdate = bulkUpdateDto.inventories
-      .filter((item) => !!inventoryMap[item.productPresentationId])
-      .map((item) => {
-        const inv = inventoryMap[item.productPresentationId];
-        inv.stockQuantity = item.quantity;
-        return inv;
-      });
+    const inventoriesToSave: Inventory[] = [];
+    const movementsToSave: InventoryMovement[] = [];
+    //const lotsToSave: Lot[] = [];
 
-    return this.inventoryRepository.save(toUpdate);
+    for (const item of bulkUpdateDto.inventories) {
+      const inventory = inventoryMap[item.productPresentationId];
+      if (!inventory) continue;
+
+      inventory.stockQuantity = item.quantity;
+      inventoriesToSave.push(inventory);
+
+      const movement = this.inventoryMovementRepository.create({
+        inventory,
+        quantity: item.quantity,
+        type: MovementType.IN,
+      });
+      movementsToSave.push(movement);
+
+      // if (item.expirationDate) {
+      //   const lot = this.lotRepository.create({
+      //     productPresentation: { id: item.productPresentationId },
+      //     branch: { id: branchId },
+      //     quantity: item.quantity,
+      //     expirationDate: new Date(item.expirationDate),
+      //   });
+      //   lotsToSave.push(lot);
+      // }
+    }
+
+    const updatedInventories =
+      await this.inventoryRepository.save(inventoriesToSave);
+    if (movementsToSave.length > 0) {
+      await this.inventoryMovementRepository.save(movementsToSave);
+    }
+    // if (lotsToSave.length > 0) {
+    //   await this.lotRepository.save(lotsToSave);
+    // }
+
+    return updatedInventories;
   }
 
   async updateBulkByBranch(
@@ -145,5 +207,41 @@ export class InventoryService {
     const inventories = await this.findInventories(branchId, ids);
     const inventoryMap = this.buildInventoryMap(inventories);
     return this.applyBulkUpdate(branchId, bulkUpdateDto, inventoryMap);
+  }
+  async getBulkTotalInventory(
+    presentationIds: string[],
+  ): Promise<Record<string, number>> {
+    const rows = await this.inventoryRepository
+      .createQueryBuilder('inv')
+      .select('inv.product_presentation_id', 'presentationId')
+      .addSelect('SUM(inv.stock_quantity)', 'totalStock')
+      .where('inv.product_presentation_id IN (:...ids)', {
+        ids: presentationIds,
+      })
+      .groupBy('inv.product_presentation_id')
+      .getRawMany<{ presentationId: string; totalStock: string }>();
+
+    const inventoryMap: Record<string, number> = {};
+    for (const { presentationId, totalStock } of rows) {
+      inventoryMap[presentationId] = Number(totalStock);
+    }
+    return inventoryMap;
+  }
+  async decrementInventory(
+    presentationId: string,
+    branchId: string,
+    amount: number,
+  ): Promise<void> {
+    const inv = await this.findByPresentationAndBranch(
+      presentationId,
+      branchId,
+    );
+    if (!inv || inv.stockQuantity < amount) {
+      throw new BadRequestException(
+        'Insufficient branch inventory to approve order',
+      );
+    }
+    inv.stockQuantity -= amount;
+    await this.inventoryRepository.save(inv);
   }
 }

@@ -29,11 +29,24 @@ export class PresentationService {
     });
   }
 
-  async findAll(page: number, pageSize: number): Promise<Presentation[]> {
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+  ): Promise<Presentation[]> {
+    let where;
+    if (q) {
+      where = {
+        name: q,
+      };
+    }
     return await this.presentationRepository.find({
-      where: { deletedAt: IsNull() },
+      where,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 
