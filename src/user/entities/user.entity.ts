@@ -18,6 +18,7 @@ import {
   OrderDelivery,
   OrderDetailDelivery,
 } from 'src/order/entities/order_delivery.entity';
+import { Cart } from 'src/cart/entities/cart.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -89,6 +90,9 @@ export class User extends BaseModel {
     eager: true,
   })
   userMoto: UserMoto;
+
+  @OneToMany(() => Cart, (cart) => cart.user)
+  carts: Cart[];
 
   @Column({ type: 'character varying', name: 'ws_id', nullable: true })
   wsId: string | undefined;

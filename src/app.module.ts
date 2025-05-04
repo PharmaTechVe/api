@@ -18,6 +18,7 @@ import { DiscountModule } from './discount/discount.module';
 import { PaymentModule } from './payments/payment.module';
 import { OrderModule } from './order/order.module';
 import { NotificationModule } from './notification/notification.module';
+import { CartModule } from './cart/cart.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ReportsModule } from './reports/reports.module';
 
@@ -61,6 +62,7 @@ import { ReportsModule } from './reports/reports.module';
     PaymentModule,
     OrderModule,
     NotificationModule,
+    CartModule,
     RecommendationModule,
     ReportsModule,
   ],
