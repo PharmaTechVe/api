@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrderDTO } from './dto/order';
+import { CreateOrderDTO, SalesReportDTO } from './dto/order';
 import { User, UserRole } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -499,18 +499,7 @@ export class OrderService {
     startDate: Date,
     endDate: Date,
     branchId?: string,
-  ): Promise<
-    Array<{
-      orderId: string;
-      user: string;
-      date: Date;
-      type: string;
-      quantity: number;
-      subtotal: number;
-      discount: number;
-      total: number;
-    }>
-  > {
+  ): Promise<SalesReportDTO[]> {
     const startStr = startDate.toISOString().slice(0, 10);
     const endStr = endDate.toISOString().slice(0, 10);
     const qb = this.orderRepository

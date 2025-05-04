@@ -194,3 +194,37 @@ export class UpdateOrderStatusWsDTO {
   @IsEnum(OrderStatus)
   status: OrderStatus;
 }
+
+export class SalesReportDTO {
+  @Expose()
+  @ApiProperty({ description: 'ID of the order' })
+  orderId: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Full name of the user' })
+  user: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Date of the order' })
+  date: Date;
+
+  @Expose()
+  @ApiProperty({ description: 'Order Type PICKUP or DELIVERY' })
+  type: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Products quantity of the order' })
+  quantity: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Subtotal of the order' })
+  subtotal: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Discount of the order' })
+  discount: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Total of the order' })
+  total: number;
+}
