@@ -138,7 +138,7 @@ export class OrderController {
     @Req() req: CustomRequest,
     @Query() query: OrderQueryDTO,
   ): Promise<{ data: ResponseOrderDTO[]; total: number }> {
-    const { page, limit, userId, branchId, status } = query;
+    const { page, limit, userId, branchId, status, type } = query;
     let user;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       if (userId) user = userId;
@@ -151,6 +151,7 @@ export class OrderController {
       user,
       branchId,
       status,
+      type,
     );
     return {
       data: plainToInstance(ResponseOrderDTO, orders, {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { ILike, IsNull, Repository } from 'typeorm';
 import {
   CreatePresentationDTO,
   UpdatePresentationDTO,
@@ -37,7 +37,7 @@ export class PresentationService {
     let where;
     if (q) {
       where = {
-        name: q,
+        name: ILike(`%${q}%`),
       };
     }
     return await this.presentationRepository.find({

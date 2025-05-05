@@ -175,11 +175,13 @@ export class OrderService {
     userId?: string,
     branchId?: string,
     status?: string,
+    type?: string,
   ) {
     const where: Record<string, unknown> = {};
     if (userId) where.user = { id: userId };
     if (branchId) where.branch = { id: branchId };
     if (status) where.status = status;
+    if (type) where.type = type;
     const [orders, total] = await this.orderRepository.findAndCount({
       where: where,
       order: { createdAt: 'DESC' },

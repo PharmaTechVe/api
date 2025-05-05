@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, In, Between } from 'typeorm';
+import { Repository, In, Between, ILike } from 'typeorm';
 import { ProductPresentation } from './entities/product-presentation.entity';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class ProductsService {
       where = {
         product: [
           {
-            name: Like(`%${searchQuery}%`),
+            name: ILike(`%${searchQuery}%`),
           },
         ],
       };
