@@ -27,6 +27,9 @@ import { CouponService } from 'src/discount/services/coupon.service';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { InventoryMovementService } from 'src/inventory/services/inventory-movement.service';
 import { MovementType } from 'src/inventory/entities/inventory-movement.entity';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { EmailService } from 'src/email/email.service';
+import Handlebars from 'handlebars';
 
 @Injectable()
 export class OrderService {
@@ -35,15 +38,16 @@ export class OrderService {
     private orderRepository: Repository<Order>,
     @InjectRepository(OrderDetail)
     private orderDetailRepository: Repository<OrderDetail>,
-    private productPresentationService: ProductPresentationService,
-    private branchService: BranchService,
     @InjectRepository(OrderDelivery)
     private orderDeliveryRepository: Repository<OrderDelivery>,
+    private productPresentationService: ProductPresentationService,
+    private branchService: BranchService,
     private userService: UserService,
-    private readonly inventoryService: InventoryService,
+    private inventoryService: InventoryService,
     private couponService: CouponService,
-
-    private readonly inventoryMovementService: InventoryMovementService,
+    private inventoryMovementService: InventoryMovementService,
+    private eventEmitter: EventEmitter2,
+    private emailService: EmailService,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -146,6 +150,7 @@ export class OrderService {
     }
     return order;
   }
+
   private async validateAndApplyCoupon(
     couponCode: string,
     totalPrice: number,
@@ -170,6 +175,7 @@ export class OrderService {
     });
     return newTotal;
   }
+
   async findAll(
     page: number,
     pageSize: number,
@@ -213,6 +219,29 @@ export class OrderService {
     }
     return order;
   }
+
+  async findOneWithUser(id: string) {
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: [
+        'branch',
+        'details',
+        'details.productPresentation',
+        'details.productPresentation.promo',
+        'details.productPresentation.product',
+        'details.productPresentation.product.images',
+        'details.productPresentation.presentation',
+        'orderDeliveries.employee',
+        'user',
+        'user.profile',
+      ],
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
+  }
+
   async update(id: string, status: OrderStatus): Promise<Order> {
     const order = await this.findOne(id);
     if (order.status === OrderStatus.COMPLETED) {
@@ -221,7 +250,7 @@ export class OrderService {
     }
     if (
       status === OrderStatus.APPROVED &&
-      order.status !== OrderStatus.APPROVED
+      order.status === OrderStatus.REQUESTED
     ) {
       for (const detail of order.details) {
         const inv = await this.inventoryService.findByPresentationAndBranch(
@@ -242,6 +271,8 @@ export class OrderService {
     }
 
     order.status = status;
+    const orderWithUser = await this.findOneWithUser(order.id);
+    this.eventEmitter.emit('order.updated', orderWithUser);
     return await this.orderRepository.save(order);
   }
 
@@ -390,6 +421,7 @@ export class OrderService {
     }
     return await this.orderDeliveryRepository.save(updateDelivery);
   }
+
   async countOrdersCompleted(
     status: OrderStatus,
     startDate: Date,
@@ -411,6 +443,7 @@ export class OrderService {
     }
     return qb.getCount();
   }
+
   async countOpenOrders(
     startDate: Date,
     endDate: Date,
@@ -434,6 +467,7 @@ export class OrderService {
     }
     return qb.getCount();
   }
+
   async sumTotalSales(
     startDate: Date,
     endDate: Date,
@@ -457,6 +491,7 @@ export class OrderService {
     const raw = await qb.getRawOne<{ sum: string }>();
     return Number(raw?.sum ?? '0');
   }
+
   async countOrdersByStatus(
     startDate: Date,
     endDate: Date,
@@ -555,5 +590,73 @@ export class OrderService {
       discount: Number(r.discount),
       total: Number(r.total),
     }));
+  }
+
+  @OnEvent('order.updated')
+  async handleOrderUpdated(order: Order) {
+    let templateName = '';
+    switch (order.status) {
+      case OrderStatus.APPROVED:
+        templateName = 'order-approved';
+        break;
+      case OrderStatus.COMPLETED:
+        templateName = 'order-completed';
+        break;
+      default:
+        return;
+    }
+    let subject = '';
+    switch (order.status) {
+      case OrderStatus.APPROVED:
+        subject = 'Orden Aprobada';
+        break;
+      case OrderStatus.COMPLETED:
+        subject = 'Orden Completada';
+        break;
+      default:
+        return;
+    }
+    const template = await this.emailService.findTemplateByName(templateName);
+    const handlebarsTemplate = Handlebars.compile(template.html);
+    const userAddress =
+      order.type === OrderType.DELIVERY
+        ? order.orderDeliveries[0].address
+        : null;
+    const html = handlebarsTemplate({
+      id: order.id.slice(0, 8),
+      subtotal:
+        order.details.reduce((acc, detail) => acc + detail.subtotal, 0) / 100,
+      discount:
+        order.details.reduce(
+          (acc, detail) =>
+            acc +
+            (detail.productPresentation.promo
+              ? (detail.productPresentation.price *
+                  detail.productPresentation.promo.discount) /
+                100
+              : 0),
+          0,
+        ) / 100,
+      total: order.totalPrice / 100,
+      products: order.details.map((detail) => ({
+        name: detail.productPresentation.product.name,
+        presentation: detail.productPresentation.presentation.name,
+        price: detail.productPresentation.price / 100,
+        quantity: detail.quantity,
+      })),
+      userAddress: userAddress ? userAddress.adress : null,
+      userCity: userAddress ? userAddress.city.name : null,
+      userState: userAddress ? userAddress.city.state.name : null,
+      branchAddress: order.branch.address,
+      branchCity: order.branch.city.name,
+      // TODO: fix this
+      branchState: 'Lara', //order.branch.city.state.name,
+    });
+    await this.emailService.sendEmail({
+      recipients: [{ name: order.user.firstName, email: order.user.email }],
+      subject: subject,
+      text: `Your order with ID ${order.id} has been updated to status ${order.status}.`,
+      html: html,
+    });
   }
 }

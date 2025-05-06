@@ -21,6 +21,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CartModule } from './cart/cart.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ReportsModule } from './reports/reports.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ReportsModule } from './reports/reports.module';
         };
       },
     }),
+    EventEmitterModule.forRoot(),
     DatabaseModule,
     ProductsModule,
     UserModule,

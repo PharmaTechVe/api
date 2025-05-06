@@ -3,7 +3,7 @@ import {
   EventSubscriber,
   UpdateEvent,
 } from 'typeorm';
-import { Order } from 'src/order/entities/order.entity';
+import { Order, OrderStatus } from 'src/order/entities/order.entity';
 import { Notification } from '../entities/notification.entity';
 
 @EventSubscriber()
@@ -14,12 +14,32 @@ export class NotificationSubscriber
     return Order;
   }
 
+  translateStatus(status: OrderStatus): string {
+    switch (status) {
+      case OrderStatus.APPROVED:
+        return 'aprobada';
+      case OrderStatus.IN_PROGRESS:
+        return 'en progreso';
+      case OrderStatus.COMPLETED:
+        return 'completada';
+      case OrderStatus.CANCELED:
+        return 'cancelada';
+      case OrderStatus.REQUESTED:
+        return 'solicitada';
+      case OrderStatus.READY_FOR_PICKUP:
+        return 'lista para recoger';
+      default:
+        return 'Desconocido';
+    }
+  }
+
   async afterUpdate(event: UpdateEvent<Order>) {
     const updatedOrder = event.entity as Order | undefined;
-    console.log('Updated Order:', updatedOrder);
     if (!updatedOrder) return;
 
-    const message = `The order ${updatedOrder.id} has been updated to ${updatedOrder.status}`;
+    const message = `
+      La Orden #${updatedOrder.id.slice(0, 8)} ya está ${this.translateStatus(updatedOrder.status)}
+    `;
     const notificationRepository = event.manager.getRepository(Notification);
 
     let notification = await notificationRepository.findOne({
