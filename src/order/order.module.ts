@@ -25,6 +25,7 @@ import { Coupon } from 'src/discount/entities/coupon.entity';
 import { CouponService } from 'src/discount/services/coupon.service';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { OrderGateway } from './order.gateway';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { OrderGateway } from './order.gateway';
       Coupon,
     ]),
     AuthModule,
+    EmailModule,
     forwardRef(() => InventoryModule),
   ],
   controllers: [OrderController, OrderDeliveryController],
