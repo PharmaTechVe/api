@@ -21,6 +21,7 @@ export class ProductsService {
     genericProductIds?: string[],
     priceRange?: number[],
     isVisible?: boolean,
+    ids?: string[],
   ) {
     let where = {};
     if (searchQuery) {
@@ -30,6 +31,12 @@ export class ProductsService {
             name: ILike(`%${searchQuery}%`),
           },
         ],
+      };
+    }
+    if (ids && ids.length > 0) {
+      where = {
+        ...where,
+        id: In(ids),
       };
     }
     if (categoryIds && categoryIds.length > 0) {

@@ -102,6 +102,12 @@ export class ProductsController {
     type: Boolean,
     example: true,
   })
+  @ApiQuery({
+    name: 'id',
+    required: false,
+    description: 'Filter by product presentation ID',
+    type: String,
+  })
   @ApiOkResponse({
     description: 'Products obtained correctly.',
     schema: {
@@ -132,6 +138,7 @@ export class ProductsController {
       genericProductId,
       priceRange,
       isVisible,
+      id,
     } = pagination;
     const { products, total } = await this.productsServices.getProducts(
       page,
@@ -144,6 +151,7 @@ export class ProductsController {
       genericProductId,
       priceRange,
       isVisible,
+      id,
     );
 
     return {

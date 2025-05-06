@@ -92,6 +92,11 @@ export class ProductQueryDTO extends PaginationQueryDTO {
   @IsOptional()
   @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
   @IsUUID(undefined, { each: true })
+  id: string[];
+
+  @IsOptional()
+  @Transform(({ value }: { value: string }) => (value ? value.split(',') : []))
+  @IsUUID(undefined, { each: true })
   manufacturerId: string[];
 
   @IsOptional()
@@ -141,6 +146,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     genericProductId?: string[],
     priceRange?: number[],
     isVisible?: boolean,
+    id?: string[],
   ) {
     super(page, limit);
     this.q = q ? q : '';
@@ -151,5 +157,6 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     this.genericProductId = genericProductId ? genericProductId : [];
     this.priceRange = priceRange ? priceRange : [];
     this.isVisible = isVisible;
+    this.id = id ? id : [];
   }
 }

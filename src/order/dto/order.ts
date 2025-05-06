@@ -18,6 +18,7 @@ import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { OrderDeliveryEmployeeDTO } from './order-delivery.dto';
+import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -71,6 +72,14 @@ export class CreateOrderDTO {
   @Type(() => CreateOrderDetailDTO)
   products: CreateOrderDetailDTO[];
 
+  @ApiProperty({
+    description: 'Payment method (CASH, CARD, etc.)',
+    enum: PaymentMethod,
+  })
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod: PaymentMethod;
+
   constructor(
     type: OrderType,
     products: CreateOrderDetailDTO[],
@@ -122,6 +131,15 @@ export class ResponseOrderDTO extends BaseDTO {
   @Expose()
   @ApiProperty({ description: 'Total price of the order' })
   totalPrice: number;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Payment method (CASH, CARD, etc.)',
+    enum: PaymentMethod,
+  })
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod: PaymentMethod;
 }
 
 export class ResponseOrderDetailedDTO extends ResponseOrderDTO {

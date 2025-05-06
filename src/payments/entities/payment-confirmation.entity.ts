@@ -1,5 +1,6 @@
+import { Order } from 'src/order/entities/order.entity';
 import { BaseModel } from 'src/utils/entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 
 @Entity('payment_confirmation')
 export class PaymentConfirmation extends BaseModel {
@@ -15,5 +16,9 @@ export class PaymentConfirmation extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
-  //order: Order;
+  @ManyToOne(() => Order, (order) => order.paymentConfirmations, {
+    onDelete: 'RESTRICT',
+  })
+  @JoinColumn({ name: 'order_id' })
+  order: Order;
 }
