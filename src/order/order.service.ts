@@ -118,6 +118,7 @@ export class OrderService {
       branch,
       type: createOrderDTO.type,
       totalPrice: totalPrice,
+      paymentMethod: createOrderDTO.paymentMethod,
     });
     const order = await this.orderRepository.save(orderToCreate);
     const orderDetails = productsWithQuantity.map((product) => {
