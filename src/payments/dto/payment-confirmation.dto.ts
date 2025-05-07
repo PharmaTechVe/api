@@ -20,7 +20,7 @@ class PaymentConfirmationDTO {
   phoneNumber: string;
 }
 
-export class CreatePaymentConfirmationDTO {
+export class CreatePaymentConfirmationDTO extends PaymentConfirmationDTO {
   @ApiProperty()
   @IsString()
   @IsUUID()
