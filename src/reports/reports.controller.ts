@@ -16,7 +16,7 @@ import { ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { FullSalesReportDTO } from './dto/sales.dto';
 
 @UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
 @Controller('report')
 export class ReportsController {
   constructor(
