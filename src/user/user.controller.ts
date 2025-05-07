@@ -191,7 +191,6 @@ export class UserController {
 
     return plainToInstance(CreateUserAddressDTO, {
       adress: savedAddress.adress,
-      zipCode: savedAddress.zipCode,
       latitude: savedAddress.latitude,
       longitude: savedAddress.longitude,
       cityId: savedAddress.city.id,
@@ -217,7 +216,6 @@ export class UserController {
     return plainToInstance(UserAddressDTO, {
       id: address.id,
       adress: address.adress,
-      zipCode: address.zipCode,
       latitude: address.latitude,
       longitude: address.longitude,
       cityId: address.city.id,
@@ -243,7 +241,6 @@ export class UserController {
       plainToInstance(UserAddressDTO, {
         id: address.id,
         adress: address.adress,
-        zipCode: address.zipCode,
         latitude: address.latitude,
         longitude: address.longitude,
         cityId: address.city.id,
@@ -293,7 +290,6 @@ export class UserController {
     return plainToInstance(UserAddressDTO, {
       id: updatedAddress.id,
       adress: updatedAddress.adress,
-      zipCode: updatedAddress.zipCode,
       latitude: updatedAddress.latitude,
       longitude: updatedAddress.longitude,
       cityId: updatedAddress.city.id,

@@ -11,7 +11,12 @@ export class NotificationService {
   ) {}
 
   async getAllNotifications() {
-    return await this.notificationRepository.find({ relations: ['order'] });
+    return await this.notificationRepository.find({
+      relations: ['order'],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
   async getUserNotifications(userId: string) {
     return await this.notificationRepository

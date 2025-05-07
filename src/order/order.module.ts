@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order, OrderDetail } from './entities/order.entity';
@@ -21,6 +21,11 @@ import {
 } from './entities/order_delivery.entity';
 import { OrderDeliveryController } from './controllers/order-delivery.controller';
 import { OrderController } from './controllers/order.controller';
+import { Coupon } from 'src/discount/entities/coupon.entity';
+import { CouponService } from 'src/discount/services/coupon.service';
+import { InventoryModule } from 'src/inventory/inventory.module';
+import { OrderGateway } from './order.gateway';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -35,8 +40,11 @@ import { OrderController } from './controllers/order.controller';
       Promo,
       OrderDelivery,
       OrderDetailDelivery,
+      Coupon,
     ]),
     AuthModule,
+    EmailModule,
+    forwardRef(() => InventoryModule),
   ],
   controllers: [OrderController, OrderDeliveryController],
   providers: [
@@ -47,6 +55,9 @@ import { OrderController } from './controllers/order.controller';
     StateService,
     CountryService,
     PromoService,
+    CouponService,
+    OrderGateway,
   ],
+  exports: [OrderService],
 })
 export class OrderModule {}

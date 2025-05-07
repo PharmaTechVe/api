@@ -7,11 +7,13 @@ import { PaymentConfirmationController } from './controllers/payment-confirmatio
 import { PaymentInformationService } from './services/payment-information.service';
 import { PaymentConfirmationService } from './services/payment-confirmation.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { OrderModule } from 'src/order/order.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([PaymentInformation, PaymentConfirmation]),
     AuthModule,
+    OrderModule,
   ],
   controllers: [PaymentInformationController, PaymentConfirmationController],
   providers: [PaymentInformationService, PaymentConfirmationService],

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { ILike, IsNull, Repository } from 'typeorm';
 import {
   CreatePresentationDTO,
   UpdatePresentationDTO,
@@ -29,11 +29,24 @@ export class PresentationService {
     });
   }
 
-  async findAll(page: number, pageSize: number): Promise<Presentation[]> {
+  async findAll(
+    page: number,
+    pageSize: number,
+    q?: string,
+  ): Promise<Presentation[]> {
+    let where;
+    if (q) {
+      where = {
+        name: ILike(`%${q}%`),
+      };
+    }
     return await this.presentationRepository.find({
-      where: { deletedAt: IsNull() },
+      where,
       skip: (page - 1) * pageSize,
       take: pageSize,
+      order: {
+        createdAt: 'DESC',
+      },
     });
   }
 

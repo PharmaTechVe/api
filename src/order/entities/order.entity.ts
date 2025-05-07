@@ -4,6 +4,8 @@ import { User } from 'src/user/entities/user.entity';
 import { BaseModel, UUIDModel } from 'src/utils/entity';
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { OrderDelivery, OrderDetailDelivery } from './order_delivery.entity';
+import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
+import { PaymentConfirmation } from 'src/payments/entities/payment-confirmation.entity';
 
 export enum OrderType {
   PICKUP = 'pickup',
@@ -47,6 +49,20 @@ export class Order extends BaseModel {
 
   @OneToMany(() => OrderDelivery, (orderDelivery) => orderDelivery.order)
   orderDeliveries: OrderDelivery[];
+
+  @Column({
+    type: 'enum',
+    enum: PaymentMethod,
+    name: 'payment_method',
+    default: PaymentMethod.CASH,
+  })
+  paymentMethod: PaymentMethod;
+
+  @OneToMany(
+    () => PaymentConfirmation,
+    (paymentConfirmation) => paymentConfirmation.order,
+  )
+  paymentConfirmations: PaymentConfirmation[];
 }
 
 @Entity()

@@ -18,6 +18,7 @@ import { BaseDTO } from 'src/utils/dto/base.dto';
 import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/product-presentation.dto';
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { OrderDeliveryEmployeeDTO } from './order-delivery.dto';
+import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -53,6 +54,15 @@ export class CreateOrderDTO {
   userAddressId?: string;
 
   @ApiProperty({
+    description: 'Código de cupón (opcional)',
+    example: 'SAVE10B',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
+
+  @ApiProperty({
     description: 'List of products in the order',
     type: [CreateOrderDetailDTO],
   })
@@ -61,6 +71,14 @@ export class CreateOrderDTO {
   @ValidateNested({ each: true })
   @Type(() => CreateOrderDetailDTO)
   products: CreateOrderDetailDTO[];
+
+  @ApiProperty({
+    description: 'Payment method (CASH, CARD, etc.)',
+    enum: PaymentMethod,
+  })
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod: PaymentMethod;
 
   constructor(
     type: OrderType,
@@ -113,6 +131,15 @@ export class ResponseOrderDTO extends BaseDTO {
   @Expose()
   @ApiProperty({ description: 'Total price of the order' })
   totalPrice: number;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Payment method (CASH, CARD, etc.)',
+    enum: PaymentMethod,
+  })
+  @IsEnum(PaymentMethod)
+  @IsOptional()
+  paymentMethod: PaymentMethod;
 }
 
 export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
@@ -170,4 +197,52 @@ export class UpdateOrderStatusDTO {
   })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+}
+
+export class UpdateOrderStatusWsDTO {
+  @ApiProperty({ description: 'ID of the order' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty({
+    description: 'New status of the order',
+    enum: OrderStatus,
+  })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}
+
+export class SalesReportDTO {
+  @Expose()
+  @ApiProperty({ description: 'ID of the order' })
+  orderId: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Full name of the user' })
+  user: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Date of the order' })
+  date: Date;
+
+  @Expose()
+  @ApiProperty({ description: 'Order Type PICKUP or DELIVERY' })
+  type: string;
+
+  @Expose()
+  @ApiProperty({ description: 'Products quantity of the order' })
+  quantity: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Subtotal of the order' })
+  subtotal: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Discount of the order' })
+  discount: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Total of the order' })
+  total: number;
 }
