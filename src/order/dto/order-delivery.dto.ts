@@ -162,3 +162,21 @@ export class OrderDeliveryEmployeeDTO extends IntersectionType(
   @Type(() => EmployeeDTO)
   employee: EmployeeDTO;
 }
+
+export class UpdateDeliveryWsDTO {
+  @ApiProperty({ description: 'ID of the order delivery' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiPropertyOptional({ description: 'New delivery status' })
+  @IsOptional()
+  @IsString()
+  deliveryStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'indicate the delivery is rejected (employee unassign)',
+  })
+  @IsOptional()
+  employeeId?: string;
+}
