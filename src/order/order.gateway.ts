@@ -60,16 +60,12 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: UpdateOrderStatusWsDTO,
   ) {
-    this.orderService.update(data.id, data.status).then((order) => {
-      if (!order) {
-        this.server.to(client.id).emit('error', {
-          message: 'Order not found',
-          data: { id: data.id },
-        });
-      }
+    this.orderService.findOneWithUser(data.id).then((order) => {
       this.orderService.getUserByOrderId(order.id).then((user) => {
         if (user.wsId) {
-          client.to(user.wsId).emit('order', order);
+          client
+            .to(user.wsId)
+            .emit('orderUpdated', { orderId: order.id, status: data.status });
         }
       });
     });
