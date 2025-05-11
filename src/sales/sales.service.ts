@@ -53,14 +53,14 @@ export class SalesService {
     return filled;
   }
 
-  async predictNext(daysAhead: number = 7): Promise<PredictedSaleDTO[]> {
-    const rawSalesData = await this.getDailySales();
-    const salesData = this.fillMissingDates(rawSalesData);
+  async predictNext(
+    daysAhead: number = 7,
+    dailySales: DailySaleDTO[],
+  ): Promise<PredictedSaleDTO[]> {
+    if (dailySales.length < 2) return [];
 
-    if (salesData.length < 2) return [];
-
-    const inputs = salesData.map((_, i) => i);
-    const labels = salesData.map((s) => s.total);
+    const inputs = dailySales.map((_, i) => i);
+    const labels = dailySales.map((s) => s.total);
 
     const xs = tf.tensor2d(inputs, [inputs.length, 1]);
     const ys = tf.tensor2d(labels, [labels.length, 1]);

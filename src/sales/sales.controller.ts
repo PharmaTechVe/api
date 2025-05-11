@@ -8,6 +8,12 @@ export class SalesController {
 
   @Get('predict')
   async predict(@Query() query: PredictSalesDTO): Promise<PredictedSaleDTO[]> {
-    return await this.salesService.predictNext(query.daysAhead || 7);
+    const salesData = await this.salesService.getDailySales();
+    const dailySales = this.salesService.fillMissingDates(salesData);
+
+    return await this.salesService.predictNext(
+      query.daysAhead || 7,
+      dailySales,
+    );
   }
 }
