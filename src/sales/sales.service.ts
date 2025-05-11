@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Order, OrderStatus } from '../order/entities/order.entity';
 import { Repository } from 'typeorm';
 import * as tf from '@tensorflow/tfjs';
+
 @Injectable()
 export class SalesService {
   constructor(
@@ -26,8 +27,35 @@ export class SalesService {
     }));
   }
 
+  fillMissingDates(data: { date: string; total: number }[]) {
+    if (data.length < 2) return data;
+
+    const filled = [];
+    const start = new Date(data[0].date);
+    const yesterday = new Date();
+    yesterday.setHours(0, 0, 0, 0);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const dateMap = new Map(
+      data.map((d) => [new Date(d.date).toISOString().split('T')[0], d.total]),
+    );
+
+    for (let d = new Date(start); d <= yesterday; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+
+      filled.push({
+        date: dateStr,
+        total: dateMap.get(dateStr) ?? 0,
+      });
+    }
+
+    return filled;
+  }
+
   async predictNext(daysAhead: number = 7) {
-    const salesData = await this.getDailySales();
+    const rawSalesData = await this.getDailySales();
+    const salesData = this.fillMissingDates(rawSalesData);
+
     if (salesData.length < 2) return [];
 
     const inputs = salesData.map((_, i) => i);
@@ -46,16 +74,26 @@ export class SalesService {
       { length: daysAhead },
       (_, i) => inputs.length + i,
     );
+
     const predictions = model.predict(
       tf.tensor2d(futureDays, [daysAhead, 1]),
     ) as tf.Tensor;
 
     const predictedValues = await predictions.array();
-    return futureDays.map((i, index) => ({
-      dayIndex: i,
-      predictedTotal: parseInt(
-        (predictedValues as number[][])[index][0].toFixed(2),
-      ),
-    }));
+
+    return futureDays.map((_, index) => {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + index);
+
+      const formatted = date.toISOString().split('T')[0];
+
+      return {
+        date: formatted,
+        predictedTotal: parseInt(
+          (predictedValues as number[][])[index][0].toFixed(2),
+        ),
+      };
+    });
   }
 }
