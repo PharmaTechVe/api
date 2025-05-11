@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Order, OrderStatus } from '../order/entities/order.entity';
 import { Repository } from 'typeorm';
 import * as tf from '@tensorflow/tfjs';
+import { DailySaleDTO, PredictedSaleDTO } from './dto/predict-sales.dto';
 
 @Injectable()
 export class SalesService {
@@ -11,7 +12,7 @@ export class SalesService {
     private readonly orderRepository: Repository<Order>,
   ) {}
 
-  async getDailySales(): Promise<{ date: string; total: number }[]> {
+  async getDailySales(): Promise<DailySaleDTO[]> {
     const sales = await this.orderRepository
       .createQueryBuilder('order')
       .select('DATE(order.createdAt)', 'date')
@@ -27,7 +28,7 @@ export class SalesService {
     }));
   }
 
-  fillMissingDates(data: { date: string; total: number }[]) {
+  fillMissingDates(data: DailySaleDTO[]): DailySaleDTO[] {
     if (data.length < 2) return data;
 
     const filled = [];
@@ -52,7 +53,7 @@ export class SalesService {
     return filled;
   }
 
-  async predictNext(daysAhead: number = 7) {
+  async predictNext(daysAhead: number = 7): Promise<PredictedSaleDTO[]> {
     const rawSalesData = await this.getDailySales();
     const salesData = this.fillMissingDates(rawSalesData);
 
