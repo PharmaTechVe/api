@@ -41,6 +41,7 @@ export class SalesController {
     const salesData = await this.salesService.getDailySales();
     const dailySales = this.salesService.fillMissingDates(salesData);
 
-    return await this.salesService.predictNext(query.days || 7, dailySales);
+    const days = query.days ? parseInt(query.days, 10) || 7 : 7;
+    return await this.salesService.predictNext(days, dailySales);
   }
 }
