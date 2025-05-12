@@ -66,13 +66,15 @@ export class OrderService {
           'User address ID is required for delivery orders',
         );
       }
-      // TODO: Find the closest branch to the address
-      const branches = await this.branchService.findAll(1, 10);
-      branch = branches[0];
       userAddress = await this.userService.getAddress(
         user.id,
         createOrderDTO.userAddressId,
       );
+      const nearestBranch = await this.branchService.findNearestBranch(
+        userAddress.latitude,
+        userAddress.longitude,
+      );
+      branch = nearestBranch;
     } else {
       throw new BadRequestException('Invalid order type');
     }
