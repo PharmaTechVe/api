@@ -6,9 +6,11 @@ import {
 } from '../dto/payment-confirmation.dto';
 import {
   ApiBearerAuth,
+  ApiForbiddenResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 
@@ -30,6 +32,13 @@ export class PaymentConfirmationController {
     status: 201,
     description: 'Payment confirmation created successfully.',
     type: ResponsePaymentConfirmationDTO,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized - Missing or invalid JWT token.',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Forbidden - The order does not belong to the authenticated user.',
   })
   async create(
     @Req() req: CustomRequest,
