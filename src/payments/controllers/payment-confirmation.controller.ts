@@ -1,10 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { PaymentConfirmationService } from '../services/payment-confirmation.service';
 import {
   CreatePaymentConfirmationDTO,
   ResponsePaymentConfirmationDTO,
 } from '../dto/payment-confirmation.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 
 @ApiTags('Payment Confirmation')
 @Controller('payment-confirmation')
@@ -14,6 +20,8 @@ export class PaymentConfirmationController {
   ) {}
 
   @Post()
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Create Payment Confirmation',
     description: 'Registers a new payment confirmation for a user order.',
@@ -24,8 +32,12 @@ export class PaymentConfirmationController {
     type: ResponsePaymentConfirmationDTO,
   })
   async create(
+    @Req() req: CustomRequest,
     @Body() createPaymentConfirmationDto: CreatePaymentConfirmationDTO,
   ): Promise<ResponsePaymentConfirmationDTO> {
-    return this.paymentConfirmationService.create(createPaymentConfirmationDto);
+    return this.paymentConfirmationService.create(
+      req.user.id,
+      createPaymentConfirmationDto,
+    );
   }
 }

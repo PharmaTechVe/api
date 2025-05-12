@@ -205,6 +205,7 @@ export class OrderService {
       where: where,
       relations: [
         'branch',
+        'user',
         'details',
         'details.productPresentation',
         'details.productPresentation.promo',
