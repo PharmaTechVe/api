@@ -20,7 +20,6 @@ export class PaymentConfirmationService {
     const order = await this.orderService.findOne(
       createPaymentConfirmationDto.orderId,
     );
-    console.log('order', order);
 
     if (order.user.id !== userId) {
       throw new ForbiddenException(
