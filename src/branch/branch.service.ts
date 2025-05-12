@@ -104,7 +104,7 @@ export class BranchService {
       .getOne();
 
     if (!branch) {
-      throw new NotFoundException('No nearest branch found');
+      throw new NotFoundException('No closer branch found');
     }
 
     return branch;
