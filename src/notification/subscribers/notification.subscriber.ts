@@ -2,14 +2,24 @@ import {
   EntitySubscriberInterface,
   EventSubscriber,
   UpdateEvent,
+  DataSource,
 } from 'typeorm';
 import { Order, OrderStatus } from 'src/order/entities/order.entity';
 import { Notification } from '../entities/notification.entity';
+import { NotificationService } from '../services/notification.service';
+import { Injectable } from '@nestjs/common';
 
 @EventSubscriber()
+@Injectable()
 export class NotificationSubscriber
   implements EntitySubscriberInterface<Order>
 {
+  constructor(
+    private readonly dataSource: DataSource,
+    private readonly notificationService: NotificationService,
+  ) {
+    this.dataSource.subscribers.push(this);
+  }
   listenTo() {
     return Order;
   }
@@ -57,6 +67,11 @@ export class NotificationSubscriber
       });
     }
 
-    await notificationRepository.save(notification);
+    const saved = await notificationRepository.save(notification);
+    const fullNotification = await notificationRepository.findOneOrFail({
+      where: { id: saved.id },
+      relations: ['order', 'order.user'],
+    });
+    this.notificationService.emitNotification(fullNotification);
   }
 }
