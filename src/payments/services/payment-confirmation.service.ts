@@ -17,7 +17,7 @@ export class PaymentConfirmationService {
     userId: string,
     createPaymentConfirmationDto: CreatePaymentConfirmationDTO,
   ): Promise<PaymentConfirmation> {
-    const order = await this.orderService.findOne(
+    const order = await this.orderService.findOneWithUser(
       createPaymentConfirmationDto.orderId,
     );
 
