@@ -113,6 +113,15 @@ export class ProductsService {
             categories: 'product.categories',
             presentation: 'product_presentation.presentation',
           },
+          leftJoinAndSelect: {
+            promo: 'product_presentation.promo',
+          },
+        },
+        order: {
+          createdAt: 'DESC',
+          product: {
+            priority: 'ASC',
+          },
         },
         where,
         skip: (page - 1) * limit,
