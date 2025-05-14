@@ -92,7 +92,10 @@ export class AuthService {
 
   async updatePassword(user: User, newPasswod: string): Promise<boolean> {
     const password = await this.encryptPassword(newPasswod);
-    await this.userService.update(user, { password });
+    await this.userService.update(user, {
+      password,
+      isGenericPassword: false,
+    });
     return true;
   }
 
