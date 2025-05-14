@@ -548,7 +548,7 @@ export class OrderService {
       .addSelect('o.type', 'type')
       .addSelect('SUM(d.quantity)', 'quantity')
       .addSelect('SUM(d.subtotal)', 'subtotal')
-      .addSelect('SUM(d.quantity * pp.price) - o.totalPrice', 'discount')
+      .addSelect('SUM(d.quantity * d.price) - o.totalPrice', 'discount')
       .addSelect('o.totalPrice', 'total')
       .innerJoin('o.user', 'u')
       .innerJoin('o.details', 'd')
