@@ -119,9 +119,6 @@ export class ProductsService {
         },
         order: {
           createdAt: 'DESC',
-          product: {
-            priority: 'ASC',
-          },
         },
         where,
         skip: (page - 1) * limit,
