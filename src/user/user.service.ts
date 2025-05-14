@@ -131,6 +131,7 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
     newUser.password = hashedPassword;
+    newUser.isGenericPassword = true;
     if (
       user.role === UserRole.BRANCH_ADMIN ||
       user.role === UserRole.DELIVERY

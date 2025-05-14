@@ -100,6 +100,6 @@ export class User extends BaseModel {
   @Column({ type: 'boolean', default: false, name: 'is_mobile_customer' })
   isMobileCustomer: boolean;
 
-  @Column({ type: 'boolean', default: true, name: 'is_generic_password' })
+  @Column({ type: 'boolean', default: false, name: 'is_generic_password' })
   isGenericPassword: boolean;
 }
