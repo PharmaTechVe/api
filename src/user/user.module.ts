@@ -10,6 +10,7 @@ import { Branch } from 'src/branch/entities/branch.entity';
 import { UserAddress } from './entities/user-address.entity';
 import { UserMoto } from './entities/user-moto.entity';
 import { BranchModule } from 'src/branch/branch.module';
+import { EmailModule } from 'src/email/email.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { BranchModule } from 'src/branch/branch.module';
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => BranchModule),
+    EmailModule,
   ],
   providers: [UserService],
   exports: [UserService, TypeOrmModule],
