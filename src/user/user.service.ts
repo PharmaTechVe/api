@@ -16,6 +16,7 @@ import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 import { UserMoto } from './entities/user-moto.entity';
 import { UpdateUserMotoDTO } from './dto/user-moto.dto';
+import { BranchService } from 'src/branch/branch.service';
 
 @Injectable()
 export class UserService {
@@ -31,6 +32,8 @@ export class UserService {
     @InjectRepository(UserMoto)
     private UserMotoRepository: Repository<UserMoto>,
     private configService: ConfigService,
+
+    private readonly branchService: BranchService,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -126,6 +129,18 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
     newUser.password = hashedPassword;
+    if (
+      user.role === UserRole.BRANCH_ADMIN ||
+      user.role === UserRole.DELIVERY
+    ) {
+      if (!user.branchId) {
+        throw new BadRequestException('branchId is required for this role');
+      }
+
+      const branch = await this.branchService.findOne(user.branchId);
+
+      newUser.branch = branch;
+    }
     const userCreated = await this.userRepository.save(newUser);
     const profile = new Profile();
     profile.user = userCreated;

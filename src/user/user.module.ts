@@ -9,6 +9,7 @@ import { AuthModule } from 'src/auth/auth.module';
 import { Branch } from 'src/branch/entities/branch.entity';
 import { UserAddress } from './entities/user-address.entity';
 import { UserMoto } from './entities/user-moto.entity';
+import { BranchModule } from 'src/branch/branch.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { UserMoto } from './entities/user-moto.entity';
       UserMoto,
     ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => BranchModule),
   ],
   providers: [UserService],
   exports: [UserService, TypeOrmModule],
