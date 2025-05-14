@@ -23,6 +23,7 @@ import { RolesGuardWs } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { WebsocketExceptionsFilter } from './ws.filters';
+import { UpdateDeliveryWsDTO } from './dto/order-delivery.dto';
 
 @WebSocketGateway({
   cors: {
@@ -60,16 +61,38 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: UpdateOrderStatusWsDTO,
   ) {
-    this.orderService.update(data.id, data.status).then((order) => {
-      if (!order) {
-        this.server.to(client.id).emit('error', {
-          message: 'Order not found',
-          data: { id: data.id },
-        });
-      }
+    this.orderService.findOneWithUser(data.id).then((order) => {
       this.orderService.getUserByOrderId(order.id).then((user) => {
         if (user.wsId) {
-          client.to(user.wsId).emit('order', order);
+          client
+            .to(user.wsId)
+            .emit('orderUpdated', { orderId: order.id, status: data.status });
+        }
+      });
+    });
+  }
+
+  @UseFilters(new WebsocketExceptionsFilter())
+  @UsePipes(
+    new ValidationPipe({
+      exceptionFactory: (errors) => new WsException(errors),
+    }),
+  )
+  @UseGuards(AuthGuardWs, RolesGuardWs)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @SubscribeMessage('updateDelivery')
+  updateDelivery(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: UpdateDeliveryWsDTO,
+  ) {
+    this.orderService.getDelivery(data.id).then((delivery) => {
+      this.orderService.getUserByOrderId(delivery.order.id).then((user) => {
+        if (user.wsId) {
+          client.to(user.wsId).emit('deliveryUpdated', {
+            orderDeliveryId: delivery.id,
+            status: data.deliveryStatus,
+            employeeId: delivery.employee.id,
+          });
         }
       });
     });
