@@ -111,8 +111,6 @@ export class OrderService {
       return acc + Math.round(price) * product.quantity;
     }, 0);
 
-    console.log('Total pagado:', totalPrice);
-
     if (productsWithQuantity.length == 0) {
       throw new BadRequestException('No products found');
     }
