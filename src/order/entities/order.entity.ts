@@ -83,7 +83,7 @@ export class OrderDetail extends UUIDModel {
   @Column({ type: 'int', name: 'quantity' })
   quantity: number;
 
-  @Column({ type: 'int', name: 'price' })
+  @Column({ type: 'int', name: 'price', default: 0 })
   price: number;
 
   @Column({ type: 'int', name: 'subtotal' })
