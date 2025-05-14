@@ -409,7 +409,6 @@ export class UserService {
     if (!user) {
       return;
     }
-    user.wsId = undefined;
-    await this.userRepository.save(user);
+    await this.userRepository.update(user.id, { wsId: '' });
   }
 }

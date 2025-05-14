@@ -61,15 +61,28 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: UpdateOrderStatusWsDTO,
   ) {
-    this.orderService.findOneWithUser(data.id).then((order) => {
-      this.orderService.getUserByOrderId(order.id).then((user) => {
-        if (user.wsId) {
-          client
-            .to(user.wsId)
-            .emit('orderUpdated', { orderId: order.id, status: data.status });
+    this.orderService
+      .findOneWithUser(data.id)
+      .then((order) => {
+        this.orderService
+          .getUserByOrderId(order.id)
+          .then((user) => {
+            if (user.wsId) {
+              client.to(user.wsId).emit('orderUpdated', {
+                orderId: order.id,
+                status: data.status,
+              });
+            }
+          })
+          .catch((error) => {
+            client.to(client.id).emit('error', error);
+          });
+      })
+      .catch((error) => {
+        {
+          client.to(client.id).emit('error', error);
         }
       });
-    });
   }
 
   @UseFilters(new WebsocketExceptionsFilter())
@@ -85,16 +98,26 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: UpdateDeliveryWsDTO,
   ) {
-    this.orderService.getDelivery(data.id).then((delivery) => {
-      this.orderService.getUserByOrderId(delivery.order.id).then((user) => {
-        if (user.wsId) {
-          client.to(user.wsId).emit('deliveryUpdated', {
-            orderDeliveryId: delivery.id,
-            status: data.deliveryStatus,
-            employeeId: delivery.employee.id,
+    this.orderService
+      .getDelivery(data.id)
+      .then((delivery) => {
+        this.orderService
+          .getUserByOrderId(delivery.order.id)
+          .then((user) => {
+            if (user.wsId) {
+              client.to(user.wsId).emit('deliveryUpdated', {
+                orderDeliveryId: delivery.id,
+                status: data.deliveryStatus,
+                employeeId: delivery.employee.id,
+              });
+            }
+          })
+          .catch((error) => {
+            client.to(client.id).emit('error', error);
           });
-        }
+      })
+      .catch((error) => {
+        client.to(client.id).emit('error', error);
       });
-    });
   }
 }
