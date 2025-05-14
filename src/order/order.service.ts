@@ -103,6 +103,7 @@ export class OrderService {
         );
       }
     }
+
     let totalPrice = productsWithQuantity.reduce((acc, product) => {
       const price = product.promo
         ? product.price - (product.price * product.promo.discount) / 100
@@ -132,11 +133,8 @@ export class OrderService {
         order,
         productPresentation: product,
         quantity: product.quantity,
-        subtotal: product.promo
-          ? Math.round(
-              product.price - (product.price * product.promo.discount) / 100,
-            ) * product.quantity
-          : product.price * product.quantity,
+        price: product.price,
+        subtotal: product.price * product.quantity,
       });
     });
     await this.orderDetailRepository.save(orderDetails);
