@@ -16,6 +16,8 @@ import {
   MaxLength,
   MinLength,
   IsString,
+  IsUUID,
+  IsBoolean,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
@@ -88,6 +90,14 @@ export class BaseUserDTO {
   @IsOptional()
   @IsEnum(UserGender)
   gender?: UserGender;
+
+  @IsOptional()
+  @IsBoolean()
+  @Expose()
+  @ApiProperty({
+    description: 'Indicates whether the user has a generic password',
+  })
+  isGenericPassword?: boolean;
 }
 
 export class UserDTO extends IntersectionType(BaseUserDTO, PasswordDTO) {}
@@ -97,6 +107,15 @@ export class UserAdminDTO extends BaseUserDTO {
   @IsNotEmpty()
   @Expose()
   role: UserRole;
+
+  @ApiProperty({
+    description: 'branchId of the user (branch_admin or delivery)',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  @Expose()
+  branchId?: string;
 
   // Data use if it is a delivery
 

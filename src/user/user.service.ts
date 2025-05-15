@@ -16,6 +16,8 @@ import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 import { UserMoto } from './entities/user-moto.entity';
 import { UpdateUserMotoDTO } from './dto/user-moto.dto';
+import { BranchService } from 'src/branch/branch.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UserService {
@@ -31,6 +33,9 @@ export class UserService {
     @InjectRepository(UserMoto)
     private UserMotoRepository: Repository<UserMoto>,
     private configService: ConfigService,
+
+    private readonly branchService: BranchService,
+    private emailService: EmailService,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -126,7 +131,28 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
     newUser.password = hashedPassword;
+    newUser.isGenericPassword = true;
+    if (
+      user.role === UserRole.BRANCH_ADMIN ||
+      user.role === UserRole.DELIVERY
+    ) {
+      if (!user.branchId) {
+        throw new BadRequestException('branchId is required for this role');
+      }
+
+      const branch = await this.branchService.findOne(user.branchId);
+
+      newUser.branch = branch;
+    }
     const userCreated = await this.userRepository.save(newUser);
+
+    await this.emailService.sendEmail({
+      recipients: [{ email: user.email, name: user.firstName }],
+      subject: 'Welcome to Pharmatech',
+      html: `<p>Hi, your account has been created. Your password is: <b>${password}</b></p>`,
+      text: `Hi, your account has been created. Your password is: ${password}`,
+    });
+
     const profile = new Profile();
     profile.user = userCreated;
     if (user.gender) {
