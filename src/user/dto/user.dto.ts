@@ -18,6 +18,7 @@ import {
   IsString,
   IsUUID,
   IsBoolean,
+  ArrayNotEmpty,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
@@ -101,6 +102,26 @@ export class BaseUserDTO {
 }
 
 export class UserDTO extends IntersectionType(BaseUserDTO, PasswordDTO) {}
+
+export class UserBulkUpdateDTO {
+  @IsOptional()
+  @ApiProperty({ description: 'If the user has validated the email' })
+  isValidated: boolean;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  @ApiProperty({ description: 'Role of the user', enum: UserRole })
+  role: UserRole;
+}
+
+export class UserListUpdateDTO {
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  users: string[];
+
+  @Type(() => UserBulkUpdateDTO)
+  data: UserBulkUpdateDTO;
+}
 
 export class UserAdminDTO extends BaseUserDTO {
   @ApiProperty({ description: 'the role of the user' })

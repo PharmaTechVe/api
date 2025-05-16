@@ -36,6 +36,7 @@ import {
   UserAdminDTO,
   UpdateUserDTO,
   UserMotoDTO,
+  UserListUpdateDTO,
 } from './dto/user.dto';
 import { PaginationDTO, UserQueryDTO } from 'src/utils/dto/pagination.dto';
 import { plainToInstance } from 'class-transformer';
@@ -73,6 +74,19 @@ export class UserController {
       throw new NotFoundException('Invalid or not found OTP code');
     }
     await this.userService.validateEmail(userOtp);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Post('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk update users' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Users updated successfully',
+  })
+  async bulkUpdate(@Body() updateUserDto: UserListUpdateDTO): Promise<void> {
+    await this.userService.bulkUpdate(updateUserDto.users, updateUserDto.data);
   }
 
   @HttpCode(HttpStatus.OK)
