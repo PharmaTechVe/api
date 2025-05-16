@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType, IntersectionType } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -8,6 +8,7 @@ import {
   Min,
   IsDateString,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
@@ -72,4 +73,37 @@ export class CouponQueryDTO extends PaginationQueryDTO {
     this.q = q ? q : '';
     this.expirationBetween = expirationBetween ? expirationBetween : [];
   }
+}
+
+export class CouponListDeleteDTO {
+  @IsUUID(undefined, { each: true })
+  @ApiProperty({
+    description: 'List of coupon ids to be deleted',
+    type: [String],
+  })
+  ids: string[];
+}
+
+export class CouponBulkUpdateDTO {
+  @IsOptional()
+  @ApiProperty({ description: 'The new expiration date of the coupons' })
+  expirationDate: Date;
+
+  @ApiProperty({ description: 'Maximum number of coupon uses' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxUses: number;
+}
+
+export class CouponListUpdateDTO {
+  @IsUUID(undefined, { each: true })
+  @ApiProperty({
+    description: 'List of coupon ids to be updated',
+    type: [String],
+  })
+  ids: string[];
+
+  @Type(() => CouponBulkUpdateDTO)
+  data: CouponBulkUpdateDTO;
 }

@@ -132,9 +132,9 @@ export class PromoController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Patch('bulk')
-  @ApiOperation({ summary: 'Bulk delete promos' })
+  @ApiOperation({ summary: 'Bulk update promos' })
   @ApiResponse({
-    description: 'Successful bulk deletion of promos',
+    description: 'Successful bulk update of promos',
     status: HttpStatus.NO_CONTENT,
   })
   async bulkUpdate(

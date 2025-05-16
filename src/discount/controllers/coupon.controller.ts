@@ -18,6 +18,8 @@ import {
   UpdateCouponDTO,
   ResponseCouponDTO,
   CouponQueryDTO,
+  CouponListDeleteDTO,
+  CouponListUpdateDTO,
 } from '../dto/coupon.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -113,6 +115,35 @@ export class CouponController {
     );
     const total = await this.couponService.countCoupon();
     return { data, total };
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('bulk')
+  @ApiOperation({ summary: 'Bulk delete coupons' })
+  @ApiResponse({
+    description: 'Successful bulk deletion of coupons',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkDelete(
+    @Body() couponListDeleteDTO: CouponListDeleteDTO,
+  ): Promise<void> {
+    await this.couponService.bulkDelete(couponListDeleteDTO.ids);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('bulk')
+  @ApiOperation({ summary: 'Bulk update coupons' })
+  @ApiResponse({
+    description: 'Successful bulk update of coupons',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkUpdate(
+    @Body() couponListUpdateDTO: CouponListUpdateDTO,
+  ): Promise<void> {
+    await this.couponService.bulkUpdate(
+      couponListUpdateDTO.ids,
+      couponListUpdateDTO.data,
+    );
   }
 
   @Get(':code')

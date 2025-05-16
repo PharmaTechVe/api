@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { Coupon } from '../entities/coupon.entity';
-import { CouponDTO, UpdateCouponDTO } from '../dto/coupon.dto';
+import {
+  CouponBulkUpdateDTO,
+  CouponDTO,
+  UpdateCouponDTO,
+} from '../dto/coupon.dto';
 
 @Injectable()
 export class CouponService {
@@ -75,5 +79,30 @@ export class CouponService {
       throw new NotFoundException(`Coupon with code ${code} not found`);
     }
     return true;
+  }
+
+  async bulkDelete(ids: string[]) {
+    const coupons = await this.couponRepository.findBy({
+      id: In(ids),
+      deletedAt: IsNull(),
+    });
+    if (coupons.length === 0) {
+      throw new NotFoundException(`No coupons found with the given IDs`);
+    }
+    await this.couponRepository.softDelete({ id: In(ids) });
+  }
+
+  async bulkUpdate(ids: string[], updateDto: CouponBulkUpdateDTO) {
+    const coupons = await this.couponRepository.findBy({
+      id: In(ids),
+      deletedAt: IsNull(),
+    });
+    if (coupons.length === 0) {
+      throw new NotFoundException(`No coupons found with the given IDs`);
+    }
+    const couponsToUpdate = coupons.map((coupon) => {
+      return { ...coupon, ...updateDto };
+    });
+    await this.couponRepository.save(couponsToUpdate);
   }
 }
