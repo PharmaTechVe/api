@@ -17,6 +17,7 @@ import {
 import { OrderService } from '../order.service';
 import {
   CreateOrderDTO,
+  OrderListUpdateDTO,
   OrderQueryDTO,
   ResponseOrderDetailedDTO,
   ResponseOrderDTO,
@@ -160,6 +161,22 @@ export class OrderController {
       }),
       total,
     };
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @Patch('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk update orders' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Orders updated successfully',
+  })
+  async bulkUpdate(@Body() updateOrderDto: OrderListUpdateDTO): Promise<void> {
+    await this.orderService.bulkUpdate(
+      updateOrderDto.orders,
+      updateOrderDto.status,
+    );
   }
 
   @Get(':id')

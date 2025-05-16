@@ -78,7 +78,7 @@ export class UserController {
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @Post('bulk')
+  @Patch('bulk')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Bulk update users' })
   @ApiResponse({
