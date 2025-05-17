@@ -142,7 +142,8 @@ export class CouponController {
   ): Promise<void> {
     await this.couponService.bulkUpdate(
       couponListUpdateDTO.ids,
-      couponListUpdateDTO.data,
+      couponListUpdateDTO.maxUses,
+      couponListUpdateDTO.expirationDate,
     );
   }
 

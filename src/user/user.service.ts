@@ -6,12 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import {
-  UserAdminDTO,
-  UserDTO,
-  UpdateUserDTO,
-  UserBulkUpdateDTO,
-} from './dto/user.dto';
+import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
 import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
 import { Profile } from './entities/profile.entity';
@@ -420,7 +415,8 @@ export class UserService {
 
   async bulkUpdate(
     userIds: string[],
-    userDto: UserBulkUpdateDTO,
+    isValidated?: boolean,
+    UserRole?: UserRole,
   ): Promise<User[]> {
     const users = await this.userRepository.findBy({ id: In(userIds) });
     if (!users.length) {
@@ -428,7 +424,7 @@ export class UserService {
     }
 
     const updatedUsers = users.map((user) => {
-      return { ...user, ...userDto };
+      return { ...user, isValidated, role: UserRole };
     });
 
     return await this.userRepository.save(updatedUsers);

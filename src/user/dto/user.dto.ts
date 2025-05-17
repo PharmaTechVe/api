@@ -103,24 +103,25 @@ export class BaseUserDTO {
 
 export class UserDTO extends IntersectionType(BaseUserDTO, PasswordDTO) {}
 
-export class UserBulkUpdateDTO {
-  @IsOptional()
-  @ApiProperty({ description: 'If the user has validated the email' })
-  isValidated: boolean;
-
-  @IsOptional()
-  @IsEnum(UserRole)
-  @ApiProperty({ description: 'Role of the user', enum: UserRole })
-  role: UserRole;
-}
-
 export class UserListUpdateDTO {
+  @ApiProperty({
+    description: 'List of user IDs to be updated',
+    type: [String],
+  })
   @ArrayNotEmpty()
   @IsUUID(undefined, { each: true })
   users: string[];
 
-  @Type(() => UserBulkUpdateDTO)
-  data: UserBulkUpdateDTO;
+  @Expose()
+  @IsOptional()
+  @ApiProperty({ description: 'If the user has validated the email' })
+  isValidated: boolean;
+
+  @Expose()
+  @IsOptional()
+  @IsEnum(UserRole)
+  @ApiProperty({ description: 'Role of the user', enum: UserRole })
+  role: UserRole;
 }
 
 export class UserAdminDTO extends BaseUserDTO {

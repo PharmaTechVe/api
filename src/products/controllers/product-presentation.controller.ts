@@ -13,10 +13,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ProductPresentationService } from '../services/product-presentation.service';
-import {
-  CreateProductPresentationDTO,
-  ProductPresentationListUpdateDTO,
-} from '../dto/product-presentation.dto';
+import { CreateProductPresentationDTO } from '../dto/product-presentation.dto';
 import { PresentationService } from '../services/presentation.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -74,24 +71,6 @@ export class ProductPresentationController {
       product,
       presentation,
       createProductPresentationDto,
-    );
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
-  @Patch('bulk')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Bulk update orders' })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Orders updated successfully',
-  })
-  async bulkUpdate(
-    @Body() updateProductPresentationDto: ProductPresentationListUpdateDTO,
-  ): Promise<void> {
-    await this.productPresentationService.bulkUpdate(
-      updateProductPresentationDto.ids,
-      updateProductPresentationDto.isVisible,
     );
   }
 

@@ -1,5 +1,5 @@
 import { ApiProperty, PartialType, IntersectionType } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { Transform, Expose } from 'class-transformer';
 import {
   IsNotEmpty,
   IsString,
@@ -84,18 +84,6 @@ export class CouponListDeleteDTO {
   ids: string[];
 }
 
-export class CouponBulkUpdateDTO {
-  @IsOptional()
-  @ApiProperty({ description: 'The new expiration date of the coupons' })
-  expirationDate: Date;
-
-  @ApiProperty({ description: 'Maximum number of coupon uses' })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  maxUses: number;
-}
-
 export class CouponListUpdateDTO {
   @IsUUID(undefined, { each: true })
   @ApiProperty({
@@ -104,6 +92,15 @@ export class CouponListUpdateDTO {
   })
   ids: string[];
 
-  @Type(() => CouponBulkUpdateDTO)
-  data: CouponBulkUpdateDTO;
+  @Expose()
+  @IsOptional()
+  @ApiProperty({ description: 'The new expiration date of the coupons' })
+  expirationDate: Date;
+
+  @Expose()
+  @ApiProperty({ description: 'Maximum number of coupon uses' })
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  maxUses: number;
 }

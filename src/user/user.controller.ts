@@ -86,7 +86,11 @@ export class UserController {
     description: 'Users updated successfully',
   })
   async bulkUpdate(@Body() updateUserDto: UserListUpdateDTO): Promise<void> {
-    await this.userService.bulkUpdate(updateUserDto.users, updateUserDto.data);
+    await this.userService.bulkUpdate(
+      updateUserDto.users,
+      updateUserDto.isValidated,
+      updateUserDto.role,
+    );
   }
 
   @HttpCode(HttpStatus.OK)
