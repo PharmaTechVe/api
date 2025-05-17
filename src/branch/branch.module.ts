@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { BranchService } from './branch.service';
 import { BranchController } from './branch.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,9 +14,10 @@ import { State } from 'src/state/entities/state.entity';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Branch, City, State, Country]),
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [BranchController],
   providers: [BranchService, CityService, StateService, CountryService],
+  exports: [BranchService],
 })
 export class BranchModule {}

@@ -3,24 +3,23 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrderDTO, SalesReportDTO } from './dto/order';
-import { User, UserRole } from 'src/user/entities/user.entity';
+import { CreateOrderDTO, SalesReportDTO } from '../dto/order';
+import { User } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   Order,
   OrderDetail,
   OrderStatus,
   OrderType,
-} from './entities/order.entity';
+} from '../entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 import {
   OrderDelivery,
   OrderDeliveryStatus,
-} from './entities/order_delivery.entity';
-import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
+} from '../entities/order_delivery.entity';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
 import { CouponService } from 'src/discount/services/coupon.service';
@@ -66,13 +65,15 @@ export class OrderService {
           'User address ID is required for delivery orders',
         );
       }
-      // TODO: Find the closest branch to the address
-      const branches = await this.branchService.findAll(1, 10);
-      branch = branches[0];
       userAddress = await this.userService.getAddress(
         user.id,
         createOrderDTO.userAddressId,
       );
+      const nearestBranch = await this.branchService.findNearestBranch(
+        userAddress.latitude,
+        userAddress.longitude,
+      );
+      branch = nearestBranch;
     } else {
       throw new BadRequestException('Invalid order type');
     }
@@ -101,6 +102,7 @@ export class OrderService {
         );
       }
     }
+
     let totalPrice = productsWithQuantity.reduce((acc, product) => {
       const price = product.promo
         ? product.price - (product.price * product.promo.discount) / 100
@@ -130,11 +132,8 @@ export class OrderService {
         order,
         productPresentation: product,
         quantity: product.quantity,
-        subtotal: product.promo
-          ? Math.round(
-              product.price - (product.price * product.promo.discount) / 100,
-            ) * product.quantity
-          : product.price * product.quantity,
+        price: product.price,
+        subtotal: product.price * product.quantity,
       });
     });
     await this.orderDetailRepository.save(orderDetails);
@@ -198,9 +197,10 @@ export class OrderService {
     return { orders, total };
   }
 
-  async findOne(id: string, userId?: string) {
+  async findOne(id: string, userId?: string, branchId?: string) {
     const where: Record<string, unknown> = { id };
     if (userId) where.user = { id: userId };
+    if (branchId) where.branch = { id: branchId };
     const order = await this.orderRepository.findOne({
       where: where,
       relations: [
@@ -242,8 +242,12 @@ export class OrderService {
     return order;
   }
 
-  async update(id: string, status: OrderStatus): Promise<Order> {
-    const order = await this.findOne(id);
+  async update(
+    id: string,
+    status: OrderStatus,
+    branchId?: string,
+  ): Promise<Order> {
+    const order = await this.findOne(id, undefined, branchId);
     if (order.status === OrderStatus.COMPLETED) {
       console.log('A COMPLETED order cannot be modified');
       return order;
@@ -276,150 +280,29 @@ export class OrderService {
     return await this.orderRepository.save(order);
   }
 
-  async findAllOD(
-    user: User,
-    page: number,
-    pageSize: number,
-    filters?: {
-      status?: string;
-      branchId?: string;
-      employeeId?: string;
-    },
-  ): Promise<OrderDelivery[]> {
-    const query = this.orderDeliveryRepository
-      .createQueryBuilder('delivery')
-      .leftJoinAndSelect('delivery.order', 'order')
-      .leftJoinAndSelect('order.user', 'orderUser')
-      .leftJoinAndSelect('orderUser.profile', 'profile')
-      .leftJoinAndSelect('delivery.address', 'address')
-      .leftJoinAndSelect('address.city', 'city')
-      .leftJoinAndSelect('city.state', 'state')
-      .leftJoinAndSelect('state.country', 'country')
-      .leftJoinAndSelect('delivery.branch', 'branch')
-      .leftJoinAndSelect('delivery.employee', 'employee')
-      .where('delivery.deletedAt IS NULL');
-
-    if (user.role !== UserRole.ADMIN) {
-      query.andWhere('employee.id = :userId', { userId: user.id });
-    } else if (filters?.employeeId) {
-      query.andWhere('employee.id = :employeeId', {
-        employeeId: filters.employeeId,
-      });
+  async bulkUpdate(
+    ordersIds: string[],
+    status: OrderStatus,
+    branchId?: string,
+  ) {
+    let where: Record<string, unknown> = { id: In(ordersIds) };
+    if (branchId) {
+      where = {
+        ...where,
+        branch: { id: branchId },
+      };
     }
-
-    if (filters?.status) {
-      query.andWhere('delivery.deliveryStatus = :status', {
-        status: filters.status,
-      });
+    const orders = await this.orderRepository.findBy(where);
+    if (orders.length === 0) {
+      throw new NotFoundException('No orders found');
     }
-
-    if (filters?.branchId) {
-      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
-    }
-
-    const delivery = query
-      .orderBy('delivery.createdAt', 'DESC')
-      .skip((page - 1) * pageSize)
-      .take(pageSize);
-
-    return await delivery.getMany();
-  }
-
-  async countDeliveries(
-    user: User,
-    filters?: {
-      status?: string;
-      branchId?: string;
-      employeeId?: string;
-    },
-  ): Promise<number> {
-    const query = this.orderDeliveryRepository
-      .createQueryBuilder('delivery')
-      .leftJoin('delivery.branch', 'branch')
-      .leftJoin('delivery.employee', 'employee')
-      .where('delivery.deletedAt IS NULL');
-
-    if (user.role !== UserRole.ADMIN) {
-      query.andWhere('employee.id = :userId', { userId: user.id });
-    } else if (filters?.employeeId) {
-      query.andWhere('employee.id = :employeeId', {
-        employeeId: filters.employeeId,
-      });
-    }
-
-    if (filters?.status) {
-      query.andWhere('delivery.deliveryStatus = :status', {
-        status: filters.status,
-      });
-    }
-
-    if (filters?.branchId) {
-      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
-    }
-
-    return await query.getCount();
-  }
-
-  async getDelivery(deliveryId: string): Promise<OrderDelivery> {
-    const delivery = await this.orderDeliveryRepository.findOne({
-      where: { id: deliveryId },
-      relations: [
-        'order',
-        'order.user',
-        'order.user.profile',
-        'address',
-        'address.city',
-        'address.city.state',
-        'address.city.state.country',
-        'employee',
-        'branch',
-      ],
+    const updatedOrders = orders.map((order) => {
+      if (order.status !== OrderStatus.COMPLETED) {
+        order.status = status;
+        return order;
+      } else return order;
     });
-    if (!delivery) {
-      throw new NotFoundException('Delivery not found.');
-    }
-    return delivery;
-  }
-
-  async updateDelivery(
-    user: User,
-    deliveryId: string,
-    updateData: UpdateDeliveryDTO,
-  ): Promise<OrderDelivery> {
-    const delivery = await this.orderDeliveryRepository.findOne({
-      where: { id: deliveryId },
-      relations: [
-        'order',
-        'order.user',
-        'address',
-        'address.city',
-        'address.city.state',
-        'address.city.state.country',
-        'employee',
-        'branch',
-      ],
-    });
-    if (!delivery) {
-      throw new NotFoundException('Delivery not found.');
-    }
-
-    const updateDelivery = this.orderDeliveryRepository.merge(
-      delivery,
-      updateData,
-    );
-    if (updateData.employeeId) {
-      const employee = await this.userService.findUserById(
-        updateData.employeeId,
-      );
-      if (!employee) {
-        throw new NotFoundException('Employee not found.');
-      }
-      if (employee.role !== UserRole.DELIVERY) {
-        throw new BadRequestException('User is not an employee.');
-      }
-      updateDelivery.employee = employee;
-    }
-    return await this.orderDeliveryRepository.save(updateDelivery);
+    return await this.orderRepository.save(updatedOrders);
   }
 
   async countOrdersCompleted(
@@ -548,7 +431,7 @@ export class OrderService {
       .addSelect('o.type', 'type')
       .addSelect('SUM(d.quantity)', 'quantity')
       .addSelect('SUM(d.subtotal)', 'subtotal')
-      .addSelect('SUM(d.quantity * pp.price) - o.totalPrice', 'discount')
+      .addSelect('SUM(d.quantity * d.price) - o.totalPrice', 'discount')
       .addSelect('o.totalPrice', 'total')
       .innerJoin('o.user', 'u')
       .innerJoin('o.details', 'd')

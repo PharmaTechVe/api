@@ -23,6 +23,7 @@ import { RecommendationModule } from './recommendation/recommendation.module';
 import { ReportsModule } from './reports/reports.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { SalesModule } from './sales/sales.module';
+import { ActivePrincipleModule } from './active-principle/active-principle.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { SalesModule } from './sales/sales.module';
     RecommendationModule,
     ReportsModule,
     SalesModule,
+    ActivePrincipleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

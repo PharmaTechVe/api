@@ -7,10 +7,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { EmailModule } from 'src/email/email.module';
 import { AuthGuard } from './auth.guard';
+import { BranchModule } from 'src/branch/branch.module';
 
 @Module({
   imports: [
     forwardRef(() => UserModule),
+    forwardRef(() => BranchModule),
     ConfigModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({

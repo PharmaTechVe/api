@@ -16,6 +16,9 @@ import {
   MaxLength,
   MinLength,
   IsString,
+  IsUUID,
+  IsBoolean,
+  ArrayNotEmpty,
 } from 'class-validator';
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
@@ -88,15 +91,53 @@ export class BaseUserDTO {
   @IsOptional()
   @IsEnum(UserGender)
   gender?: UserGender;
+
+  @IsOptional()
+  @IsBoolean()
+  @Expose()
+  @ApiProperty({
+    description: 'Indicates whether the user has a generic password',
+  })
+  isGenericPassword?: boolean;
 }
 
 export class UserDTO extends IntersectionType(BaseUserDTO, PasswordDTO) {}
+
+export class UserListUpdateDTO {
+  @ApiProperty({
+    description: 'List of user IDs to be updated',
+    type: [String],
+  })
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  users: string[];
+
+  @Expose()
+  @IsOptional()
+  @ApiProperty({ description: 'If the user has validated the email' })
+  isValidated: boolean;
+
+  @Expose()
+  @IsOptional()
+  @IsEnum(UserRole)
+  @ApiProperty({ description: 'Role of the user', enum: UserRole })
+  role: UserRole;
+}
 
 export class UserAdminDTO extends BaseUserDTO {
   @ApiProperty({ description: 'the role of the user' })
   @IsNotEmpty()
   @Expose()
   role: UserRole;
+
+  @ApiProperty({
+    description: 'branchId of the user (branch_admin or delivery)',
+    required: false,
+  })
+  @IsOptional()
+  @IsUUID()
+  @Expose()
+  branchId?: string;
 
   // Data use if it is a delivery
 

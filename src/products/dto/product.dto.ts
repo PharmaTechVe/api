@@ -12,6 +12,7 @@ import { CategoryResponseDTO } from 'src/category/dto/category.dto';
 import { ResponsePresentationDTO } from './presentation.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Expose, Transform, Type } from 'class-transformer';
+import { ResponsePromoDTO } from 'src/discount/dto/promo.dto';
 
 export class AddCategoryDTO {
   @IsString()
@@ -82,6 +83,11 @@ export class ProductPresentationDTO extends BaseDTO {
   @ApiProperty({ type: ProductDTO })
   @Type(() => ProductDTO)
   product: ProductDTO;
+
+  @Expose()
+  @Type(() => ResponsePromoDTO)
+  @ApiProperty({ type: ResponsePromoDTO })
+  promo: ResponsePromoDTO;
 
   @Expose()
   @ApiProperty({ description: 'Stock quantity in all branches' })

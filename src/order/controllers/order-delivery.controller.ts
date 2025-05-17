@@ -11,7 +11,7 @@ import {
   Param,
   Patch,
 } from '@nestjs/common';
-import { OrderService } from '../order.service';
+import { OrderService } from '../services/order.service';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import {
   ApiBearerAuth,
@@ -29,10 +29,14 @@ import {
 } from '../dto/order-delivery.dto';
 import { User } from 'src/user/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
+import { OrderDeliveryService } from '../services/order-delivery.controller';
 
 @Controller('delivery')
 export class OrderDeliveryController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly orderDeliveryService: OrderDeliveryService,
+  ) {}
 
   @Get()
   @UseGuards(AuthGuard)
@@ -92,12 +96,17 @@ export class OrderDeliveryController {
     @Query() pagination: OrderDeliveryQueryDTO,
   ): Promise<{ data: OrderDeliveryDTO[]; total: number }> {
     const { page, limit, status, branchId, employeeId } = pagination;
-    const data = await this.orderService.findAllOD(req.user, page, limit, {
-      status,
-      branchId,
-      employeeId,
-    });
-    const total = await this.orderService.countDeliveries(req.user, {
+    const data = await this.orderDeliveryService.findAll(
+      req.user,
+      page,
+      limit,
+      {
+        status,
+        branchId,
+        employeeId,
+      },
+    );
+    const total = await this.orderDeliveryService.countDeliveries(req.user, {
       status,
       branchId,
       employeeId,
@@ -121,7 +130,7 @@ export class OrderDeliveryController {
   async getDelivery(
     @Param('deliveryId') deliveryId: string,
   ): Promise<OrderDeliveryDTO> {
-    const delivery = await this.orderService.getDelivery(deliveryId);
+    const delivery = await this.orderDeliveryService.findOne(deliveryId);
 
     return plainToInstance(OrderDeliveryDTO, delivery, {
       excludeExtraneousValues: true,
@@ -140,7 +149,7 @@ export class OrderDeliveryController {
     @Body() updateDeliveryDto: UpdateDeliveryDTO,
   ): Promise<OrderDeliveryDTO> {
     const user = req.user as User;
-    const updatedDelivery = await this.orderService.updateDelivery(
+    const updatedDelivery = await this.orderDeliveryService.update(
       user,
       deliveryId,
       updateDeliveryDto,

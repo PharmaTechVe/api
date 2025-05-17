@@ -8,11 +8,14 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Sse,
+  MessageEvent,
 } from '@nestjs/common';
 import { NotificationService } from '../services/notification.service';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserRole } from 'src/user/entities/user.entity';
+import { Observable } from 'rxjs';
 
 @Controller('notification')
 export class NotificationController {
@@ -47,5 +50,16 @@ export class NotificationController {
     @Req() req: CustomRequest,
   ): Promise<void> {
     await this.notificationService.markAsReadAsCustomer(orderId, req.user.id);
+  }
+  @Sse('stream')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'SSE real-time notification flow' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification SSE Event Stream',
+  })
+  streamNotifications(@Req() req: CustomRequest): Observable<MessageEvent> {
+    return this.notificationService.subscribeToNotifications(req.user.id);
   }
 }
