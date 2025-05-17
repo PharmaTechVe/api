@@ -1,7 +1,7 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { PredictedSaleDTO, PredictSalesDTO } from './dto/predict-sales.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
@@ -37,10 +37,16 @@ export class SalesController {
     description: 'List of predicted daily sales values',
     type: [PredictedSaleDTO],
   })
-  async predict(@Query() query: PredictSalesDTO): Promise<PredictedSaleDTO[]> {
-    const salesData = await this.salesService.getDailySales();
+  async predict(
+    @Req() req: CustomRequest,
+    @Query() query: PredictSalesDTO,
+  ): Promise<PredictedSaleDTO[]> {
+    let branchId: string | undefined;
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
+    const salesData = await this.salesService.getDailySales(branchId);
     const dailySales = this.salesService.fillMissingDates(salesData);
-
     const days = query.days ? parseInt(query.days, 10) || 7 : 7;
     return await this.salesService.predictNext(days, dailySales);
   }
