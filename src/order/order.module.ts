@@ -26,6 +26,7 @@ import { CouponService } from 'src/discount/services/coupon.service';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { OrderGateway } from './order.gateway';
 import { EmailModule } from 'src/email/email.module';
+import { OrderDeliveryService } from './services/order-delivery.controller';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { EmailModule } from 'src/email/email.module';
     PromoService,
     CouponService,
     OrderGateway,
+    OrderDeliveryService,
   ],
   exports: [OrderService],
 })
