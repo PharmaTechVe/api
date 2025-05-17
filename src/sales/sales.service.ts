@@ -12,15 +12,18 @@ export class SalesService {
     private readonly orderRepository: Repository<Order>,
   ) {}
 
-  async getDailySales(): Promise<DailySaleDTO[]> {
-    const sales = await this.orderRepository
+  async getDailySales(branchId?: string): Promise<DailySaleDTO[]> {
+    const query = this.orderRepository
       .createQueryBuilder('order')
       .select('DATE(order.createdAt)', 'date')
       .addSelect('SUM(order.totalPrice)', 'total')
       .where('order.status = :status', { status: OrderStatus.COMPLETED })
       .groupBy('DATE(order.createdAt)')
-      .orderBy('DATE(order.createdAt)', 'ASC')
-      .getRawMany<{ date: string; total: string }>();
+      .orderBy('DATE(order.createdAt)', 'ASC');
+    if (branchId) {
+      query.andWhere('order.branchId = :branchId', { branchId });
+    }
+    const sales = await query.getRawMany<{ date: string; total: string }>();
 
     return sales.map((row) => ({
       date: row.date,
@@ -69,7 +72,7 @@ export class SalesService {
     model.add(tf.layers.dense({ inputShape: [1], units: 1 }));
     model.compile({ optimizer: 'sgd', loss: 'meanSquaredError' });
 
-    await model.fit(xs, ys, { epochs: 300 });
+    await model.fit(xs, ys, { epochs: 3 });
 
     const futureDays = Array.from(
       { length: daysAhead },
