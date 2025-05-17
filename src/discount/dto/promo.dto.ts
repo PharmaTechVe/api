@@ -6,6 +6,7 @@ import {
   IsString,
   IsDateString,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
@@ -57,4 +58,26 @@ export class PromoQueryDTO extends PaginationQueryDTO {
     this.q = q ? q : '';
     this.expirationBetween = expirationBetween ? expirationBetween : [];
   }
+}
+
+export class PromoListDeleteDTO {
+  @IsUUID(undefined, { each: true })
+  @ApiProperty({
+    description: 'List of promo ids to be deleted',
+    type: [String],
+  })
+  ids: string[];
+}
+
+export class PromoListUpdateDTO {
+  @IsUUID(undefined, { each: true })
+  @ApiProperty({
+    description: 'List of promo ids to be updated',
+    type: [String],
+  })
+  ids: string[];
+
+  @IsNotEmpty()
+  @ApiProperty({ description: 'The new expiration date of the promos' })
+  expiredAt: Date;
 }

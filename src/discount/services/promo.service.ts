@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { PromoDTO, UpdatePromoDTO } from '../dto/promo.dto';
 import { Promo } from '../entities/promo.entity';
 
@@ -68,5 +68,30 @@ export class PromoService {
       deletedAt: new Date(),
     });
     return result.affected === 1;
+  }
+
+  async bulkDelete(ids: string[]) {
+    const promos = await this.promoRepository.findBy({
+      id: In(ids),
+      deletedAt: IsNull(),
+    });
+    if (promos.length === 0) {
+      throw new NotFoundException(`No promos found with the given IDs`);
+    }
+    await this.promoRepository.softDelete({ id: In(ids) });
+  }
+
+  async bulkUpdate(ids: string[], expiredAt: Date) {
+    const promos = await this.promoRepository.findBy({
+      id: In(ids),
+      deletedAt: IsNull(),
+    });
+    if (promos.length === 0) {
+      throw new NotFoundException(`No promos found with the given IDs`);
+    }
+    await this.promoRepository.update(
+      { id: In(ids) },
+      { expiredAt, updatedAt: new Date() },
+    );
   }
 }

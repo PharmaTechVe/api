@@ -29,6 +29,8 @@ import {
   UpdatePromoDTO,
   ResponsePromoDTO,
   PromoQueryDTO,
+  PromoListDeleteDTO,
+  PromoListUpdateDTO,
 } from '../dto/promo.dto';
 import { PromoService } from '../services/promo.service';
 import { UserRole } from 'src/user/entities/user.entity';
@@ -113,6 +115,35 @@ export class PromoController {
     );
     const total = await this.promoService.countPromos();
     return { data, total };
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete('bulk')
+  @ApiOperation({ summary: 'Bulk delete promos' })
+  @ApiResponse({
+    description: 'Successful bulk deletion of promos',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkDelete(
+    @Body() promoListDeleteDTO: PromoListDeleteDTO,
+  ): Promise<void> {
+    await this.promoService.bulkDelete(promoListDeleteDTO.ids);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('bulk')
+  @ApiOperation({ summary: 'Bulk update promos' })
+  @ApiResponse({
+    description: 'Successful bulk update of promos',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkUpdate(
+    @Body() promoListUpdateDTO: PromoListUpdateDTO,
+  ): Promise<void> {
+    await this.promoService.bulkUpdate(
+      promoListUpdateDTO.ids,
+      promoListUpdateDTO.expiredAt,
+    );
   }
 
   @Get(':id')

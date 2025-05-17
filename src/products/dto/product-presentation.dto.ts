@@ -93,3 +93,16 @@ export class ResponseOrderProductPresentationDetailDTO extends IntersectionType(
   @ApiProperty({ type: ResponsePromoDTO })
   promo: ResponsePromoDTO;
 }
+
+export class ProductPresentationListUpdateDTO {
+  @ApiProperty({ description: 'The IDs of the product presentation' })
+  @IsUUID(undefined, { each: true })
+  ids: string[];
+
+  @ApiProperty({
+    description: 'Indicates if the product presentation is visible',
+    default: true,
+  })
+  @IsBoolean()
+  isVisible: boolean;
+}

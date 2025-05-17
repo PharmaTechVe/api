@@ -7,7 +7,7 @@ import { CreateOrderDTO, SalesReportDTO } from './dto/order';
 import { User, UserRole } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   Order,
   OrderDetail,
@@ -274,6 +274,22 @@ export class OrderService {
     const orderWithUser = await this.findOneWithUser(order.id);
     this.eventEmitter.emit('order.updated', orderWithUser);
     return await this.orderRepository.save(order);
+  }
+
+  async bulkUpdate(ordersIds: string[], status: OrderStatus) {
+    const orders = await this.orderRepository.findBy({
+      id: In(ordersIds),
+    });
+    if (orders.length === 0) {
+      throw new NotFoundException('No orders found');
+    }
+    const updatedOrders = orders.map((order) => {
+      if (order.status !== OrderStatus.COMPLETED) {
+        order.status = status;
+        return order;
+      } else return order;
+    });
+    return await this.orderRepository.save(updatedOrders);
   }
 
   async findAllOD(
