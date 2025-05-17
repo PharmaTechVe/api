@@ -16,7 +16,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { UpdateOrderStatusWsDTO } from './dto/order';
-import { OrderService } from './order.service';
+import { OrderService } from './services/order.service';
 import { AuthGuardWs } from 'src/auth/auth.guard';
 import { AuthService } from 'src/auth/auth.service';
 import { RolesGuardWs } from 'src/auth/roles.guard';
@@ -24,6 +24,7 @@ import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { WebsocketExceptionsFilter } from './ws.filters';
 import { UpdateDeliveryWsDTO } from './dto/order-delivery.dto';
+import { OrderDeliveryService } from './services/order-delivery.controller';
 
 @WebSocketGateway({
   cors: {
@@ -38,6 +39,7 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly authService: AuthService,
     private readonly orderService: OrderService,
+    private readonly orderDeliveryService: OrderDeliveryService,
   ) {}
 
   handleConnection(client: Socket) {
@@ -98,8 +100,8 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: UpdateDeliveryWsDTO,
   ) {
-    this.orderService
-      .getDelivery(data.id)
+    this.orderDeliveryService
+      .findOne(data.id)
       .then((delivery) => {
         this.orderService
           .getUserByOrderId(delivery.order.id)

@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrderDTO, SalesReportDTO } from './dto/order';
-import { User, UserRole } from 'src/user/entities/user.entity';
+import { CreateOrderDTO, SalesReportDTO } from '../dto/order';
+import { User } from 'src/user/entities/user.entity';
 import { ProductPresentationService } from 'src/products/services/product-presentation.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -13,14 +13,13 @@ import {
   OrderDetail,
   OrderStatus,
   OrderType,
-} from './entities/order.entity';
+} from '../entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';
 import { Branch } from 'src/branch/entities/branch.entity';
 import {
   OrderDelivery,
   OrderDeliveryStatus,
-} from './entities/order_delivery.entity';
-import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
+} from '../entities/order_delivery.entity';
 import { UserAddress } from 'src/user/entities/user-address.entity';
 import { UserService } from 'src/user/user.service';
 import { CouponService } from 'src/discount/services/coupon.service';
@@ -198,9 +197,10 @@ export class OrderService {
     return { orders, total };
   }
 
-  async findOne(id: string, userId?: string) {
+  async findOne(id: string, userId?: string, branchId?: string) {
     const where: Record<string, unknown> = { id };
     if (userId) where.user = { id: userId };
+    if (branchId) where.branch = { id: branchId };
     const order = await this.orderRepository.findOne({
       where: where,
       relations: [
@@ -242,8 +242,12 @@ export class OrderService {
     return order;
   }
 
-  async update(id: string, status: OrderStatus): Promise<Order> {
-    const order = await this.findOne(id);
+  async update(
+    id: string,
+    status: OrderStatus,
+    branchId?: string,
+  ): Promise<Order> {
+    const order = await this.findOne(id, undefined, branchId);
     if (order.status === OrderStatus.COMPLETED) {
       console.log('A COMPLETED order cannot be modified');
       return order;
@@ -276,10 +280,19 @@ export class OrderService {
     return await this.orderRepository.save(order);
   }
 
-  async bulkUpdate(ordersIds: string[], status: OrderStatus) {
-    const orders = await this.orderRepository.findBy({
-      id: In(ordersIds),
-    });
+  async bulkUpdate(
+    ordersIds: string[],
+    status: OrderStatus,
+    branchId?: string,
+  ) {
+    let where: Record<string, unknown> = { id: In(ordersIds) };
+    if (branchId) {
+      where = {
+        ...where,
+        branch: { id: branchId },
+      };
+    }
+    const orders = await this.orderRepository.findBy(where);
     if (orders.length === 0) {
       throw new NotFoundException('No orders found');
     }
@@ -290,152 +303,6 @@ export class OrderService {
       } else return order;
     });
     return await this.orderRepository.save(updatedOrders);
-  }
-
-  async findAllOD(
-    user: User,
-    page: number,
-    pageSize: number,
-    filters?: {
-      status?: string;
-      branchId?: string;
-      employeeId?: string;
-    },
-  ): Promise<OrderDelivery[]> {
-    const query = this.orderDeliveryRepository
-      .createQueryBuilder('delivery')
-      .leftJoinAndSelect('delivery.order', 'order')
-      .leftJoinAndSelect('order.user', 'orderUser')
-      .leftJoinAndSelect('orderUser.profile', 'profile')
-      .leftJoinAndSelect('delivery.address', 'address')
-      .leftJoinAndSelect('address.city', 'city')
-      .leftJoinAndSelect('city.state', 'state')
-      .leftJoinAndSelect('state.country', 'country')
-      .leftJoinAndSelect('delivery.branch', 'branch')
-      .leftJoinAndSelect('delivery.employee', 'employee')
-      .where('delivery.deletedAt IS NULL');
-
-    if (user.role !== UserRole.ADMIN) {
-      query.andWhere('employee.id = :userId', { userId: user.id });
-    } else if (filters?.employeeId) {
-      query.andWhere('employee.id = :employeeId', {
-        employeeId: filters.employeeId,
-      });
-    }
-
-    if (filters?.status) {
-      query.andWhere('delivery.deliveryStatus = :status', {
-        status: filters.status,
-      });
-    }
-
-    if (filters?.branchId) {
-      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
-    }
-
-    const delivery = query
-      .orderBy('delivery.createdAt', 'DESC')
-      .skip((page - 1) * pageSize)
-      .take(pageSize);
-
-    return await delivery.getMany();
-  }
-
-  async countDeliveries(
-    user: User,
-    filters?: {
-      status?: string;
-      branchId?: string;
-      employeeId?: string;
-    },
-  ): Promise<number> {
-    const query = this.orderDeliveryRepository
-      .createQueryBuilder('delivery')
-      .leftJoin('delivery.branch', 'branch')
-      .leftJoin('delivery.employee', 'employee')
-      .where('delivery.deletedAt IS NULL');
-
-    if (user.role !== UserRole.ADMIN) {
-      query.andWhere('employee.id = :userId', { userId: user.id });
-    } else if (filters?.employeeId) {
-      query.andWhere('employee.id = :employeeId', {
-        employeeId: filters.employeeId,
-      });
-    }
-
-    if (filters?.status) {
-      query.andWhere('delivery.deliveryStatus = :status', {
-        status: filters.status,
-      });
-    }
-
-    if (filters?.branchId) {
-      query.andWhere('branch.id = :branchId', { branchId: filters.branchId });
-    }
-
-    return await query.getCount();
-  }
-
-  async getDelivery(deliveryId: string): Promise<OrderDelivery> {
-    const delivery = await this.orderDeliveryRepository.findOne({
-      where: { id: deliveryId },
-      relations: [
-        'order',
-        'order.user',
-        'order.user.profile',
-        'address',
-        'address.city',
-        'address.city.state',
-        'address.city.state.country',
-        'employee',
-        'branch',
-      ],
-    });
-    if (!delivery) {
-      throw new NotFoundException('Delivery not found.');
-    }
-    return delivery;
-  }
-
-  async updateDelivery(
-    user: User,
-    deliveryId: string,
-    updateData: UpdateDeliveryDTO,
-  ): Promise<OrderDelivery> {
-    const delivery = await this.orderDeliveryRepository.findOne({
-      where: { id: deliveryId },
-      relations: [
-        'order',
-        'order.user',
-        'address',
-        'address.city',
-        'address.city.state',
-        'address.city.state.country',
-        'employee',
-        'branch',
-      ],
-    });
-    if (!delivery) {
-      throw new NotFoundException('Delivery not found.');
-    }
-
-    const updateDelivery = this.orderDeliveryRepository.merge(
-      delivery,
-      updateData,
-    );
-    if (updateData.employeeId) {
-      const employee = await this.userService.findUserById(
-        updateData.employeeId,
-      );
-      if (!employee) {
-        throw new NotFoundException('Employee not found.');
-      }
-      if (employee.role !== UserRole.DELIVERY) {
-        throw new BadRequestException('User is not an employee.');
-      }
-      updateDelivery.employee = employee;
-    }
-    return await this.orderDeliveryRepository.save(updateDelivery);
   }
 
   async countOrdersCompleted(
