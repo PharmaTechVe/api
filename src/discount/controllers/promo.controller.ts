@@ -41,7 +41,7 @@ import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 @ApiExtraModels(PaginationDTO, ResponsePromoDTO)
 @ApiBearerAuth()
 @UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
 export class PromoController {
   constructor(private readonly promoService: PromoService) {}
 

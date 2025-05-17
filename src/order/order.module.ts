@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { OrderService } from './order.service';
+import { OrderService } from './services/order.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Order, OrderDetail } from './entities/order.entity';
 import { BranchService } from 'src/branch/branch.service';

@@ -4,12 +4,13 @@ import {
   Query,
   BadRequestException,
   UseGuards,
+  Req,
 } from '@nestjs/common';
-import { OrderService } from 'src/order/order.service';
+import { OrderService } from 'src/order/services/order.service';
 import { UserService } from 'src/user/user.service';
 import { OrderStatus } from 'src/order/entities/order.entity';
 import { Roles } from 'src/auth/roles.decorador';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { ApiBearerAuth, ApiQuery, ApiResponse } from '@nestjs/swagger';
@@ -57,12 +58,16 @@ export class ReportsController {
     },
   })
   async getDashboard(
+    @Req() req: CustomRequest,
     @Query('startDate') start: string,
     @Query('endDate') end: string,
     @Query('branchId') branchId?: string,
   ) {
     if (!start || !end) {
       throw new BadRequestException('startDate and endDate are required');
+    }
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
     }
     const startDate = new Date(start);
     const endDate = new Date(end);
@@ -86,6 +91,7 @@ export class ReportsController {
       totalNewUsers,
     };
   }
+
   @Get('order')
   @ApiBearerAuth()
   @ApiQuery({
@@ -120,10 +126,14 @@ export class ReportsController {
     },
   })
   async getOrdersByStatus(
+    @Req() req: CustomRequest,
     @Query('startDate') start: string,
     @Query('endDate') end: string,
     @Query('branchId') branchId?: string,
   ) {
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
     if (!start || !end) {
       throw new BadRequestException('startDate and endDate are required');
     }
@@ -160,10 +170,14 @@ export class ReportsController {
     type: FullSalesReportDTO,
   })
   async getSalesReport(
+    @Req() req: CustomRequest,
     @Query('startDate') start: string,
     @Query('endDate') end: string,
     @Query('branchId') branchId?: string,
   ) {
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
     if (!start || !end) {
       throw new BadRequestException('startDate and endDate are required');
     }
