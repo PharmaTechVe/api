@@ -198,6 +198,11 @@ export class UpdateOrderStatusDTO {
   })
   @IsEnum(OrderStatus)
   status: OrderStatus;
+
+  @ApiProperty({ description: 'ID of the new branch to assign the order' })
+  @IsOptional()
+  @IsUUID()
+  branchId?: string;
 }
 
 export class UpdateOrderStatusWsDTO {
@@ -256,4 +261,23 @@ export class SalesReportDTO {
   @Expose()
   @ApiProperty({ description: 'Total of the order' })
   total: number;
+}
+
+export class RequestProductTransferDTO {
+  @ApiProperty({ description: 'ID of the order main', format: 'uuid' })
+  @IsUUID()
+  orderId: string;
+
+  @ApiProperty({ description: 'ID from branch', format: 'uuid' })
+  @IsUUID()
+  branchId: string;
+
+  @ApiProperty({
+    description: 'list of productPresentationId',
+    type: [String],
+  })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  productPresentationIds: string[];
 }

@@ -10,6 +10,7 @@ import {
   Query,
   Param,
   Patch,
+  Post,
 } from '@nestjs/common';
 import { OrderService } from '../order.service';
 import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
@@ -29,6 +30,11 @@ import {
 } from '../dto/order-delivery.dto';
 import { User } from 'src/user/entities/user.entity';
 import { plainToInstance } from 'class-transformer';
+import { RequestProductTransferDTO } from '../dto/order';
+import { UserRole } from 'src/user/entities/user.entity';
+import { Roles } from 'src/auth/roles.decorador';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { OrderDetailDelivery } from '../entities/order_delivery.entity';
 
 @Controller('delivery')
 export class OrderDeliveryController {
@@ -148,6 +154,22 @@ export class OrderDeliveryController {
 
     return plainToInstance(OrderDeliveryDTO, updatedDelivery, {
       excludeExtraneousValues: true,
+    });
+  }
+
+  @Post('internalTransfer')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Crear deliveries de detalles desde otra sucursal' })
+  @ApiResponse({ status: HttpStatus.CREATED, type: [OrderDetailDelivery] })
+  @HttpCode(HttpStatus.CREATED)
+  async createDetailDeliveries(
+    @Body() dto: RequestProductTransferDTO,
+  ): Promise<OrderDetailDelivery[]> {
+    const created = await this.orderService.RequestProductTransferDTO(dto);
+    return plainToInstance(OrderDetailDelivery, created, {
+      excludeExtraneousValues: false,
     });
   }
 }

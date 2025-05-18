@@ -19,6 +19,7 @@ import { Branch } from 'src/branch/entities/branch.entity';
 import {
   OrderDelivery,
   OrderDeliveryStatus,
+  OrderDetailDelivery,
 } from './entities/order_delivery.entity';
 import { UpdateDeliveryDTO } from './dto/order-delivery.dto';
 import { UserAddress } from 'src/user/entities/user-address.entity';
@@ -30,6 +31,8 @@ import { MovementType } from 'src/inventory/entities/inventory-movement.entity';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { EmailService } from 'src/email/email.service';
 import Handlebars from 'handlebars';
+import { UpdateOrderStatusDTO } from './dto/order';
+import { RequestProductTransferDTO } from './dto/order';
 
 @Injectable()
 export class OrderService {
@@ -48,6 +51,8 @@ export class OrderService {
     private inventoryMovementService: InventoryMovementService,
     private eventEmitter: EventEmitter2,
     private emailService: EmailService,
+    @InjectRepository(OrderDetailDelivery)
+    private orderDetailDeliveryRepository: Repository<OrderDetailDelivery>,
   ) {}
 
   async create(user: User, createOrderDTO: CreateOrderDTO) {
@@ -242,37 +247,59 @@ export class OrderService {
     return order;
   }
 
-  async update(id: string, status: OrderStatus): Promise<Order> {
+  async update(
+    id: string,
+    updateOrderDto: UpdateOrderStatusDTO,
+  ): Promise<Order> {
     const order = await this.findOne(id);
-    if (order.status === OrderStatus.COMPLETED) {
-      console.log('A COMPLETED order cannot be modified');
-      return order;
-    }
-    if (
-      status === OrderStatus.APPROVED &&
-      order.status === OrderStatus.REQUESTED
-    ) {
-      for (const detail of order.details) {
-        const inv = await this.inventoryService.findByPresentationAndBranch(
-          detail.productPresentation.id,
-          order.branch.id,
-        );
-        await this.inventoryService.decrementInventory(
-          detail.productPresentation.id,
-          order.branch.id,
-          detail.quantity,
-        );
-        await this.inventoryMovementService.createMovement(
-          inv,
-          detail.quantity,
-          MovementType.OUT,
-        );
-      }
+
+    if (updateOrderDto.status && order.status === OrderStatus.COMPLETED) {
+      console.log('A COMPLETED order cannot be modified for status');
+      if (!updateOrderDto.branchId) return order;
     }
 
-    order.status = status;
-    const orderWithUser = await this.findOneWithUser(order.id);
-    this.eventEmitter.emit('order.updated', orderWithUser);
+    if (updateOrderDto.branchId) {
+      const newBranch = await this.branchService.findOne(
+        updateOrderDto.branchId,
+      );
+      if (!newBranch) {
+        throw new NotFoundException(
+          `Branch with ID ${updateOrderDto.branchId} not found`,
+        );
+      }
+      order.branch = newBranch;
+    }
+
+    if (updateOrderDto.status) {
+      if (
+        updateOrderDto.status === OrderStatus.APPROVED &&
+        order.status === OrderStatus.REQUESTED
+      ) {
+        for (const detail of order.details) {
+          const inv = await this.inventoryService.findByPresentationAndBranch(
+            detail.productPresentation.id,
+            order.branch.id,
+          );
+          await this.inventoryService.decrementInventory(
+            detail.productPresentation.id,
+            order.branch.id,
+            detail.quantity,
+          );
+          await this.inventoryMovementService.createMovement(
+            inv,
+            detail.quantity,
+            MovementType.OUT,
+          );
+        }
+      }
+      order.status = updateOrderDto.status;
+    }
+
+    if (updateOrderDto.status || updateOrderDto.branchId) {
+      const orderWithUser = await this.findOneWithUser(order.id);
+      this.eventEmitter.emit('order.updated', orderWithUser); //
+    }
+
     return await this.orderRepository.save(order);
   }
 
@@ -674,5 +701,33 @@ export class OrderService {
       text: `Your order with ID ${order.id} has been updated to status ${order.status}.`,
       html: html,
     });
+  }
+
+  async RequestProductTransferDTO(
+    dto: RequestProductTransferDTO,
+  ): Promise<OrderDetailDelivery[]> {
+    const { orderId, branchId, productPresentationIds } = dto;
+    const branch = await this.branchService.findOne(branchId);
+    if (!branch) throw new NotFoundException(`Branch #${branchId} not found`);
+
+    const details = await this.orderDetailRepository.find({
+      where: {
+        order: { id: orderId },
+        productPresentation: { id: In(productPresentationIds) },
+      },
+    });
+    if (details.length === 0) {
+      throw new NotFoundException(`No matching order details found`);
+    }
+
+    const toSave = details.map((d) =>
+      this.orderDetailDeliveryRepository.create({
+        orderDetail: d,
+        branch,
+        estimatedTime: new Date(),
+        deliveryStatus: 'to_assign',
+      }),
+    );
+    return this.orderDetailDeliveryRepository.save(toSave);
   }
 }

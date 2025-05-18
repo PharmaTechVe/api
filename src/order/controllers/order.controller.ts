@@ -39,6 +39,7 @@ import { Roles } from 'src/auth/roles.decorador';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserValidatedGuard } from 'src/auth/guards/user-validated.guard';
 import { plainToInstance } from 'class-transformer';
+//import { RequestProductTransferDTO } from '../dto/order';
 
 @Controller('order')
 export class OrderController {
@@ -219,7 +220,7 @@ export class OrderController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update an order by ID' })
+  @ApiOperation({ summary: 'Update an order status or reassign branch by ID' })
   @ApiResponse({
     description: 'Successful update of order',
     status: HttpStatus.OK,
@@ -229,6 +230,13 @@ export class OrderController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateOrderStatusDTO: UpdateOrderStatusDTO,
   ) {
-    return await this.orderService.update(id, updateOrderStatusDTO.status);
+    const updatedOrder = await this.orderService.update(
+      id,
+      updateOrderStatusDTO,
+    );
+    return plainToInstance(ResponseOrderDetailedDTO, updatedOrder, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 }
