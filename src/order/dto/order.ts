@@ -117,6 +117,12 @@ export class ResponseOrderDetailDTO {
   quantity: number;
 
   @Expose()
+  @ApiProperty({ description: 'Product price' })
+  @IsInt()
+  @IsPositive()
+  price: number;
+
+  @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
 
