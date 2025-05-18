@@ -20,6 +20,7 @@ import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/prod
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { OrderDeliveryEmployeeDTO } from './order-delivery.dto';
 import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
+import { ResponsePaymentConfirmationDTO } from 'src/payments/dto/payment-confirmation.dto';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -116,8 +117,23 @@ export class ResponseOrderDetailDTO {
   quantity: number;
 
   @Expose()
+  @ApiProperty({ description: 'Product price' })
+  @IsInt()
+  @IsPositive()
+  price: number;
+
+  @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Payment confirmation data (if any)',
+    type: ResponsePaymentConfirmationDTO,
+    required: false,
+  })
+  @Type(() => ResponsePaymentConfirmationDTO)
+  paymentConfirmation?: ResponsePaymentConfirmationDTO;
 }
 
 export class ResponseOrderDTO extends BaseDTO {

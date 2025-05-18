@@ -94,4 +94,12 @@ export class OrderDetail extends UUIDModel {
     (orderDeliveryDetail) => orderDeliveryDetail.orderDetail,
   )
   orderDetailDeliveries: OrderDetailDelivery[];
+
+  @ManyToOne(() => PaymentConfirmation, {
+    nullable: true,
+    eager: true,
+    onDelete: 'SET NULL',
+  })
+  @JoinColumn({ name: 'payment_confirmation_id' })
+  paymentConfirmation: PaymentConfirmation;
 }
