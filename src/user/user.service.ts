@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
 import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
@@ -411,5 +411,22 @@ export class UserService {
       return;
     }
     await this.userRepository.update(user.id, { wsId: '' });
+  }
+
+  async bulkUpdate(
+    userIds: string[],
+    isValidated?: boolean,
+    UserRole?: UserRole,
+  ): Promise<User[]> {
+    const users = await this.userRepository.findBy({ id: In(userIds) });
+    if (!users.length) {
+      throw new NotFoundException('No users found');
+    }
+
+    const updatedUsers = users.map((user) => {
+      return { ...user, isValidated, role: UserRole };
+    });
+
+    return await this.userRepository.save(updatedUsers);
   }
 }

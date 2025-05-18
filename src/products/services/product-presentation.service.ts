@@ -115,6 +115,22 @@ export class ProductPresentationService {
     return await this.repository.save(updatedProductPresentation);
   }
 
+  async bulkUpdate(productPresentationIds: string[], isVisible: boolean) {
+    const productPresentations = await this.repository.findBy({
+      id: In(productPresentationIds),
+    });
+    if (productPresentations.length === 0) {
+      throw new NotFoundException('No product presentations found');
+    }
+    const updatedProductPresentations = productPresentations.map(
+      (productPresentation) => {
+        productPresentation.isVisible = isVisible;
+        return productPresentation;
+      },
+    );
+    return await this.repository.save(updatedProductPresentations);
+  }
+
   async remove(productId: string, presentationId: string): Promise<boolean> {
     const productPresentation = await this.findOneProductPresentation(
       productId,

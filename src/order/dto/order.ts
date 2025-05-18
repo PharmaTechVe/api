@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsPositive,
   IsString,
@@ -219,6 +220,16 @@ export class UpdateOrderStatusWsDTO {
     description: 'New status of the order',
     enum: OrderStatus,
   })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}
+
+export class OrderListUpdateDTO {
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  orders: string[];
+
+  @IsNotEmpty()
   @IsEnum(OrderStatus)
   status: OrderStatus;
 }

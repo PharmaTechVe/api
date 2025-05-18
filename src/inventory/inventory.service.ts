@@ -9,7 +9,7 @@ import {
   BulkUpdateInventoryDTO,
 } from './dto/inventory.dto';
 import { Inventory } from './entities/inventory.entity';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { BranchService } from 'src/branch/branch.service';
@@ -111,14 +111,30 @@ export class InventoryService {
   async update(
     id: string,
     updateInventoryDTO: UpdateInventoryDTO,
+    branchId?: string,
   ): Promise<Inventory> {
-    const inventory = await this.findOne(id);
+    let where: FindOneOptions<Inventory> = { where: { id } };
+    if (branchId) {
+      where = {
+        where: { id, branch: { id: branchId } },
+      };
+    }
+    const inventory = await this.inventoryRepository.findOne(where);
     const updatedInventory = { ...inventory, ...updateInventoryDTO };
     return await this.inventoryRepository.save(updatedInventory);
   }
 
-  async remove(id: string): Promise<boolean> {
-    const inventory = await this.findOne(id);
+  async remove(id: string, branchId?: string): Promise<boolean> {
+    let where: FindOneOptions<Inventory> = { where: { id } };
+    if (branchId) {
+      where = {
+        where: { id, branch: { id: branchId } },
+      };
+    }
+    const inventory = await this.inventoryRepository.findOne(where);
+    if (!inventory) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
     const deleted = await this.inventoryRepository.softDelete(inventory.id);
     if (!deleted.affected) {
       throw new NotFoundException(`Inventory #${id} not found`);
