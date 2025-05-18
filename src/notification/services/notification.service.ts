@@ -2,7 +2,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../entities/notification.entity';
-import { Subject, Observable, filter } from 'rxjs';
+import { Subject, Observable, filter, defaultIfEmpty } from 'rxjs';
 import { MessageEvent } from '@nestjs/common';
 
 @Injectable()
@@ -54,6 +54,13 @@ export class NotificationService {
   subscribeToNotifications(userId: string): Observable<MessageEvent> {
     return this.notifications$
       .asObservable()
-      .pipe(filter((evt) => evt.id === userId));
+      .pipe(filter((evt) => evt.id == userId))
+      .pipe(
+        defaultIfEmpty({
+          data: 'empty',
+          id: 'empty',
+          type: 'empty',
+        } as MessageEvent),
+      );
   }
 }
