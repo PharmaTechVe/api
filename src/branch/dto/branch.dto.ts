@@ -1,5 +1,5 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -52,6 +52,7 @@ export class UpdateBranchDTO extends PartialType(CreateBranchDTO) {}
 
 export class ResponseBranchDTO extends IntersectionType(BranchDTO, BaseDTO) {
   @Expose()
-  @ApiProperty({ description: 'The city of the branch' })
+  @ApiProperty({ description: 'The city of the branch', type: CityDTO })
+  @Type(() => CityDTO)
   city: CityDTO;
 }
