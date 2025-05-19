@@ -16,6 +16,7 @@ import { Expose, Type } from 'class-transformer';
 import { ProductPresentationDTO } from 'src/products/dto/product.dto';
 
 export class InventoryDTO {
+  @Expose()
   @ApiProperty({ description: 'The stock quantity of the inventory' })
   @IsNumber()
   @IsNotEmpty()
