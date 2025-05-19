@@ -23,6 +23,7 @@ import {
 import { UserGender } from '../entities/profile.entity';
 import { IsOlderThan } from 'src/utils/is-older-than-validator';
 import { UserRole } from '../entities/user.entity';
+import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 
 class PasswordDTO {
   @ApiProperty({ description: 'La contraseña del usuario' })
@@ -254,6 +255,13 @@ export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
   @Expose()
   isValidated: boolean;
 
+  @Expose()
+  @ApiProperty({
+    description: 'If the user has downloades and login in the mobile app',
+  })
+  @IsOptional()
+  isMobileCustomer: boolean;
+
   @ApiProperty({ description: 'Profile object' })
   @Expose()
   @Type(() => ProfileDTO)
@@ -263,6 +271,15 @@ export class UserListDTO extends OmitType(UserDTO, ['birthDate'] as const) {
   @Expose()
   @Type(() => UserMotoDTO)
   userMoto: UserMotoDTO;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Branch object',
+    type: ResponseBranchDTO,
+    nullable: true,
+  })
+  @Type(() => ResponseBranchDTO)
+  branch?: ResponseBranchDTO;
 }
 
 export class UpdateUserDTO extends PartialType(
