@@ -119,13 +119,9 @@ export class InventoryController {
     @Query() query: InventoryQueryDTO,
   ): Promise<{ data: ResponseInventoryDTO[]; total: number }> {
     const { page, limit } = pagination;
-    const data = await this.inventoryService.findAll(
+    const [data, total] = await this.inventoryService.findAll(
       page,
       limit,
-      query.branchId,
-      query.productPresentationId,
-    );
-    const total = await this.inventoryService.countInventories(
       query.branchId,
       query.productPresentationId,
     );

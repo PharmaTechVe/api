@@ -47,27 +47,12 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async countInventories(
-    branchId?: string,
-    productPresentationId?: string,
-  ): Promise<number> {
-    return await this.inventoryRepository.count({
-      relations: ['branch', 'productPresentation'],
-      where: {
-        branch: branchId ? { id: branchId } : undefined,
-        productPresentation: productPresentationId
-          ? { id: productPresentationId }
-          : undefined,
-      },
-    });
-  }
-
   async findAll(
     page: number,
     pageSize: number,
     branchId?: string,
     productPresentationId?: string,
-  ): Promise<Inventory[]> {
+  ): Promise<[Inventory[], number]> {
     const query = this.inventoryRepository.createQueryBuilder('inventory');
     query
       .innerJoinAndSelect('inventory.branch', 'branch')
@@ -92,8 +77,8 @@ export class InventoryService {
     query.orderBy('inventory.createdAt', 'DESC');
     query.skip((page - 1) * pageSize);
     query.take(pageSize);
-    const inventories = await query.getMany();
-    return inventories;
+    const [inventories, total] = await query.getManyAndCount();
+    return [inventories, total];
   }
 
   async findOne(id: string): Promise<Inventory> {
