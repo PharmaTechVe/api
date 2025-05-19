@@ -23,7 +23,10 @@ import { RolesGuardWs } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorador';
 import { UserRole } from 'src/user/entities/user.entity';
 import { WebsocketExceptionsFilter } from './ws.filters';
-import { UpdateDeliveryWsDTO } from './dto/order-delivery.dto';
+import {
+  UpdateCoordinatesWsDTO,
+  UpdateDeliveryWsDTO,
+} from './dto/order-delivery.dto';
 import { OrderDeliveryService } from './services/order-delivery.controller';
 
 @WebSocketGateway({
@@ -117,6 +120,34 @@ export class OrderGateway implements OnGatewayConnection, OnGatewayDisconnect {
           .catch((error) => {
             client.to(client.id).emit('error', error);
           });
+      })
+      .catch((error) => {
+        client.to(client.id).emit('error', error);
+      });
+  }
+
+  @UseFilters(new WebsocketExceptionsFilter())
+  @UsePipes(
+    new ValidationPipe({
+      exceptionFactory: (errors) => new WsException(errors),
+    }),
+  )
+  @UseGuards(AuthGuardWs, RolesGuardWs)
+  @Roles(UserRole.DELIVERY)
+  @SubscribeMessage('updateCoordinates')
+  updateCoordinates(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: UpdateCoordinatesWsDTO,
+  ) {
+    this.orderService
+      .findOneWithUser(data.orderId)
+      .then((order) => {
+        if (order.user.wsId) {
+          client.to(order.user.wsId).emit('coordinatesUpdated', {
+            latitude: data.latitude,
+            longitude: data.longitude,
+          });
+        }
       })
       .catch((error) => {
         client.to(client.id).emit('error', error);
