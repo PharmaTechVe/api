@@ -3,7 +3,14 @@ import {
   ApiPropertyOptional,
   IntersectionType,
 } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsLatitude,
+  IsLongitude,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Expose, Transform, Type } from 'class-transformer';
 import { BaseUserDTO } from 'src/user/dto/user.dto';
@@ -179,4 +186,18 @@ export class UpdateDeliveryWsDTO {
   })
   @IsOptional()
   employeeId?: string;
+}
+
+export class UpdateCoordinatesWsDTO {
+  @ApiProperty({ description: 'ID of the order delivery' })
+  @IsUUID()
+  orderId: string;
+
+  @ApiProperty({ description: 'Latitude of the delivery location' })
+  @IsLatitude()
+  latitude: number;
+
+  @ApiProperty({ description: 'Longitude of the delivery location' })
+  @IsLongitude()
+  longitude: number;
 }
