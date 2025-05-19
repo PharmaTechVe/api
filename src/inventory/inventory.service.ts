@@ -68,18 +68,32 @@ export class InventoryService {
     branchId?: string,
     productPresentationId?: string,
   ): Promise<Inventory[]> {
-    return await this.inventoryRepository.find({
-      relations: ['branch', 'productPresentation'],
-      where: {
-        branch: branchId ? { id: branchId } : undefined,
-        productPresentation: productPresentationId
-          ? { id: productPresentationId }
-          : undefined,
-      },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+    const query = this.inventoryRepository.createQueryBuilder('inventory');
+    query
+      .innerJoinAndSelect('inventory.branch', 'branch')
+      .innerJoinAndSelect('branch.city', 'city')
+      .innerJoinAndSelect('city.state', 'state')
+      .innerJoinAndSelect('state.country', 'country')
+      .innerJoinAndSelect(
+        'inventory.productPresentation',
+        'productPresentation',
+      )
+      .innerJoinAndSelect('productPresentation.product', 'product')
+      .innerJoinAndSelect('productPresentation.presentation', 'presentation')
+      .innerJoinAndSelect('product.manufacturer', 'manufacturer');
+    if (branchId) {
+      query.andWhere('branch.id = :branchId', { branchId });
+    }
+    if (productPresentationId) {
+      query.andWhere('productPresentation.id = :productPresentationId', {
+        productPresentationId,
+      });
+    }
+    query.orderBy('inventory.createdAt', 'DESC');
+    query.skip((page - 1) * pageSize);
+    query.take(pageSize);
+    const inventories = await query.getMany();
+    return inventories;
   }
 
   async findOne(id: string): Promise<Inventory> {
