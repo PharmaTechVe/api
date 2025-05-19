@@ -39,6 +39,7 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('inventory')
 export class InventoryController {
@@ -128,7 +129,13 @@ export class InventoryController {
       query.branchId,
       query.productPresentationId,
     );
-    return { data, total };
+    return {
+      data: plainToInstance(ResponseInventoryDTO, data, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total,
+    };
   }
 
   @Get(':id')
