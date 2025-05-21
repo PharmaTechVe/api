@@ -175,31 +175,63 @@ export class InventoryService {
   ): Promise<Inventory[]> {
     const inventoriesToSave: Inventory[] = [];
     const movementsToSave: InventoryMovement[] = [];
-    //const lotsToSave: Lot[] = [];
+
+    const totalByPresentation: Record<string, number> = {};
+    for (const item of bulkUpdateDto.inventories) {
+      totalByPresentation[item.productPresentationId] =
+        (totalByPresentation[item.productPresentationId] || 0) + item.quantity;
+    }
+
+    const updatedPresentation: Record<string, boolean> = {};
+
+    const originalStockMap: Record<string, number> = {};
+    for (const key of Object.keys(inventoryMap)) {
+      originalStockMap[key] = inventoryMap[key].stockQuantity;
+    }
+
+    const lotMap = new Map<
+      string,
+      { quantity: number; expirationDate: Date }
+    >();
 
     for (const item of bulkUpdateDto.inventories) {
       const inventory = inventoryMap[item.productPresentationId];
       if (!inventory) continue;
 
-      inventory.stockQuantity = item.quantity;
-      inventoriesToSave.push(inventory);
+      if (!updatedPresentation[item.productPresentationId]) {
+        const originalQty = originalStockMap[item.productPresentationId];
+        const newTotalQty = totalByPresentation[item.productPresentationId];
 
-      const movement = this.inventoryMovementRepository.create({
-        inventory,
-        quantity: item.quantity,
-        type: MovementType.IN,
-      });
-      movementsToSave.push(movement);
+        inventory.stockQuantity = newTotalQty;
+        inventoriesToSave.push(inventory);
 
-      // if (item.expirationDate) {
-      //   const lot = this.lotRepository.create({
-      //     productPresentation: { id: item.productPresentationId },
-      //     branch: { id: branchId },
-      //     quantity: item.quantity,
-      //     expirationDate: new Date(item.expirationDate),
-      //   });
-      //   lotsToSave.push(lot);
-      // }
+        const delta = newTotalQty - originalQty;
+        if (delta !== 0) {
+          const movement = this.inventoryMovementRepository.create({
+            inventory,
+            quantity: Math.abs(delta),
+            type: delta > 0 ? MovementType.IN : MovementType.OUT,
+          });
+          movementsToSave.push(movement);
+        }
+        updatedPresentation[item.productPresentationId] = true;
+      }
+
+      if (item.expirationDate) {
+        const expDate =
+          item.expirationDate instanceof Date
+            ? item.expirationDate
+            : new Date(item.expirationDate);
+        const key = `${item.productPresentationId}_${expDate.toISOString()}`;
+        if (lotMap.has(key)) {
+          lotMap.get(key)!.quantity += item.quantity;
+        } else {
+          lotMap.set(key, {
+            quantity: item.quantity,
+            expirationDate: expDate,
+          });
+        }
+      }
     }
 
     const updatedInventories =
@@ -207,9 +239,31 @@ export class InventoryService {
     if (movementsToSave.length > 0) {
       await this.inventoryMovementRepository.save(movementsToSave);
     }
-    // if (lotsToSave.length > 0) {
-    //   await this.lotRepository.save(lotsToSave);
-    // }
+
+    for (const [key, info] of lotMap.entries()) {
+      const [presentationId] = key.split('_');
+
+      const existingLot = await this.lotRepository.findOne({
+        where: {
+          productPresentation: { id: presentationId },
+          branch: { id: branchId },
+          expirationDate: info.expirationDate,
+        },
+      });
+
+      if (existingLot) {
+        existingLot.quantity = info.quantity;
+        await this.lotRepository.save(existingLot);
+      } else {
+        const newLot = this.lotRepository.create({
+          productPresentation: { id: presentationId },
+          branch: { id: branchId },
+          quantity: info.quantity,
+          expirationDate: info.expirationDate,
+        });
+        await this.lotRepository.save(newLot);
+      }
+    }
 
     return updatedInventories;
   }
