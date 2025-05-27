@@ -212,6 +212,7 @@ export class OrderService {
         'details.productPresentation.product.images',
         'details.productPresentation.presentation',
         'orderDeliveries.employee',
+        'paymentConfirmation',
       ],
     });
     if (!order) {
@@ -232,6 +233,7 @@ export class OrderService {
         'details.productPresentation.product.images',
         'details.productPresentation.presentation',
         'orderDeliveries.employee',
+        'paymentConfirmation',
         'user',
         'user.profile',
       ],
