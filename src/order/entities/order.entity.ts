@@ -2,7 +2,14 @@ import { Branch } from 'src/branch/entities/branch.entity';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { User } from 'src/user/entities/user.entity';
 import { BaseModel, UUIDModel } from 'src/utils/entity';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+} from 'typeorm';
 import { OrderDelivery, OrderDetailDelivery } from './order_delivery.entity';
 import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
 import { PaymentConfirmation } from 'src/payments/entities/payment-confirmation.entity';
@@ -58,11 +65,11 @@ export class Order extends BaseModel {
   })
   paymentMethod: PaymentMethod;
 
-  @OneToMany(
+  @OneToOne(
     () => PaymentConfirmation,
     (paymentConfirmation) => paymentConfirmation.order,
   )
-  paymentConfirmations: PaymentConfirmation[];
+  paymentConfirmation: PaymentConfirmation;
 }
 
 @Entity()
@@ -94,12 +101,4 @@ export class OrderDetail extends UUIDModel {
     (orderDeliveryDetail) => orderDeliveryDetail.orderDetail,
   )
   orderDetailDeliveries: OrderDetailDelivery[];
-
-  @ManyToOne(() => PaymentConfirmation, {
-    nullable: true,
-    eager: true,
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'payment_confirmation_id' })
-  paymentConfirmation: PaymentConfirmation;
 }

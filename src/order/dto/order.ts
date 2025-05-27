@@ -125,15 +125,6 @@ export class ResponseOrderDetailDTO {
   @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
-
-  @Expose()
-  @ApiProperty({
-    description: 'Payment confirmation data (if any)',
-    type: ResponsePaymentConfirmationDTO,
-    required: false,
-  })
-  @Type(() => ResponsePaymentConfirmationDTO)
-  paymentConfirmation?: ResponsePaymentConfirmationDTO;
 }
 
 export class ResponseOrderDTO extends BaseDTO {
@@ -157,6 +148,15 @@ export class ResponseOrderDTO extends BaseDTO {
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod: PaymentMethod;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Payment confirmation data (if any)',
+    type: ResponsePaymentConfirmationDTO,
+    required: false,
+  })
+  @Type(() => ResponsePaymentConfirmationDTO)
+  paymentConfirmation?: ResponsePaymentConfirmationDTO;
 }
 
 export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
