@@ -96,6 +96,9 @@ export class OrderDetail extends UUIDModel {
   @Column({ type: 'int', name: 'subtotal' })
   subtotal: number;
 
+  @Column({ type: 'int', default: 0 })
+  discount: number;
+
   @OneToMany(
     () => OrderDetailDelivery,
     (orderDeliveryDetail) => orderDeliveryDetail.orderDetail,
