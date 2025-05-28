@@ -128,12 +128,16 @@ export class OrderService {
     });
     const order = await this.orderRepository.save(orderToCreate);
     const orderDetails = productsWithQuantity.map((product) => {
+      const priceWithDiscount = product.promo
+        ? product.price - (product.price * product.promo.discount) / 100
+        : product.price;
       return this.orderDetailRepository.create({
         order,
         productPresentation: product,
         quantity: product.quantity,
         price: product.price,
-        subtotal: product.price * product.quantity,
+        subtotal: Math.round(priceWithDiscount) * product.quantity,
+        discount: product.promo ? product.promo.discount : 0,
       });
     });
     await this.orderDetailRepository.save(orderDetails);
