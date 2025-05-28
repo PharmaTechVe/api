@@ -125,6 +125,10 @@ export class ResponseOrderDetailDTO {
   @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Discount applied to the order detail' })
+  discount: number;
 }
 
 export class ResponseOrderDTO extends BaseDTO {
