@@ -22,6 +22,8 @@ import { CartModule } from './cart/cart.module';
 import { RecommendationModule } from './recommendation/recommendation.module';
 import { ReportsModule } from './reports/reports.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { SalesModule } from './sales/sales.module';
+import { ActivePrincipleModule } from './active-principle/active-principle.module';
 
 @Module({
   imports: [
@@ -67,6 +69,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     CartModule,
     RecommendationModule,
     ReportsModule,
+    SalesModule,
+    ActivePrincipleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

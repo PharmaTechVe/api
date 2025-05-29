@@ -11,6 +11,8 @@ import {
   HttpCode,
   Query,
   UseInterceptors,
+  Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { InventoryService } from './inventory.service';
 import {
@@ -21,7 +23,7 @@ import {
   BulkUpdateInventoryDTO,
 } from './dto/inventory.dto';
 import { RolesGuard } from 'src/auth/roles.guard';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard, CustomRequest } from 'src/auth/auth.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/roles.decorador';
 import { BranchId } from 'src/auth/branch-id.decorator';
@@ -37,6 +39,7 @@ import { PaginationDTO } from 'src/utils/dto/pagination.dto';
 import { PaginationInterceptor } from 'src/utils/pagination.interceptor';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Pagination } from 'src/utils/pagination.decorator';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('inventory')
 export class InventoryController {
@@ -53,8 +56,15 @@ export class InventoryController {
     type: ResponseInventoryDTO,
   })
   async create(
+    @Req() req: CustomRequest,
     @Body() createInventoryDTO: CreateInventoryDTO,
   ): Promise<ResponseInventoryDTO> {
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      if (!req.user.branch) {
+        throw new BadRequestException('Branch not found');
+      }
+      createInventoryDTO.branchId = req.user.branch.id;
+    }
     return await this.inventoryService.create(createInventoryDTO);
   }
 
@@ -109,17 +119,19 @@ export class InventoryController {
     @Query() query: InventoryQueryDTO,
   ): Promise<{ data: ResponseInventoryDTO[]; total: number }> {
     const { page, limit } = pagination;
-    const data = await this.inventoryService.findAll(
+    const [data, total] = await this.inventoryService.findAll(
       page,
       limit,
       query.branchId,
       query.productPresentationId,
     );
-    const total = await this.inventoryService.countInventories(
-      query.branchId,
-      query.productPresentationId,
-    );
-    return { data, total };
+    return {
+      data: plainToInstance(ResponseInventoryDTO, data, {
+        excludeExtraneousValues: true,
+        enableImplicitConversion: true,
+      }),
+      total,
+    };
   }
 
   @Get(':id')
@@ -144,10 +156,15 @@ export class InventoryController {
     type: Inventory,
   })
   async update(
+    @Req() req: CustomRequest,
     @Param('id') id: string,
     @Body() updateInventoryDTO: UpdateInventoryDTO,
   ) {
-    return await this.inventoryService.update(id, updateInventoryDTO);
+    let branchId: string | undefined;
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
+    return await this.inventoryService.update(id, updateInventoryDTO, branchId);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -161,8 +178,15 @@ export class InventoryController {
     status: HttpStatus.NO_CONTENT,
     type: Inventory,
   })
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.inventoryService.remove(id);
+  async remove(
+    @Req() req: CustomRequest,
+    @Param('id') id: string,
+  ): Promise<void> {
+    let branchId: string | undefined;
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
+    await this.inventoryService.remove(id, branchId);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

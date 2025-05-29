@@ -3,7 +3,14 @@ import {
   ApiPropertyOptional,
   IntersectionType,
 } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsLatitude,
+  IsLongitude,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
 import { Expose, Transform, Type } from 'class-transformer';
 import { BaseUserDTO } from 'src/user/dto/user.dto';
@@ -161,4 +168,36 @@ export class OrderDeliveryEmployeeDTO extends IntersectionType(
   @ApiProperty({ description: 'Delivery address info', type: EmployeeDTO })
   @Type(() => EmployeeDTO)
   employee: EmployeeDTO;
+}
+
+export class UpdateDeliveryWsDTO {
+  @ApiProperty({ description: 'ID of the order delivery' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiPropertyOptional({ description: 'New delivery status' })
+  @IsOptional()
+  @IsString()
+  deliveryStatus?: string;
+
+  @ApiPropertyOptional({
+    description: 'indicate the delivery is rejected (employee unassign)',
+  })
+  @IsOptional()
+  employeeId?: string;
+}
+
+export class UpdateCoordinatesWsDTO {
+  @ApiProperty({ description: 'ID of the order delivery' })
+  @IsUUID()
+  orderId: string;
+
+  @ApiProperty({ description: 'Latitude of the delivery location' })
+  @IsLatitude()
+  latitude: number;
+
+  @ApiProperty({ description: 'Longitude of the delivery location' })
+  @IsLongitude()
+  longitude: number;
 }

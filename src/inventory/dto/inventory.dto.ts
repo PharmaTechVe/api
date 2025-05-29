@@ -12,9 +12,11 @@ import {
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 import { PaginationQueryDTO } from 'src/utils/dto/pagination.dto';
-import { Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
+import { ProductPresentationDTO } from 'src/products/dto/product.dto';
 
 export class InventoryDTO {
+  @Expose()
   @ApiProperty({ description: 'The stock quantity of the inventory' })
   @IsNumber()
   @IsNotEmpty()
@@ -48,20 +50,21 @@ export class CreateInventoryDTO extends InventoryDTO {
 
 export class UpdateInventoryDTO extends PartialType(InventoryDTO) {}
 
-class ProductPresentationDTO extends BaseDTO {
-  @ApiProperty({ description: 'The price of the product presentation' })
-  price: number;
-}
-
 export class ResponseInventoryDTO extends IntersectionType(
   InventoryDTO,
   BaseDTO,
 ) {
-  @ApiProperty({ description: 'The branch in wich the product is available' })
+  @Expose()
+  @ApiProperty({
+    description: 'The branch in wich the product is available',
+    type: ResponseBranchDTO,
+  })
   branch: ResponseBranchDTO;
 
+  @Expose()
   @ApiProperty({
     description: 'The product presentation of the product in the inventory',
+    type: ProductPresentationDTO,
   })
   productPresentation: ProductPresentationDTO;
 }

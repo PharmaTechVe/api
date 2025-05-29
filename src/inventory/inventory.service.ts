@@ -9,7 +9,7 @@ import {
   BulkUpdateInventoryDTO,
 } from './dto/inventory.dto';
 import { Inventory } from './entities/inventory.entity';
-import { Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProductPresentation } from 'src/products/entities/product-presentation.entity';
 import { BranchService } from 'src/branch/branch.service';
@@ -47,39 +47,38 @@ export class InventoryService {
     return await this.inventoryRepository.save(inventory);
   }
 
-  async countInventories(
-    branchId?: string,
-    productPresentationId?: string,
-  ): Promise<number> {
-    return await this.inventoryRepository.count({
-      relations: ['branch', 'productPresentation'],
-      where: {
-        branch: branchId ? { id: branchId } : undefined,
-        productPresentation: productPresentationId
-          ? { id: productPresentationId }
-          : undefined,
-      },
-    });
-  }
-
   async findAll(
     page: number,
     pageSize: number,
     branchId?: string,
     productPresentationId?: string,
-  ): Promise<Inventory[]> {
-    return await this.inventoryRepository.find({
-      relations: ['branch', 'productPresentation'],
-      where: {
-        branch: branchId ? { id: branchId } : undefined,
-        productPresentation: productPresentationId
-          ? { id: productPresentationId }
-          : undefined,
-      },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    });
+  ): Promise<[Inventory[], number]> {
+    const query = this.inventoryRepository.createQueryBuilder('inventory');
+    query
+      .innerJoinAndSelect('inventory.branch', 'branch')
+      .innerJoinAndSelect('branch.city', 'city')
+      .innerJoinAndSelect('city.state', 'state')
+      .innerJoinAndSelect('state.country', 'country')
+      .innerJoinAndSelect(
+        'inventory.productPresentation',
+        'productPresentation',
+      )
+      .innerJoinAndSelect('productPresentation.product', 'product')
+      .innerJoinAndSelect('productPresentation.presentation', 'presentation')
+      .innerJoinAndSelect('product.manufacturer', 'manufacturer');
+    if (branchId) {
+      query.andWhere('branch.id = :branchId', { branchId });
+    }
+    if (productPresentationId) {
+      query.andWhere('productPresentation.id = :productPresentationId', {
+        productPresentationId,
+      });
+    }
+    query.orderBy('inventory.createdAt', 'DESC');
+    query.skip((page - 1) * pageSize);
+    query.take(pageSize);
+    const [inventories, total] = await query.getManyAndCount();
+    return [inventories, total];
   }
 
   async findOne(id: string): Promise<Inventory> {
@@ -111,14 +110,40 @@ export class InventoryService {
   async update(
     id: string,
     updateInventoryDTO: UpdateInventoryDTO,
+    branchId?: string,
   ): Promise<Inventory> {
-    const inventory = await this.findOne(id);
+    let where: FindOneOptions<Inventory> = { where: { id } };
+    if (branchId) {
+      where = {
+        where: { id, branch: { id: branchId } },
+      };
+    }
+    const inventory = await this.inventoryRepository.findOne(where);
+    if (!inventory) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
+    const delta = updateInventoryDTO.stockQuantity! - inventory.stockQuantity;
+    const movement = this.inventoryMovementRepository.create({
+      inventory,
+      quantity: Math.abs(delta),
+      type: delta > 0 ? MovementType.IN : MovementType.OUT,
+    });
     const updatedInventory = { ...inventory, ...updateInventoryDTO };
+    await this.inventoryMovementRepository.save(movement);
     return await this.inventoryRepository.save(updatedInventory);
   }
 
-  async remove(id: string): Promise<boolean> {
-    const inventory = await this.findOne(id);
+  async remove(id: string, branchId?: string): Promise<boolean> {
+    let where: FindOneOptions<Inventory> = { where: { id } };
+    if (branchId) {
+      where = {
+        where: { id, branch: { id: branchId } },
+      };
+    }
+    const inventory = await this.inventoryRepository.findOne(where);
+    if (!inventory) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
     const deleted = await this.inventoryRepository.softDelete(inventory.id);
     if (!deleted.affected) {
       throw new NotFoundException(`Inventory #${id} not found`);
@@ -160,31 +185,63 @@ export class InventoryService {
   ): Promise<Inventory[]> {
     const inventoriesToSave: Inventory[] = [];
     const movementsToSave: InventoryMovement[] = [];
-    //const lotsToSave: Lot[] = [];
+
+    const totalByPresentation: Record<string, number> = {};
+    for (const item of bulkUpdateDto.inventories) {
+      totalByPresentation[item.productPresentationId] =
+        (totalByPresentation[item.productPresentationId] || 0) + item.quantity;
+    }
+
+    const updatedPresentation: Record<string, boolean> = {};
+
+    const originalStockMap: Record<string, number> = {};
+    for (const key of Object.keys(inventoryMap)) {
+      originalStockMap[key] = inventoryMap[key].stockQuantity;
+    }
+
+    const lotMap = new Map<
+      string,
+      { quantity: number; expirationDate: Date }
+    >();
 
     for (const item of bulkUpdateDto.inventories) {
       const inventory = inventoryMap[item.productPresentationId];
       if (!inventory) continue;
 
-      inventory.stockQuantity = item.quantity;
-      inventoriesToSave.push(inventory);
+      if (!updatedPresentation[item.productPresentationId]) {
+        const originalQty = originalStockMap[item.productPresentationId];
+        const newTotalQty = totalByPresentation[item.productPresentationId];
 
-      const movement = this.inventoryMovementRepository.create({
-        inventory,
-        quantity: item.quantity,
-        type: MovementType.IN,
-      });
-      movementsToSave.push(movement);
+        inventory.stockQuantity = newTotalQty;
+        inventoriesToSave.push(inventory);
 
-      // if (item.expirationDate) {
-      //   const lot = this.lotRepository.create({
-      //     productPresentation: { id: item.productPresentationId },
-      //     branch: { id: branchId },
-      //     quantity: item.quantity,
-      //     expirationDate: new Date(item.expirationDate),
-      //   });
-      //   lotsToSave.push(lot);
-      // }
+        const delta = newTotalQty - originalQty;
+        if (delta !== 0) {
+          const movement = this.inventoryMovementRepository.create({
+            inventory,
+            quantity: Math.abs(delta),
+            type: delta > 0 ? MovementType.IN : MovementType.OUT,
+          });
+          movementsToSave.push(movement);
+        }
+        updatedPresentation[item.productPresentationId] = true;
+      }
+
+      if (item.expirationDate) {
+        const expDate =
+          item.expirationDate instanceof Date
+            ? item.expirationDate
+            : new Date(item.expirationDate);
+        const key = `${item.productPresentationId}_${expDate.toISOString()}`;
+        if (lotMap.has(key)) {
+          lotMap.get(key)!.quantity += item.quantity;
+        } else {
+          lotMap.set(key, {
+            quantity: item.quantity,
+            expirationDate: expDate,
+          });
+        }
+      }
     }
 
     const updatedInventories =
@@ -192,9 +249,31 @@ export class InventoryService {
     if (movementsToSave.length > 0) {
       await this.inventoryMovementRepository.save(movementsToSave);
     }
-    // if (lotsToSave.length > 0) {
-    //   await this.lotRepository.save(lotsToSave);
-    // }
+
+    for (const [key, info] of lotMap.entries()) {
+      const [presentationId] = key.split('_');
+
+      const existingLot = await this.lotRepository.findOne({
+        where: {
+          productPresentation: { id: presentationId },
+          branch: { id: branchId },
+          expirationDate: info.expirationDate,
+        },
+      });
+
+      if (existingLot) {
+        existingLot.quantity = info.quantity;
+        await this.lotRepository.save(existingLot);
+      } else {
+        const newLot = this.lotRepository.create({
+          productPresentation: { id: presentationId },
+          branch: { id: branchId },
+          quantity: info.quantity,
+          expirationDate: info.expirationDate,
+        });
+        await this.lotRepository.save(newLot);
+      }
+    }
 
     return updatedInventories;
   }

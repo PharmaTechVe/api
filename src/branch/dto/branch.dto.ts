@@ -1,6 +1,13 @@
 import { ApiProperty, IntersectionType, PartialType } from '@nestjs/swagger';
-import { Expose } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
+import { Expose, Type } from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 import { CityDTO } from 'src/city/dto/city.dto';
 import { BaseDTO } from 'src/utils/dto/base.dto';
 
@@ -36,6 +43,7 @@ class BranchDTO {
 
 export class CreateBranchDTO extends BranchDTO {
   @IsNotEmpty()
+  @IsUUID()
   @ApiProperty({ description: 'The city id of the branch' })
   cityId: string;
 }
@@ -44,6 +52,7 @@ export class UpdateBranchDTO extends PartialType(CreateBranchDTO) {}
 
 export class ResponseBranchDTO extends IntersectionType(BranchDTO, BaseDTO) {
   @Expose()
-  @ApiProperty({ description: 'The city of the branch' })
+  @ApiProperty({ description: 'The city of the branch', type: CityDTO })
+  @Type(() => CityDTO)
   city: CityDTO;
 }

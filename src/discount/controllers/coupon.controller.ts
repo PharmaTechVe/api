@@ -18,6 +18,8 @@ import {
   UpdateCouponDTO,
   ResponseCouponDTO,
   CouponQueryDTO,
+  CouponListDeleteDTO,
+  CouponListUpdateDTO,
 } from '../dto/coupon.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -41,7 +43,7 @@ export class CouponController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @ApiOperation({ summary: 'Create a coupon' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -54,7 +56,7 @@ export class CouponController {
 
   @Get()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
   @UseInterceptors(PaginationInterceptor)
   @ApiOperation({ summary: 'List all coupons' })
   @ApiQuery({
@@ -115,6 +117,42 @@ export class CouponController {
     return { data, total };
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @Delete('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk delete coupons' })
+  @ApiResponse({
+    description: 'Successful bulk deletion of coupons',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkDelete(
+    @Body() couponListDeleteDTO: CouponListDeleteDTO,
+  ): Promise<void> {
+    await this.couponService.bulkDelete(couponListDeleteDTO.ids);
+  }
+
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @Patch('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk update coupons' })
+  @ApiResponse({
+    description: 'Successful bulk update of coupons',
+    status: HttpStatus.NO_CONTENT,
+  })
+  async bulkUpdate(
+    @Body() couponListUpdateDTO: CouponListUpdateDTO,
+  ): Promise<void> {
+    await this.couponService.bulkUpdate(
+      couponListUpdateDTO.ids,
+      couponListUpdateDTO.maxUses,
+      couponListUpdateDTO.expirationDate,
+    );
+  }
+
   @Get(':code')
   @ApiOperation({ summary: 'Get coupon by code' })
   @ApiResponse({
@@ -128,7 +166,8 @@ export class CouponController {
 
   @Patch(':code')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update coupon by code' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -145,7 +184,8 @@ export class CouponController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':code')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete coupon by code' })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,

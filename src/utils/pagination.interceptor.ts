@@ -22,10 +22,7 @@ export class PaginationInterceptor<T> implements NestInterceptor {
     next: CallHandler,
   ): Observable<PaginationDTO<T>> {
     const req = context.switchToHttp().getRequest<PaginationRequest>();
-
     const paginationQuery = plainToInstance(PaginationQueryDTO, req.query);
-    console.log('paginationQuery after transformation:', paginationQuery);
-
     const errors = validateSync(paginationQuery);
 
     if (errors.length > 0) {
@@ -35,8 +32,6 @@ export class PaginationInterceptor<T> implements NestInterceptor {
     }
 
     req.pagination = paginationQuery;
-    console.log('Pagination received:', paginationQuery);
-
     const { page, limit } = paginationQuery;
     const baseUrl = `${req.protocol}://${req.get('host')}${req.path}`;
 

@@ -93,4 +93,20 @@ export class BranchService {
     });
     return deleted.affected === 1;
   }
+
+  async findNearestBranch(lat: number, lng: number): Promise<Branch> {
+    const branch = await this.branchRepository
+      .createQueryBuilder('branch')
+      .orderBy(
+        `ST_DistanceSphere(ST_MakePoint(branch.longitude, branch.latitude), ST_MakePoint(:lng, :lat))`,
+      )
+      .setParameters({ lat, lng })
+      .getOne();
+
+    if (!branch) {
+      throw new NotFoundException('No closer branch found');
+    }
+
+    return branch;
+  }
 }

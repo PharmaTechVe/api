@@ -5,7 +5,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { UserAdminDTO, UserDTO, UpdateUserDTO } from './dto/user.dto';
 import { User, UserRole } from './entities/user.entity';
 import { UserOTP } from './entities/user-otp.entity';
@@ -16,6 +16,9 @@ import { CreateUserAddressDTO } from './dto/user-address.dto';
 import { ConfigService } from '@nestjs/config';
 import { UserMoto } from './entities/user-moto.entity';
 import { UpdateUserMotoDTO } from './dto/user-moto.dto';
+import { BranchService } from 'src/branch/branch.service';
+import { EmailService } from 'src/email/email.service';
+import { generateRandomPassword } from 'src/utils/password';
 
 @Injectable()
 export class UserService {
@@ -31,6 +34,9 @@ export class UserService {
     @InjectRepository(UserMoto)
     private UserMotoRepository: Repository<UserMoto>,
     private configService: ConfigService,
+
+    private readonly branchService: BranchService,
+    private emailService: EmailService,
   ) {}
 
   async userExists(options: Partial<User>): Promise<boolean> {
@@ -122,11 +128,36 @@ export class UserService {
     if (documentUsed) {
       throw new BadRequestException('The document is already in use');
     }
-    const password: string = this.configService.get('ADMIN_PASSWORD', '');
+    const password: string = generateRandomPassword(8);
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
     newUser.password = hashedPassword;
+    newUser.isGenericPassword = true;
+    if (
+      user.role === UserRole.BRANCH_ADMIN ||
+      user.role === UserRole.DELIVERY
+    ) {
+      if (!user.branchId) {
+        throw new BadRequestException('branchId is required for this role');
+      }
+
+      const branch = await this.branchService.findOne(user.branchId);
+
+      newUser.branch = branch;
+    }
     const userCreated = await this.userRepository.save(newUser);
+
+    await this.emailService.sendEmail({
+      recipients: [{ email: user.email, name: user.firstName }],
+      subject: 'Welcome to Pharmatech',
+      html: `
+        <p>Hola ${newUser.firstName}, tu cuenta ha sido creada.</p>
+        <p>Aca esta tu contraseña: <b>${password}</b></p>
+        <p>Por favor, cambiala al iniciar sesión.</p>
+        `,
+      text: `Hola ${newUser.firstName}, tu cuenta ha sido creada, aca esta tu contraseña: ${password}`,
+    });
+
     const profile = new Profile();
     profile.user = userCreated;
     if (user.gender) {
@@ -384,7 +415,23 @@ export class UserService {
     if (!user) {
       return;
     }
-    user.wsId = undefined;
-    await this.userRepository.save(user);
+    await this.userRepository.update(user.id, { wsId: '' });
+  }
+
+  async bulkUpdate(
+    userIds: string[],
+    isValidated?: boolean,
+    UserRole?: UserRole,
+  ): Promise<User[]> {
+    const users = await this.userRepository.findBy({ id: In(userIds) });
+    if (!users.length) {
+      throw new NotFoundException('No users found');
+    }
+
+    const updatedUsers = users.map((user) => {
+      return { ...user, isValidated, role: UserRole };
+    });
+
+    return await this.userRepository.save(updatedUsers);
   }
 }

@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsPositive,
   IsString,
@@ -19,6 +20,7 @@ import { ResponseOrderProductPresentationDetailDTO } from 'src/products/dto/prod
 import { ResponseBranchDTO } from 'src/branch/dto/branch.dto';
 import { OrderDeliveryEmployeeDTO } from './order-delivery.dto';
 import { PaymentMethod } from 'src/payments/entities/payment-information.entity';
+import { ResponsePaymentConfirmationDTO } from 'src/payments/dto/payment-confirmation.dto';
 
 export class CreateOrderDetailDTO {
   @ApiProperty({ description: 'ID of the product presentation' })
@@ -115,8 +117,18 @@ export class ResponseOrderDetailDTO {
   quantity: number;
 
   @Expose()
+  @ApiProperty({ description: 'Product price' })
+  @IsInt()
+  @IsPositive()
+  price: number;
+
+  @Expose()
   @ApiProperty({ description: 'Subtotal price of the order detail' })
   subtotal: number;
+
+  @Expose()
+  @ApiProperty({ description: 'Discount applied to the order detail' })
+  discount: number;
 }
 
 export class ResponseOrderDTO extends BaseDTO {
@@ -140,6 +152,15 @@ export class ResponseOrderDTO extends BaseDTO {
   @IsEnum(PaymentMethod)
   @IsOptional()
   paymentMethod: PaymentMethod;
+
+  @Expose()
+  @ApiProperty({
+    description: 'Payment confirmation data (if any)',
+    type: ResponsePaymentConfirmationDTO,
+    required: false,
+  })
+  @Type(() => ResponsePaymentConfirmationDTO)
+  paymentConfirmation?: ResponsePaymentConfirmationDTO;
 }
 
 export class ResponseOrderDetailedDTO extends ResponseOrderDTO {
@@ -209,6 +230,16 @@ export class UpdateOrderStatusWsDTO {
     description: 'New status of the order',
     enum: OrderStatus,
   })
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
+}
+
+export class OrderListUpdateDTO {
+  @ArrayNotEmpty()
+  @IsUUID(undefined, { each: true })
+  orders: string[];
+
+  @IsNotEmpty()
   @IsEnum(OrderStatus)
   status: OrderStatus;
 }

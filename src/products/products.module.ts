@@ -26,6 +26,9 @@ import { ProductCategoryController } from './controllers/product-category.contro
 import { ProductCategoryService } from './services/product-category.service';
 import { CategoryService } from 'src/category/category.service';
 import { RecommendationService } from 'src/recommendation/recommendation.service';
+import { LotService } from './services/lot.service';
+import { LotController } from './controllers/lot.controller';
+import { Lot } from './entities/lot.entity';
 
 @Module({
   imports: [
@@ -37,6 +40,7 @@ import { RecommendationService } from 'src/recommendation/recommendation.service
       Country,
       Category,
       ProductImage,
+      Lot,
     ]),
     AuthModule,
     forwardRef(() => DiscountModule),
@@ -49,6 +53,7 @@ import { RecommendationService } from 'src/recommendation/recommendation.service
     ProductPresentationController,
     ProductImageController,
     ProductCategoryController,
+    LotController,
   ],
   providers: [
     CategoryService,
@@ -61,6 +66,7 @@ import { RecommendationService } from 'src/recommendation/recommendation.service
     ProductImageService,
     ProductCategoryService,
     RecommendationService,
+    LotService,
   ],
 })
 export class ProductsModule {}

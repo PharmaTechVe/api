@@ -14,9 +14,10 @@ import {
   Patch,
   NotFoundException,
 } from '@nestjs/common';
-import { OrderService } from '../order.service';
+import { OrderService } from '../services/order.service';
 import {
   CreateOrderDTO,
+  OrderListUpdateDTO,
   OrderQueryDTO,
   ResponseOrderDetailedDTO,
   ResponseOrderDTO,
@@ -138,10 +139,14 @@ export class OrderController {
     @Req() req: CustomRequest,
     @Query() query: OrderQueryDTO,
   ): Promise<{ data: ResponseOrderDTO[]; total: number }> {
-    const { page, limit, userId, branchId, status, type } = query;
+    const { page, limit, userId, status, type } = query;
+    let { branchId } = query;
     let user;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       if (userId) user = userId;
+      if (req.user.role === UserRole.BRANCH_ADMIN) {
+        branchId = req.user.branch.id;
+      }
     } else {
       user = req.user.id;
     }
@@ -162,6 +167,30 @@ export class OrderController {
     };
   }
 
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.BRANCH_ADMIN)
+  @Patch('bulk')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Bulk update orders' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Orders updated successfully',
+  })
+  async bulkUpdate(
+    @Req() req: CustomRequest,
+    @Body() updateOrderDto: OrderListUpdateDTO,
+  ): Promise<void> {
+    let branchId: string | undefined;
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
+    await this.orderService.bulkUpdate(
+      updateOrderDto.orders,
+      updateOrderDto.status,
+      branchId,
+    );
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
@@ -178,6 +207,11 @@ export class OrderController {
     let order: Order;
     if ([UserRole.ADMIN, UserRole.BRANCH_ADMIN].includes(req.user.role)) {
       order = await this.orderService.findOne(id);
+      if (req.user.role === UserRole.BRANCH_ADMIN) {
+        if (order.branch.id !== req.user.branch.id) {
+          throw new NotFoundException('Order not found');
+        }
+      }
     } else if ([UserRole.DELIVERY].includes(req.user.role)) {
       order = await this.orderService.findOne(id);
       if (order.type !== OrderType.DELIVERY) {
@@ -209,9 +243,18 @@ export class OrderController {
     type: ResponseOrderDetailedDTO,
   })
   async update(
+    @Req() req: CustomRequest,
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateOrderStatusDTO: UpdateOrderStatusDTO,
   ) {
-    return await this.orderService.update(id, updateOrderStatusDTO.status);
+    let branchId: string | undefined;
+    if (req.user.role === UserRole.BRANCH_ADMIN) {
+      branchId = req.user.branch.id;
+    }
+    return await this.orderService.update(
+      id,
+      updateOrderStatusDTO.status,
+      branchId,
+    );
   }
 }
