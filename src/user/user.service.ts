@@ -18,6 +18,7 @@ import { UserMoto } from './entities/user-moto.entity';
 import { UpdateUserMotoDTO } from './dto/user-moto.dto';
 import { BranchService } from 'src/branch/branch.service';
 import { EmailService } from 'src/email/email.service';
+import { generateRandomPassword } from 'src/utils/password';
 
 @Injectable()
 export class UserService {
@@ -127,7 +128,7 @@ export class UserService {
     if (documentUsed) {
       throw new BadRequestException('The document is already in use');
     }
-    const password: string = this.configService.get('ADMIN_PASSWORD', '');
+    const password: string = generateRandomPassword(8);
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = this.userRepository.create(user);
     newUser.password = hashedPassword;
@@ -149,8 +150,12 @@ export class UserService {
     await this.emailService.sendEmail({
       recipients: [{ email: user.email, name: user.firstName }],
       subject: 'Welcome to Pharmatech',
-      html: `<p>Hi, your account has been created. Your password is: <b>${password}</b></p>`,
-      text: `Hi, your account has been created. Your password is: ${password}`,
+      html: `
+        <p>Hola ${newUser.firstName}, tu cuenta ha sido creada.</p>
+        <p>Aca esta tu contraseña: <b>${password}</b></p>
+        <p>Por favor, cambiala al iniciar sesión.</p>
+        `,
+      text: `Hola ${newUser.firstName}, tu cuenta ha sido creada, aca esta tu contraseña: ${password}`,
     });
 
     const profile = new Profile();
