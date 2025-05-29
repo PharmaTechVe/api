@@ -104,9 +104,10 @@ export class OrderService {
     }
 
     let totalPrice = productsWithQuantity.reduce((acc, product) => {
-      const price = product.promo
-        ? product.price - (product.price * product.promo.discount) / 100
-        : product.price;
+      const price =
+        product.promo && product.promo.expiredAt > new Date()
+          ? product.price - (product.price * product.promo.discount) / 100
+          : product.price;
       return acc + Math.round(price) * product.quantity;
     }, 0);
 
