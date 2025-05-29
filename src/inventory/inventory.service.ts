@@ -119,7 +119,17 @@ export class InventoryService {
       };
     }
     const inventory = await this.inventoryRepository.findOne(where);
+    if (!inventory) {
+      throw new NotFoundException(`Inventory #${id} not found`);
+    }
+    const delta = updateInventoryDTO.stockQuantity! - inventory.stockQuantity;
+    const movement = this.inventoryMovementRepository.create({
+      inventory,
+      quantity: Math.abs(delta),
+      type: delta > 0 ? MovementType.IN : MovementType.OUT,
+    });
     const updatedInventory = { ...inventory, ...updateInventoryDTO };
+    await this.inventoryMovementRepository.save(movement);
     return await this.inventoryRepository.save(updatedInventory);
   }
 
