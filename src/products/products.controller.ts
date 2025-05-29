@@ -151,19 +151,20 @@ export class ProductsController {
       isVisible,
       id,
     } = pagination;
-    const { products, total } = await this.productsServices.getProducts(
-      page,
-      limit,
-      q,
-      categoryId,
-      manufacturerId,
-      branchId,
-      presentationId,
-      genericProductId,
-      priceRange,
-      isVisible,
-      id,
-    );
+    const { products, total } =
+      await this.productsServices.getProductQueryBuilder(
+        page,
+        limit,
+        q,
+        categoryId,
+        manufacturerId,
+        branchId,
+        presentationId,
+        genericProductId,
+        priceRange,
+        isVisible,
+        id,
+      );
 
     return {
       data: plainToInstance(ProductPresentationDTO, products, {
