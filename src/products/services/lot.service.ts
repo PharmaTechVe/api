@@ -28,11 +28,11 @@ export class LotService {
       .innerJoinAndSelect('product.manufacturer', 'manufacturer');
 
     if (branchId) {
-      query.andWhere('lot.branchId = :branchId', { branchId });
+      query.andWhere('branch.id = :branchId', { branchId });
     }
 
     if (productPresentationId) {
-      query.andWhere('lot.productPresentationId = :productPresentationId', {
+      query.andWhere('productPresentation.id = :productPresentationId', {
         productPresentationId,
       });
     }
