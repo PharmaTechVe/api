@@ -53,7 +53,7 @@ export class ProductsService {
       query.andWhere('product_presentation.id IN (:...ids)', { ids });
     }
     if (categoryIds && categoryIds.length > 0) {
-      query.andWhere('product.categories.id IN (:...categoryIds)', {
+      query.andWhere('categories.id IN (:...categoryIds)', {
         categoryIds,
       });
     }
