@@ -55,6 +55,17 @@ export class ProductsService {
         }),
       );
     }
+
+    if (withPromo) {
+      query
+        .andWhere('promo.startAt <= :currentDate', {
+          currentDate: new Date(),
+        })
+        .andWhere('promo.expiredAt >= :currentDate', {
+          currentDate: new Date(),
+        });
+    }
+
     if (ids && ids.length > 0) {
       query.andWhere('product_presentation.id IN (:...ids)', { ids });
     }
