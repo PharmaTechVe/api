@@ -114,7 +114,7 @@ export class ProductsService {
       query.andWhere('product_presentation.isVisible = true');
     }
     query
-      .orderBy('product_presentation.createdAt', 'DESC')
+      .orderBy('product.priority', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
     const [products, total] = await query.getManyAndCount();
