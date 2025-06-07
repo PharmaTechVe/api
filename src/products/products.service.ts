@@ -115,6 +115,7 @@ export class ProductsService {
     }
     query
       .orderBy('product.priority', 'ASC')
+      .addOrderBy('product_presentation.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
     const [products, total] = await query.getManyAndCount();
