@@ -16,9 +16,6 @@ export class PaymentConfirmation extends BaseModel {
   @Column({ type: 'character varying', name: 'phone_number' })
   phoneNumber: string;
 
-  @Column({ type: 'integer', name: 'amount_bs', default: 0 })
-  amountBs: number;
-
   @OneToOne(() => Order, (order) => order.paymentConfirmation, {
     onDelete: 'RESTRICT',
   })
