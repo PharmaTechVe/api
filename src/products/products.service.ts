@@ -22,6 +22,7 @@ export class ProductsService {
     priceRange?: number[],
     isVisible?: boolean,
     ids?: string[],
+    withPromo?: boolean,
   ) {
     const query = this.productPresentationRepository.createQueryBuilder(
       'product_presentation',
@@ -31,8 +32,13 @@ export class ProductsService {
       .innerJoinAndSelect('product.images', 'images')
       .innerJoinAndSelect('product.manufacturer', 'manufacturer')
       .innerJoinAndSelect('product.categories', 'categories')
-      .innerJoinAndSelect('product_presentation.presentation', 'presentation')
-      .leftJoinAndSelect('product_presentation.promo', 'promo');
+      .innerJoinAndSelect('product_presentation.presentation', 'presentation');
+
+    if (withPromo) {
+      query.innerJoinAndSelect('product_presentation.promo', 'promo');
+    } else {
+      query.leftJoinAndSelect('product_presentation.promo', 'promo');
+    }
 
     if (searchQuery) {
       query.where(

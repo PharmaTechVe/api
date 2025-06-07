@@ -141,6 +141,15 @@ export class ProductQueryDTO extends PaginationQueryDTO {
   @IsBoolean()
   isVisible?: boolean;
 
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  })
+  @IsBoolean()
+  withPromo?: boolean;
+
   constructor(
     page: number,
     limit: number,
@@ -152,6 +161,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     genericProductId?: string[],
     priceRange?: number[],
     isVisible?: boolean,
+    withPromo?: boolean,
     id?: string[],
   ) {
     super(page, limit);
@@ -163,6 +173,7 @@ export class ProductQueryDTO extends PaginationQueryDTO {
     this.genericProductId = genericProductId ? genericProductId : [];
     this.priceRange = priceRange ? priceRange : [];
     this.isVisible = isVisible;
+    this.withPromo = withPromo;
     this.id = id ? id : [];
   }
 }
