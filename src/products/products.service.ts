@@ -22,6 +22,7 @@ export class ProductsService {
     priceRange?: number[],
     isVisible?: boolean,
     ids?: string[],
+    withPromo?: boolean,
   ) {
     const query = this.productPresentationRepository.createQueryBuilder(
       'product_presentation',
@@ -31,8 +32,13 @@ export class ProductsService {
       .innerJoinAndSelect('product.images', 'images')
       .innerJoinAndSelect('product.manufacturer', 'manufacturer')
       .innerJoinAndSelect('product.categories', 'categories')
-      .innerJoinAndSelect('product_presentation.presentation', 'presentation')
-      .leftJoinAndSelect('product_presentation.promo', 'promo');
+      .innerJoinAndSelect('product_presentation.presentation', 'presentation');
+
+    if (withPromo) {
+      query.innerJoinAndSelect('product_presentation.promo', 'promo');
+    } else {
+      query.leftJoinAndSelect('product_presentation.promo', 'promo');
+    }
 
     if (searchQuery) {
       query.where(
@@ -49,6 +55,17 @@ export class ProductsService {
         }),
       );
     }
+
+    if (withPromo) {
+      query
+        .andWhere('promo.startAt <= :currentDate', {
+          currentDate: new Date(),
+        })
+        .andWhere('promo.expiredAt >= :currentDate', {
+          currentDate: new Date(),
+        });
+    }
+
     if (ids && ids.length > 0) {
       query.andWhere('product_presentation.id IN (:...ids)', { ids });
     }
@@ -97,7 +114,8 @@ export class ProductsService {
       query.andWhere('product_presentation.isVisible = true');
     }
     query
-      .orderBy('product_presentation.createdAt', 'DESC')
+      .orderBy('product.priority', 'ASC')
+      .addOrderBy('product_presentation.id', 'ASC')
       .skip((page - 1) * limit)
       .take(limit);
     const [products, total] = await query.getManyAndCount();

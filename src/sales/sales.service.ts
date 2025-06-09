@@ -94,8 +94,9 @@ export class SalesService {
 
       return {
         date: formatted,
-        predictedTotal: parseInt(
-          (predictedValues as number[][])[index][0].toFixed(2),
+        predictedTotal: Math.max(
+          parseInt((predictedValues as number[][])[index][0].toFixed(2)),
+          0,
         ),
       };
     });

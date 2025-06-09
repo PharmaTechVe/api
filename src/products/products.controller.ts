@@ -150,6 +150,7 @@ export class ProductsController {
       priceRange,
       isVisible,
       id,
+      withPromo,
     } = pagination;
     const { products, total } =
       await this.productsServices.getProductQueryBuilder(
@@ -164,6 +165,7 @@ export class ProductsController {
         priceRange,
         isVisible,
         id,
+        withPromo,
       );
 
     return {
@@ -181,7 +183,7 @@ export class ProductsController {
   async getProductRecommendations(@Req() req: CustomRequest) {
     const userId = req.user.id;
     const recommendations = await this.recommendationService.recommend(userId);
-    const products = await this.productsServices.getProducts(
+    const products = await this.productsServices.getProductQueryBuilder(
       1,
       10,
       undefined,
